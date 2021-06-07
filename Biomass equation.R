@@ -76,13 +76,13 @@ allo_dat.as_no$cyl.vol = allo_dat.as_no$radius^2*pi*allo_dat.as_no$length_cm
 
 
 #Creating formula log(ww) ~ log(cyl.vol)
-mod2=lm(log(allo_dat.as_no$wet_weight_g) ~ log(allo_dat.as_no$cyl.vol))
+mod2=lm(log(allo_dat.as_no$dry_weight_g) ~ log(allo_dat.as_no$cyl.vol))
 summary(mod2)
 #plot(mod2) #ok
 
 
-res= data.frame(log.ww=(log(allo_dat.as_no$wet_weight_g)),log.cyl.vol=log(allo_dat.as_no$cyl.vol))
-ggscatter(data=res, y="log.ww",x="log.cyl.vol",add = "reg.line")
+res= data.frame(log.dw=(log(allo_dat.as_no$dry_weight_g)),log.cyl.vol=log(allo_dat.as_no$cyl.vol))
+ggscatter(data=res, y="log.dw",x="log.cyl.vol",add = "reg.line")
 
 #How accurate?
 fitted(mod2)
