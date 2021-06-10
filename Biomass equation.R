@@ -3,7 +3,6 @@ library(googlesheets4)
 library(ggpubr)
 library(dplyr)
 
-
 ######Data Import#####
 allo_dat <- read_sheet("https://docs.google.com/spreadsheets/d/167zCNjbmZ1PV5V1vZeGe9QcIrvhJ4diZ8q2rF9Ggry0/edit#gid=0", sheet = "Sheet1")
 
@@ -11,6 +10,7 @@ allo_dat.fu_se = allo_dat %>% filter(binomial == "fucus_serratus")
 allo_dat.as_no = allo_dat %>% filter(binomial == "ascophyllum_nodosum")
 
 #####Fucus Serratus####
+
 
 #dryweight ~ wetweight
 mod1=lm(allo_dat.fu_se$dry_weight_g ~ allo_dat.fu_se$wet_weight_g)
@@ -31,6 +31,13 @@ summary(mod2)
 #plot(mod2) #ok
 
 coef(mod2)
+
+
+#Creating formula log(dw) ~ log(length^3)
+mod2=lm(log(allo_dat.fu_se$dry_weight_g) ~ log(allo_dat.fu_se$length_cm))
+summary(mod2)
+plot(mod2)
+plot(log(allo_dat.fu_se$dry_weight_g) ,log(allo_dat.fu_se$length_cm))
 
 
 #plotting
@@ -79,6 +86,11 @@ allo_dat.as_no$cyl.vol = allo_dat.as_no$radius^2*pi*allo_dat.as_no$length_cm
 mod2=lm(log(allo_dat.as_no$dry_weight_g) ~ log(allo_dat.as_no$cyl.vol))
 summary(mod2)
 #plot(mod2) #ok
+
+#A model with length
+mod2=lm(log(allo_dat.as_no$dry_weight_g) ~ log(allo_dat.as_no$length_cm*(allo_dat.as_no$circum_cm^2)))
+summary(mod2)
+
 
 
 res= data.frame(log.dw=(log(allo_dat.as_no$dry_weight_g)),log.cyl.vol=log(allo_dat.as_no$cyl.vol))
