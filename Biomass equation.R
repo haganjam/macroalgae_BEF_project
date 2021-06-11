@@ -9,7 +9,7 @@ allo_dat <- read_sheet("https://docs.google.com/spreadsheets/d/167zCNjbmZ1PV5V1v
 allo_dat.fu_se = allo_dat %>% filter(binomial == "fucus_serratus")
 allo_dat.as_no = allo_dat %>% filter(binomial == "ascophyllum_nodosum")
 
-#####Fucus Serratus####
+##### Fucus Serratus####
 
 
 #dryweight ~ wetweight
@@ -66,7 +66,7 @@ cor(buchanan_dw,allo_dat.fu_se$pred.dryweight)^2
 
 
 
-####Ascophyllum Nodosum#######
+##### Ascophyllum Nodosum#######
 mod1=lm(allo_dat.as_no$dry_weight_g ~ allo_dat.as_no$wet_weight_g)
 summary(mod1)
 
@@ -109,5 +109,20 @@ pred_as_no$upr=exp(pred_as_no$upr)
 ggplot(pred_as_no) +
   geom_bar( aes(x=name, y=fit), stat="identity", fill="black", alpha=0.5) +
   geom_errorbar( aes(x=name, ymin=lwr, ymax=upr), width=0.3, colour="orange", alpha=0.9, size=0.5)
+
+
+
+##### Fucus vesiculosus
+##### Fucus spiralis
+
+
+##Comparison##
+allo_dat$dw_ww = allo_dat$dry_weight_g / allo_dat$wet_weight_g
+
+ggboxplot(allo_dat, x="binomial",y="dw_ww") +rotate_x_text(70)
+
+
+plot(allo_dat$dry_weight_g[allo_dat$binomial=="fucus_spiralis"],allo_dat$wet_weight_g[allo_dat$binomial=="fucus_spiralis"])
+plot(allo_dat$dry_weight_g[allo_dat$binomial=="fucus_vesiculosus"],allo_dat$wet_weight_g[allo_dat$binomial=="fucus_vesiculosus"])
 
 
