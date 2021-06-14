@@ -6,6 +6,10 @@ library(dplyr)
 ######Data Import#####
 allo_dat <- read_sheet("https://docs.google.com/spreadsheets/d/167zCNjbmZ1PV5V1vZeGe9QcIrvhJ4diZ8q2rF9Ggry0/edit#gid=0", sheet = "Sheet1")
 
+allo_dat$len_circum_ratio = allo_dat$circum_cm/allo_dat$length_cm
+allo_dat$cyl_vol = (allo_dat$circum_cm/(2*pi))^2 * pi  * allo_dat$length_cm
+
+
 allo_dat.fu_se = allo_dat %>% filter(binomial == "fucus_serratus")
 allo_dat.as_no = allo_dat %>% filter(binomial == "ascophyllum_nodosum")
 allo_dat.fu_sp = allo_dat %>% filter(binomial_code == "fu_sp")
@@ -17,9 +21,6 @@ allo_dat.fu_ve = allo_dat %>% filter(binomial_code == "fu_ve")
 #dryweight ~ wetweight
 mod1=lm(allo_dat.fu_se$dry_weight_g ~ allo_dat.fu_se$wet_weight_g)
 summary(mod1)
-
-#Predicting Dryweight
-allo_dat.fu_se$pred.dryweight = predict(mod1,newdata = data.frame(allo_dat.fu_se$wet_weight_g))
 
 #Cylindrical volume
 allo_dat.fu_se$radius = allo_dat.fu_se$circum_cm/(2*pi)
@@ -131,6 +132,15 @@ mod2=lm(log(allo_dat.fu_ve$dry_weight_g) ~ log(allo_dat.fu_ve$cyl.vol))
 summary(mod2)
 #plot(mod2) #ok
 
+mod2=lm(log(allo_dat.fu_ve$dry_weight_g) ~ log(allo_dat.fu_ve$length_cm)+log(allo_dat.fu_ve$circum_cm))
+summary(mod2)
+
+
+allo_dat.fu_ve$thin= (allo_dat.fu_ve$circum_cm/allo_dat.fu_ve$length_cm)
+
+mod2=lm(log(allo_dat.fu_ve$dry_weight_g) ~ log(allo_dat.fu_ve$length_cm)+log(allo_dat.fu_ve$circum_cm)+(allo_dat.fu_ve$thin))
+summary(mod2)
+AIC(mod2)
 
 res= data.frame(log.dw=(log(allo_dat.fu_ve$dry_weight_g)),log.cyl.vol=log(allo_dat.fu_ve$cyl.vol))
 ggscatter(data=res, y="log.dw",x="log.cyl.vol",add = "reg.line")
@@ -163,9 +173,45 @@ allo_dat.fu_sp$radius = allo_dat.fu_sp$circum_cm/(2*pi)
 allo_dat.fu_sp$cyl.vol = allo_dat.fu_sp$radius^2*pi*allo_dat.fu_sp$length_cm
 
 
+
 #Creating formula log(ww) ~ log(cyl.vol)
 mod2=lm(log(allo_dat.fu_sp$dry_weight_g) ~ log(allo_dat.fu_sp$cyl.vol))
 summary(mod2)
+AIC(mod2)
+
+
+mod3=lm(log(allo_dat.fu_sp$dry_weight_g) ~ log(allo_dat.fu_sp$length_cm)+log(allo_dat.fu_sp$circum_cm))
+summary(mod3)
+AIC(mod3)
+
+
+mod3=lm(log(allo_dat.fu_sp$dry_weight_g) ~ log(allo_dat.fu_sp$length_cm)+log(allo_dat.fu_sp$circum_cm))
+summary(mod3)
+AIC(mod3)
+
+
+allo_dat.fu_sp$thin= (allo_dat.fu_sp$circum_cm/allo_dat.fu_sp$length_cm)
+
+mod3=lm(log(allo_dat.fu_sp$dry_weight_g) ~ log(allo_dat.fu_sp$length_cm)+log(allo_dat.fu_sp$circum_cm)+allo_dat.fu_sp$thin)
+summary(mod3)
+AIC(mod3)
+
+
+
+
+
+
+
+
+plot(mod3$fitted.values,log(allo_dat.fu_sp$dry_weight_g))
+
+
+
+mod2=lm(log(allo_dat.fu_ve$dry_weight_g) ~ log(allo_dat.fu_ve$length_cm)+log(allo_dat.fu_ve$circum_cm)+(allo_dat.fu_ve$thin))
+summary(mod2)
+AIC(mod2)
+
+
 #plot(mod2) #ok
 res= data.frame(log.dw=(log(allo_dat.fu_sp$dry_weight_g)),log.cyl.vol=log(allo_dat.fu_sp$cyl.vol))
 ggscatter(data=res, y="log.dw",x="log.cyl.vol",add = "reg.line")
@@ -232,6 +278,106 @@ a=allo_dat %>% filter(binomial_code=="fu_ve",dry_weight_g<5, wet_weight_g>25 )
 
 
 plot(allo_dat$dry_weight_g[allo_dat$binomial_code=="fu_sp"],allo_dat$wet_weight_g[allo_dat$binomial_code=="fu_sp"])
+
+
+
+
+
+#######
+#dw ~ 1
+#dw ~ length
+#dw ~ length+circum
+#dw ~ length+thin
+#dw ~ length+circum+thin
+#dw ~ cyl
+#dw ~ cyl+thin
+
+
+# set up a function to run different models that can then be compared
+lm.allo <- function(data, slope, e.vars) {
+  
+  # set an output list for the model coefficients
+  est.lm <- vector("list", length(e.vars))
+  names(est.lm) <- seq(1:length(e.vars))
+  
+  # set an output list for the model fit statistics
+  fit.lm <- vector("list", length(e.vars))
+  names(fit.lm) <- seq_along(1:length(e.vars))
+  
+  for (i in 1:length(e.vars) ) {
+    
+    # fit model using chosen predictors
+    lm.e.vars <- lm(reformulate(e.vars[[i]], slope), data = data)
+    
+    # write coefficients to the est.lm list
+    est.lm[[i]] <- broom::tidy(lm.e.vars)
+    
+    # write fit statistics to the fit.lm list
+    fit.lm[[i]] <- broom::glance(lm.e.vars)
+  }
+  
+  # convert lists to data.frames and join
+  full_join(bind_rows(est.lm, .id = "model"), 
+            bind_rows(fit.lm, .id = "model"),
+            by = "model")
+}
+
+# set up the explanatory variables for the different models
+exp.vars <- list(c("log(cyl_vol)", "len_circum_ratio"),
+                 c("log(cyl_vol)"),
+                 c("log(length_cm)","len_circum_ratio"),
+                 c("log(length_cm)","len_circum_ratio","log(circum_cm)"),
+                 c("log(length_cm)","log(circum_cm)"),
+                 c("log(length_cm)"),
+                 c("1") )
+
+library(dplyr)
+lm.out = lm.allo(data = filter(allo_dat, binomial_code == "fu_ve"), slope = "log(dry_weight_g)", e.vars = exp.vars)
+
+lm.out %>%
+  arrange(AIC) %>% 
+  View()
+
+names(allo_dat)
+
+##serratus
+lm.out = lm.allo(data = filter(allo_dat, binomial_code == "fu_se"), slope = "log(dry_weight_g)", e.vars = exp.vars)
+
+lm.out %>%
+  arrange(AIC) %>% 
+  View()
+
+
+##asco
+lm.out = lm.allo(data = filter(allo_dat, binomial_code == "as_no"), slope = "log(dry_weight_g)", e.vars = exp.vars)
+
+lm.out %>%
+  arrange(AIC) %>% 
+  View()
+
+##fucus spiralis
+lm.out = lm.allo(data = filter(allo_dat, binomial_code == "fu_sp"), slope = "log(dry_weight_g)", e.vars = exp.vars)
+
+lm.out %>%
+  arrange(AIC) %>% 
+  View()
+
+
+
+
+
+
+
+
+#######
+#dw ~ 1
+#dw ~ length
+#dw ~ length+circum
+#dw ~ length+thin
+#dw ~ length+circum+thin
+#dw ~ cyl
+#dw ~ cyl+thin
+
 
 
 
