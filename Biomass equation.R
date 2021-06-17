@@ -144,6 +144,17 @@ cor(exp(predict(mod1,as.data.frame(new.dat))),
 allo_dat.fu_se$pred.dw[allo_dat.fu_se$site_code == "stfl_a"])^2
 
 
+#outa sample ascophyllum
+mod1=lm(log(dry_weight_g) ~ log(length_cm) + len_circum_ratio,data=allo_dat.as_no)
+summary(mod1)
+new.dat=data.frame(length_cm=allo_dat.as_no$length_cm[allo_dat.as_no$site_code == "stfl_a"],
+                   len_circum_ratio=allo_dat.as_no$len_circum_ratio[allo_dat.as_no$site_code == "stfl_a"])
+
+cor(exp(predict(mod1,as.data.frame(new.dat))),
+    allo_dat.as_no$pred.dw[allo_dat.as_no$site_code == "stfl_a"])^2
+
+
+
 ##################################################
 ##################################################
 ##################################################
