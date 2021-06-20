@@ -30,18 +30,22 @@ allo_dat$cyl_vol = (allo_dat$circum_cm/(2*pi))^2 * pi  * allo_dat$length_cm
 allo_dat.fu_se = 
   allo_dat %>% 
   filter(binomial == "fucus_serratus")
+nrow(allo_dat.fu_se)
 
 allo_dat.as_no = 
   allo_dat %>% 
   filter(binomial == "ascophyllum_nodosum")
+nrow(allo_dat.as_no)
 
 allo_dat.fu_sp = 
   allo_dat %>% 
   filter(binomial_code == "fu_sp")
+nrow(allo_dat.fu_sp)
 
 allo_dat.fu_ve = 
   allo_dat %>% 
   filter(binomial_code == "fu_ve")
+nrow(allo_dat.fu_ve)
 
 
 ### Dryweight and wetweight ----
