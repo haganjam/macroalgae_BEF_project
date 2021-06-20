@@ -3,14 +3,14 @@
 
 # Title: Predicting dry mass from field-measured allometric parameters
 
-#### Libraries ####
+#### Libraries
 library(googlesheets4)
 library(ggpubr)
 library(dplyr)
 library(here)
 
 
-###### Data Import #####
+###### Data Import
 
 # import the raw data from the Google Sheet
 allo_dat <- read_sheet("https://docs.google.com/spreadsheets/d/167zCNjbmZ1PV5V1vZeGe9QcIrvhJ4diZ8q2rF9Ggry0/edit#gid=0", sheet = "Sheet1",
@@ -119,7 +119,8 @@ View(lm.as_no$model_fit)
 # view model coefficients
 View(lm.as_no$model_coefficients)
 
-#Fucus serratus
+
+## fucus serratus
 lm.fu_se = lm.allo(data = allo_dat.fu_se, resp = resp.var, e.vars = exp.vars)
 
 # view fit statistics
