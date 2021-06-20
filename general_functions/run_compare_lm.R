@@ -4,6 +4,15 @@
 # set up a function to run different models that can then be compared
 lm.allo <- function(data, resp, e.vars) {
   
+  # check that the correct packages are installed
+  if(! "dplyr" %in% installed.packages()[,1]) stop(
+    "this function requires dplyr to be installed"
+  )
+  
+  if(! "broom" %in% installed.packages()[,1]) stop(
+    "this function requires broom to be installed"
+  )
+  
   # set an output list for the model coefficients
   est.lm <- vector("list", length(e.vars))
   names(est.lm) <- seq(1:length(e.vars))
@@ -18,10 +27,14 @@ lm.allo <- function(data, resp, e.vars) {
     lm.e.vars <- lm(reformulate(e.vars[[i]], resp), data = data)
     
     # write coefficients to the est.lm list
-    est.lm[[i]] <- broom::tidy(lm.e.vars)
+    est.lm[[i]] <- 
+      broom::tidy(lm.e.vars) %>%
+      rename(t_stat = statistic, p.value.t = p.value)
     
     # write fit statistics to the fit.lm list
-    fit.lm[[i]] <- broom::glance(lm.e.vars)
+    fit.lm[[i]] <- 
+      broom::glance(lm.e.vars) %>%
+      rename(f_stat = statistic, p.value.f = p.value)
       
     }
     
@@ -39,18 +52,13 @@ lm.allo <- function(data, resp, e.vars) {
               bind_rows(fit.lm, .id = "model"),
               by = "model")
   
-  # convert lists to data.frames and join
-  df.models <- 
-    full_join(df.fit,
-              bind_rows(est.lm, .id = "model"),
-              by = "model")
+  # convert lists to data.frames
+  df.est <- bind_rows(est.lm, .id = "model")
+  
+  list.out <- list("model_fit" = df.fit,
+                   "model_coefficients" = df.est)
 
-  return(df.models)
+  return(list.out)
+  
 }
-
-
-
-
-
-
 

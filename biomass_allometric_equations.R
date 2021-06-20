@@ -1,82 +1,80 @@
-####Libraries####
+
+# Project: Functional value of macroalgal biodiversity
+
+# Title: Predicting dry mass from field-measured allometric parameters
+
+#### Libraries ####
 library(googlesheets4)
 library(ggpubr)
 library(dplyr)
+library(here)
 
-######Data Import#####
-allo_dat <- read_sheet("https://docs.google.com/spreadsheets/d/167zCNjbmZ1PV5V1vZeGe9QcIrvhJ4diZ8q2rF9Ggry0/edit#gid=0", sheet = "Sheet1")
 
+###### Data Import #####
+
+# import the raw data from the Google Sheet
+allo_dat <- read_sheet("https://docs.google.com/spreadsheets/d/167zCNjbmZ1PV5V1vZeGe9QcIrvhJ4diZ8q2rF9Ggry0/edit#gid=0", sheet = "Sheet1",
+                       col_types = c("ccccdcccccdcddddccdddccdccc"),
+                       na = c("NA"))
+names(allo_dat)
+View(allo_dat)
+glimpse(allo_dat)
+
+# calculate the length-circumference ratio
 allo_dat$len_circum_ratio = allo_dat$circum_cm/allo_dat$length_cm
+
+# calculate cylinder volume
 allo_dat$cyl_vol = (allo_dat$circum_cm/(2*pi))^2 * pi  * allo_dat$length_cm
 
+# create four datasets, one for each species
+allo_dat.fu_se = 
+  allo_dat %>% 
+  filter(binomial == "fucus_serratus")
 
-allo_dat.fu_se = allo_dat %>% filter(binomial == "fucus_serratus")
-allo_dat.as_no = allo_dat %>% filter(binomial == "ascophyllum_nodosum")
-allo_dat.fu_sp = allo_dat %>% filter(binomial_code == "fu_sp")
-allo_dat.fu_ve = allo_dat %>% filter(binomial_code == "fu_ve")
+allo_dat.as_no = 
+  allo_dat %>% 
+  filter(binomial == "ascophyllum_nodosum")
 
-# Dryweight and wetweight ----
+allo_dat.fu_sp = 
+  allo_dat %>% 
+  filter(binomial_code == "fu_sp")
 
-#Fucus spiralis
+allo_dat.fu_ve = 
+  allo_dat %>% 
+  filter(binomial_code == "fu_ve")
+
+
+### Dryweight and wetweight ----
+
+# Fucus spiralis
 dw_ww_fu_sp=lm(allo_dat.fu_sp$dry_weight_g ~ allo_dat.fu_sp$wet_weight_g)
 summary(dw_ww_fu_sp)
 
-#Fucus vesiculosus
+# Fucus vesiculosus
 dw_ww_fu_ve=lm(allo_dat.fu_ve$dry_weight_g ~ allo_dat.fu_ve$wet_weight_g)
 summary(dw_ww_fu_ve)
 
-#Ascophyllum nodosum
+# Ascophyllum nodosum
 dw_ww_as_no=lm(allo_dat.as_no$dry_weight_g ~ allo_dat.as_no$wet_weight_g)
 summary(dw_ww_as_no)
 
 allo_dat.as_no$pred.dw = predict(dw_ww_as_no,newdata = as.data.frame(allo_dat.as_no$wet_weight_g))
 
-#Fucus serratus
+# Fucus serratus
 dw_ww_fu_se=lm(allo_dat.fu_se$dry_weight_g ~ allo_dat.fu_se$wet_weight_g)
 summary(dw_ww_fu_se)
 
 allo_dat.fu_se$pred.dw = predict(dw_ww_fu_se,newdata = as.data.frame(allo_dat.fu_se$wet_weight_g))
 
 
-
-
 allo_dat$dw_ww = allo_dat$dry_weight_g / allo_dat$wet_weight_g
-
 ggboxplot(allo_dat, x="binomial",y="dw_ww") +rotate_x_text(70)
 
 
+### Dryweight prediction by Circumference and Length -------------
 
-
-# Dryweight prediction by Circumference and Length -------------
-
-# set up a function to run different models that can then be compared
-lm.allo <- function(data, slope, e.vars) {
-  
-  # set an output list for the model coefficients
-  est.lm <- vector("list", length(e.vars))
-  names(est.lm) <- seq(1:length(e.vars))
-  
-  # set an output list for the model fit statistics
-  fit.lm <- vector("list", length(e.vars))
-  names(fit.lm) <- seq_along(1:length(e.vars))
-  
-  for (i in 1:length(e.vars) ) {
-    
-    # fit model using chosen predictors
-    lm.e.vars <- lm(reformulate(e.vars[[i]], slope), data = data)
-    
-    # write coefficients to the est.lm list
-    est.lm[[i]] <- broom::tidy(lm.e.vars)
-    
-    # write fit statistics to the fit.lm list
-    fit.lm[[i]] <- broom::glance(lm.e.vars)
-  }
-  
-  # convert lists to data.frames and join
-  full_join(bind_rows(est.lm, .id = "model"), 
-            bind_rows(fit.lm, .id = "model"),
-            by = "model")
-}
+# load function to compare different linear models
+source(here("general_functions/run_compare_lm.R"))
 
 # set up the explanatory variables for the different models
 exp.vars <- list(c("log(cyl_vol)", "len_circum_ratio"),
@@ -87,48 +85,48 @@ exp.vars <- list(c("log(cyl_vol)", "len_circum_ratio"),
                  c("log(length_cm)"),
                  c("1") )
 
-#Create overview table
-model.list=data.frame(model=double(), terms=character())
-for(i in 1:length(exp.vars)) {
-  model.list=rbind(model.list,
-                   data.frame(model=i,terms=paste(exp.vars[[i]], collapse=" + ")))
-}
+# set up the desired response variable
+resp.var <- "log(dry_weight_g)"
+
+## fucus spiralis
+lm.fu_sp = lm.allo(data = allo_dat.fu_sp, 
+                   resp = resp.var, 
+                   e.vars = exp.vars)
+
+# view fit statistics
+View(lm.fu_sp$model_fit)
+
+# view model coefficients
+View(lm.fu_sp$model_coefficients)
 
 
-##fucus spiralis
-lm.out_fu_sp = lm.allo(data = filter(allo_dat, binomial_code == "fu_sp"), slope = "log(dry_weight_g)", e.vars = exp.vars)
+## fucus vesiculosus
+lm.fu_ve = lm.allo(data = allo_dat.fu_ve, resp = resp.var, e.vars = exp.vars)
 
-summary.fu_sp=cbind(species="fu_sp",
-                    lm.out_fu_sp %>%
-                      group_by(model) %>%
-                      summarise(r.sqrd = mean(r.squared), adj.r.squared = mean(adj.r.squared), AIC = mean(AIC),p.value = mean(p.value.y)),#all numbers are the same, mean is just used to summarize
-                    terms=model.list$terms)
+# view fit statistics
+View(lm.fu_ve$model_fit)
 
-#Fucus vesiculosus
-lm.out_fu_ve = lm.allo(data = filter(allo_dat, binomial_code == "fu_ve"), slope = "log(dry_weight_g)", e.vars = exp.vars)
+# view model coefficients
+View(lm.fu_ve$model_coefficients)
 
-summary.fu_ve=cbind(species="fu_ve",
-                    lm.out_fu_sp %>%
-                      group_by(model) %>%
-                      summarise(r.sqrd = mean(r.squared), adj.r.squared = mean(adj.r.squared), AIC = mean(AIC),p.value = mean(p.value.y)),#all numbers are the same, mean is just used to summarize
-                    terms=model.list$terms)
 
-#Ascophyllum nodosum
-lm.out_as_no = lm.allo(data = filter(allo_dat, binomial_code == "as_no"), slope = "log(dry_weight_g)", e.vars = exp.vars)
+## ascophyllum nodosum
+lm.as_no = lm.allo(data = allo_dat.as_no, resp = resp.var, e.vars = exp.vars)
 
-summary.an_no=cbind(species="as_no",
-                    lm.out_fu_sp %>%
-                      group_by(model) %>%
-                      summarise(r.sqrd = mean(r.squared), adj.r.squared = mean(adj.r.squared), AIC = mean(AIC),p.value = mean(p.value.y)),#all numbers are the same, mean is just used to summarize
-                    terms=model.list$terms)
+# view fit statistics
+View(lm.as_no$model_fit)
+
+# view model coefficients
+View(lm.as_no$model_coefficients)
+
 #Fucus serratus
-lm.out_fu_se = lm.allo(data = filter(allo_dat, binomial_code == "fu_se"), slope = "log(dry_weight_g)", e.vars = exp.vars)
+lm.fu_se = lm.allo(data = allo_dat.fu_se, resp = resp.var, e.vars = exp.vars)
 
-summary.fu_se=cbind(species="fu_se",
-                    lm.out_fu_sp %>%
-                      group_by(model) %>%
-                      summarise(r.sqrd = mean(r.squared), adj.r.squared = mean(adj.r.squared), AIC = mean(AIC),p.value = mean(p.value.y)),#all numbers are the same, mean is just used to summarize
-                    terms=model.list$terms)
+# view fit statistics
+View(lm.fu_se$model_fit)
+
+# view model coefficients
+View(lm.fu_se$model_coefficients)
 
 
 
