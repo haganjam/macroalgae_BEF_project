@@ -17,12 +17,8 @@ tra_dat <- read_sheet("https://docs.google.com/spreadsheets/d/1H2_RtGusheNz6ibKz
                        col_types = c("ccccnnncnncc"),
                        na = c("NA"))
 
-
-# make a corrected depth column
-tra_dat %>%
-  View()
-
 # subset the data needed to interpolate the depth to the different points
+# correct the depth by the water level from the nearby station
 depth_data <- 
   tra_dat %>% 
   mutate(depth_correct = (water_level_cm + depth) ) %>%
@@ -30,6 +26,7 @@ depth_data <-
   distinct()
 
 # problems with the start of transect 2, remove positions 0 to 4
+# we do not have a starting depth...
 depth_data <- 
   depth_data %>%
   filter( !(transect_id == 2 & position %in% 0:4) )
