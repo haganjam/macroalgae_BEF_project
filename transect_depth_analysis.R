@@ -14,7 +14,7 @@ library(slider)
 
 # import the raw data from the Google Sheet
 tra_dat <- read_sheet("https://docs.google.com/spreadsheets/d/1H2_RtGusheNz6ibKzoCqLrEAYURznQuDS1bPCPnF_SA/edit#gid=0", sheet = "density_data",
-                       col_types = c("cccnnncnncc"),
+                       col_types = c("ccccnnncnncc"),
                        na = c("NA"))
 
 
@@ -22,7 +22,25 @@ tra_dat <- read_sheet("https://docs.google.com/spreadsheets/d/1H2_RtGusheNz6ibKz
 tra_dat %>%
   View()
 
-zoo::rollapply(c(1, 2, 3, 4, 5), width = 2, FUN = mean)
+df <- 
+  tra_dat %>% 
+  mutate(depth_correct = (water_level_cm + depth) ) %>%
+  select(date, transect_id, position, depth_correct) %>%
+  distinct() %>%
+  filter(transect_id == "1")
+
+View(df)
+
+dividers <- which(!is.na(df$depth_correct) )
+
+x <- vector("list", length = (length(dividers)-1))
+for(i in 1:(length(dividers)-1) ) {
+  
+  x[[i]] <- rep(i, dividers[i+1] - dividers[i] )
+  
+}
+
+x
 
 diff_func <- function(x) {
   
@@ -30,24 +48,27 @@ diff_func <- function(x) {
   
 }
 
-
-y <- 
+depth_exp <- 
   tra_dat %>% 
   mutate(depth_correct = (water_level_cm + depth) ) %>%
   select(date, transect_id, position, depth_correct) %>%
   distinct() %>%
-  filter(!is.na(depth_correct)) %>%
+  filter(!is.na(depth_correct))
+
+View(depth_exp)
+
+# test with the first transect
+y <- 
+  depth_exp %>%
   filter(transect_id == "1") %>%
   summarise(position_id = c(zoo::rollapply(data = position, width = 2, FUN = function(y)y[length(y)]  )),
             m = (zoo::rollapply(data = depth_correct, width = 2, FUN = diff_func))/(zoo::rollapply(data = position, width = 2, FUN = diff_func)*10 ) ,
             con = zoo::rollapply(data = depth_correct, width = 2, FUN = first))
 
+y
+
 z <- 
-  tra_dat %>% 
-  mutate(depth_correct = (water_level_cm + depth) ) %>%
-  select(date, transect_id, position, depth_correct) %>%
-  distinct() %>%
-  filter(!is.na(depth_correct)) %>%
+  depth_exp %>%
   filter(transect_id == "1") %>%
   mutate(seq_x = slide(position, function(x){seq(x[1], x[length(x)], 1)*10 }, .before = 1, .after = 0, .complete = TRUE  ) ) %>%
   tidyr::unnest(cols = c("seq_x")) %>%
