@@ -65,6 +65,10 @@ for (i in 1:length(log_files)) {
   
 }
 
+# bind this into a data.frame
+log_data <- bind_rows(log_dat_list, .id = "tile_id")
+head(log_data)
+
 # which variables would we like to generate?
 
 # classic temperature data
@@ -78,11 +82,22 @@ for (i in 1:length(log_files)) {
 # biologically meaningful temperature variables
 
 # 1. time spent above 27 degrees (upper tolerance for F. vesiculosus: https://www.sciencedirect.com/science/article/pii/S0022098115001276?casa_token=MVT95rCJjKIAAAAA:lFAFLcQy7v3NTwhVUV9lpSnPgykRdccV34sWmyvEySd4QdQV1Urlnt61ebUSMHY4402-vMpGhv4)
+# Ascophyllum might have similar thermal limits: https://www.sciencedirect.com/science/article/pii/S1385110105000365?casa_token=iUfVLnbMJ-4AAAAA:6x8Mso59wCSegKSVKVHFGLjFRNB65G4ykDsQ2hYCDBDGvi_C-gvfiRPo-1CBoIra38R0RHlHcXI
+# Fucus serratus: https://www.sciencedirect.com/science/article/pii/S1874778713000871?casa_token=9bE-J_MvWoUAAAAA:pCq4lCynQ5V7sAjcERYNef2ksPQXj10j_G8R7roEAeejBO4oEo7qvQTqI_HUtAKPdUv3qYMo0sk
+# Fucus spiralis?
 
-log_dat_list
+# 5th July - 15th August
 
+# subset the correct dates
+log_data %>%
+  filter(date > as.Date())
 
+# explore the data
+log_data %>%
+  filter(temperature_C > 40) %>%
+  View()
 
+hist(log_data$temperature_C)
 
 
 
