@@ -3,6 +3,10 @@
 
 # Title: Clean the logger data from the tile experiment
 
+# Next steps...
+
+# Fix the problems with the dates because there are only four dates
+
 # load relevant libraries
 library(dplyr)
 library(tidyr)
@@ -24,7 +28,6 @@ for (i in 1:length(log_files)) {
   d1 <- read_csv(paste(here("tile_logger_data"), "/", log_files[i], sep = ""), skip = 1)
   
   # only select certain columns
-  names(d1)
   d1 <- d1[, c(2, 3, 4)]
   names(d1) <- c("date_time", "temperature_C", "intensity_lux")
   
@@ -39,7 +42,7 @@ for (i in 1:length(log_files)) {
     sapply(d1$date_time, function(y) 
     { choose_split(x = y, splitter = " ", n_splits = 2, n_choice = 1)}, USE.NAMES = FALSE )
   
-  d1$date <- as.Date(d1$date, "%d/%m/%y")
+  d1$date <- as.Date(d1$date, "%d/%m/%Y")
   
   # add a date column
   d1$time <- 
@@ -89,8 +92,10 @@ head(log_data)
 # 5th July - 15th August
 
 # subset the correct dates
+log_data$date %>% unique()
 log_data %>%
-  filter(date > as.Date())
+  filter(date > as.Date("2021-07-25")) %>%
+  filter(date < as.Date("2021-08-15"))
 
 # explore the data
 log_data %>%
@@ -98,6 +103,7 @@ log_data %>%
   View()
 
 hist(log_data$temperature_C)
+
 
 
 
