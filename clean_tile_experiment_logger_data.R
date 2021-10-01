@@ -65,7 +65,22 @@ for (i in 1:length(log_files)) {
   
 }
 
+# which variables would we like to generate?
+
+# classic temperature data
+
+# maximum temperature
+# minimum temperature
+# temperature range
+# mean temperature
+# coefficient of variation in temperature
+
+# biologically meaningful temperature variables
+
+# 1. time spent above 27 degrees (upper tolerance for F. vesiculosus: https://www.sciencedirect.com/science/article/pii/S0022098115001276?casa_token=MVT95rCJjKIAAAAA:lFAFLcQy7v3NTwhVUV9lpSnPgykRdccV34sWmyvEySd4QdQV1Urlnt61ebUSMHY4402-vMpGhv4)
+
 log_dat_list
+
 
 
 
