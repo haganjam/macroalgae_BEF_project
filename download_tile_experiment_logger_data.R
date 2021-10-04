@@ -7,10 +7,8 @@
 library(googledrive)
 library(here)
 
-# make a folder to download the tile data
-if(! dir.exists(here("tile_logger_data"))){
-  dir.create(here("tile_logger_data"))
-}
+# get the file names of the raw data files
+
 
 # get a list of the logger data files in the Google Drive
 file_id <- drive_ls(path = "hobo_logger_tiles")
