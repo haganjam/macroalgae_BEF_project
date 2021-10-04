@@ -20,8 +20,89 @@ if(! dir.exists(here("tile_logger_data"))){
   print("make a folder called tile_logger_data in the working directory and save the 20 raw data files into this folder see ReadMe for more details")
 }
 
+# load the files from the tile_logger_data folder
+logdat_names <- list.files(here("tile_logger_data"), pattern = ".csv")
 
+logdat_list <- vector("list", length = length(logdat_names))
+for(i in 1:length(logdat_list) ) {
+  
+  logdat_list[[i]] <- read_csv(file = paste(here("tile_logger_data"), "/", logdat_names[i], sep = "" ),
+                               col_types = list(site_code = col_character(), 
+                                                water_level_treat = col_character(),
+                                                date = col_date(),
+                                                time = col_time(),
+                                                temperature_C = col_double(),
+                                                intensity_lux = col_double()))
+  
+}
 
+# the logger did not record changes in the date
+lapply(logdat_list, function(x) { x$date %>% unique()  } )
+lapply(logdat_list, function(x) { x$date[1]  } )
+lapply(logdat_list, function(x) { x$time[1]  } )
+lapply(logdat_list, function(x) {tail(x) } )
+
+# add a corrected date column
+
+# get rid of the final rows until the previous 00:00
+
+# select how many rows to search backward
+test_back <- 24
+
+# use lapply to implement this across all the different datasets
+logdat_list_trim <- 
+  
+  lapply(logdat_list, function(data) {
+  
+  df <- data
+  nr <- nrow(df)
+  
+  sq <- (nr-test_back):nr
+  for (i in sq) {
+    
+    if (df[i, ]$time == 00:00) {
+      
+      row_stop <- i
+      
+    }
+    
+  }
+  
+  # correct for cases where this passes more than two 00:00
+  row_stop <- ifelse(length(row_stop) > 1, row_stop[1], row_stop)
+  
+  # subset rows from 1 to the final row with a 00:00
+  df[1:row_stop, ]
+  
+})
+
+# check if this worked
+lapply(logdat_list_trim, function(x) {tail(x) } )
+
+logdat_list_trim[[5]][1:24, ]
+
+x <- vector(length = 61)
+for (i in 1:60) {
+  
+  x[i] <- sum( logdat_list_trim[[5]][1:i, ]$time == 00:00 ) 
+  
+}
+
+x
+
+y <- logdat_list_trim[[5]]$time[-1] == 00:00
+y
+v <- diff( which( c(TRUE, y, TRUE)) )
+v
+z <- rep(0:(length(v)-1), times = v)
+z
+
+nrow(logdat_list_trim[[5]])
+length(z)
+
+logdat_list_trim[[5]]$date_corrected <- logdat_list_trim[[5]]$date[1] + z
+View(logdat_list_trim[[5]])
+View(logdat_list_trim[[5]] %>% tail(., 50))
 
 
 # Next steps...
