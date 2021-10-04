@@ -42,6 +42,7 @@ lapply(logdat_list, function(x) { x$date[1]  } )
 lapply(logdat_list, function(x) { x$time[1]  } )
 lapply(logdat_list, function(x) {tail(x) } )
 
+
 # add a corrected date column
 
 # get rid of the final rows until the previous 00:00
@@ -79,35 +80,38 @@ logdat_list_trim <-
 # check if this worked
 lapply(logdat_list_trim, function(x) {tail(x) } )
 
-logdat_list_trim[[5]][1:24, ]
+# logically select 00:00 values, then count hours between those
+# we then cumulatively add days whenever a new 00:00 is encountered
 
-x <- vector(length = 61)
-for (i in 1:60) {
+logdat_date_corrected <- 
   
-  x[i] <- sum( logdat_list_trim[[5]][1:i, ]$time == 00:00 ) 
-  
-}
+  lapply(logdat_list_trim, function(data) {
+    
+    # get a vector of TRUE and FALSES for midnight
+    y <- data$time[-1] == 00:00
+    
+    # use diff() and which() to get the number of values between two trues
+    # https://stackoverflow.com/questions/31848404/efficient-way-of-counting-false-between-true
+    v <- diff( which( c(TRUE, y, TRUE)) )
+    
+    # replicate each value a set number of times
+    z <- rep(0:(length(v)-1), times = v)
+    
+    # test
+    if (nrow(data) != length(z)){
+      stop("row numbers and added days vectors are not the same length")
+    }
+    
+    data$date_corrected <- (data$date[1] + z)
+    
+    data %>%
+      select(site_code, water_level_treat, date, date_corrected, time, temperature_C, intensity_lux)
+    
+  })
 
-x
+# list of logger data with corrected dates
+logdat_date_corrected
 
-y <- logdat_list_trim[[5]]$time[-1] == 00:00
-y
-v <- diff( which( c(TRUE, y, TRUE)) )
-v
-z <- rep(0:(length(v)-1), times = v)
-z
-
-nrow(logdat_list_trim[[5]])
-length(z)
-
-logdat_list_trim[[5]]$date_corrected <- logdat_list_trim[[5]]$date[1] + z
-View(logdat_list_trim[[5]])
-View(logdat_list_trim[[5]] %>% tail(., 50))
-
-
-# Next steps...
-
-# Fix the problems with the dates because there are only four dates
 
 # which variables would we like to generate?
 
