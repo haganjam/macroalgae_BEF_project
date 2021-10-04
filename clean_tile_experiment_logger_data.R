@@ -90,7 +90,7 @@ sum(x) # there are no conflicts
 for(i in 1:length(log_files)) {
   
   write_csv(x = log_dat_list[[i]],
-            file = paste(here("tile_logger_data/clean_research_box"), "/", log_files[i], sep = "") )
+            file = paste(here("tile_logger_data"), "/", log_files[i], sep = "") )
   
 }
 
