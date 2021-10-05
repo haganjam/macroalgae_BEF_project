@@ -3,6 +3,12 @@
 
 # Title: Generate ecologically relevant variables from the logger data
 
+# Next steps:
+
+# - calculate summary statistics for light intensity
+# - calculate the length of time spent continuously over 27 degrees
+
+
 # load libraries using groundhog
 library(groundhog)
 groundhog.day <- "2020-06-1"
@@ -112,6 +118,21 @@ logdat_date_corrected <-
 # list of logger data with corrected dates
 logdat_date_corrected
 
+# these should be be cross referenced with the direct hobo-logger data at some point
+
+# subset out time periods before and after the measurements were done
+logvars <- 
+  lapply(logdat_date_corrected, function(df) {
+    
+    df %>%
+      filter(date_corrected < as.Date("2021-08-15"), date_corrected > as.Date("2021-07-05")) %>%
+      select(-date)
+    
+  })
+
+# check the output
+logvars[[1]]$date_corrected %>% range()  
+
 
 # which variables would we like to generate?
 
@@ -130,17 +151,101 @@ logdat_date_corrected
 # Fucus serratus: https://www.sciencedirect.com/science/article/pii/S1874778713000871?casa_token=9bE-J_MvWoUAAAAA:pCq4lCynQ5V7sAjcERYNef2ksPQXj10j_G8R7roEAeejBO4oEo7qvQTqI_HUtAKPdUv3qYMo0sk
 # Fucus spiralis?
 
-# 5th July - 15th August
+# calculate several temperature summary statistics
+# also calculate the number of hours spent over 27 degrees
+logvars[[1]] %>%
+  mutate(exceed_27 = if_else(temperature_C > 27, 1, 0)) %>%
+  group_by(site_code, water_level_treat) %>%
+  summarise(hours_exceeding_27 = sum(exceed_27),
+            mean_temp_C = mean(temperature_C),
+            sd_temp_C = sd(temperature_C),
+            max_temp_C = max(temperature_C),
+            min_temp_C = min(temperature_C),
+            range_temp_C = diff(range(temperature_C)),
+            cv_temp_C = sd(temperature_C)/mean(temperature_C))
 
-# subset the correct dates
-log_data$date %>% unique()
-log_data %>%
-  filter(date > as.Date("2021-07-25")) %>%
-  filter(date < as.Date("2021-08-15"))
 
-# explore the data
-log_data %>%
-  filter(temperature_C > 40) %>%
-  View()
+# next, calculate the longest period spent over 27 degrees
 
-hist(log_data$temperature_C)
+
+x <- 
+  df %>%
+  mutate(date_time = paste(date_corrected, time)) %>%
+  group_by(site_code, water_level_treat, date_corrected) %>%
+  filter(time == first(time) | time == last(time)) %>%
+  summarise(min_time = first(date_time) ,
+            max_time = last(date_time) ) %>%
+  ungroup()
+
+y <- mapply(difftime, y$max_date_time, y$min_date_time)
+
+z <- as.numeric(y)
+
+x$hours_27_over <- z
+
+
+
+
+
+
+df %>%
+  group_by(site_code, water_level_treat, date_corrected) %>%
+  filter(time == first(time) | time == last(time)) %>%
+  summarise(min_time = as.character(first(time)),
+            max_time = as.character(last(time))) %>%
+  ungroup() %>%
+  mutate(min_date_time = print(paste(date_corrected, min_time)),
+         max_date_time = print(paste(date_corrected, max_time)) ) %>%
+  select(-min_time, -max_time) %>%
+  mutate(time_difference = difftime(max_date_time, min_date_time, units = "secs"))
+
+y <-
+  df %>%
+  group_by(site_code, water_level_treat, date_corrected) %>%
+  filter(time == first(time) | time == last(time)) %>%
+  summarise(min_time = as.character(first(time)),
+            max_time = as.character(last(time))) %>%
+  ungroup() %>%
+  mutate(min_date_time = print(paste(date_corrected, min_time)),
+         max_date_time = print(paste(date_corrected, max_time)) ) %>%
+  select(-min_time, -max_time)
+
+
+
+difftime(y$min_date_time[1], y$max_date_time[1])
+
+  group_by(site_code, water_level_treat, date_corrected) %>%
+  filter(time == first(time) | time == last(time)) %>%
+  summarise(min_time = as.character(first(date_time)) ,
+         max_time = as.character(last(date_time)) ) %>%
+  mutate(time_difference = difftime(max_time, min_time) ) %>%
+  ungroup()
+
+x <- 
+  df %>%
+  mutate(date_time = paste(date_corrected, time)) %>%
+  group_by(site_code, water_level_treat, date_corrected) %>%
+  filter(time == first(time) | time == last(time)) %>%
+  summarise(min_time = first(date_time) ,
+            max_time = last(date_time) )
+
+x$min_time[1]
+
+
+df1 <- 
+  df %>%
+  mutate(date_time = paste(date_corrected, time))
+
+df1
+
+difftime(df1$date_time[1], df1$date_time[3])
+
+strptime( paste(dat[,1], dat[,2]), "%Y-%m-%d %H:%M:%S")
+
+difftime( c(df$time[3], df$time[1]) )
+
+logvars[[1]]$time[3] -  logvars[[1]]$time[1]
+
+
+
+

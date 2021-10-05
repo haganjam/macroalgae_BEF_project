@@ -9,6 +9,6 @@ All data are hosted on RESEARCHBOX and can be downloaded directly from this link
 
 > Logger data analysis
 
-To process the raw temperature and light intensity data from the hobo loggers, go to the RESEARCHBOX repository (link above). Then, select and download all 20 files from the raw_logger_data category. Create a folder in your working directory called tile_logger_data and save the 20 files into this folder.
+To process the raw temperature and light intensity data from the hobo loggers, go to the RESEARCHBOX repository (link above). Then, select and download all 20 files from the raw_logger_data category. Create a folder in your working directory called tile_logger_data and save the 20 files into this folder. Note that very limited processing of these data was done before uploading the files to research box using the clean_tile_experiment_logger_data.R script.
 
 Download the script from the RESEARCHBOX repository called: process_tile_experiment_logger_data.R.
