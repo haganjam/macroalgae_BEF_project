@@ -15,7 +15,7 @@ Download the script from the RESEARCHBOX repository called: process_tile_experim
 
 > Sea level data analysis
 
-To process the raw sea-level data, go to the RESEARCHBOX repository (link above). Then, select and download the file from the raw_sea_level_data section. Save this into a folder called "sea_level_data". Some limited processing of these data was done before uploading it to the RESEARCHBOX repository. The script where this limited processing was conducted is clean_sea_level_data.R. In addition, the raw data file can be downloaded from SMHI (https://www.smhi.se/).
+To process the raw sea-level data, go to the RESEARCHBOX repository (link above). Then, select and download the file from the raw_sea_level_data section. Save this into a folder called "sea_level_data" in the current working directory. Some limited processing of these data was done before uploading it to the RESEARCHBOX repository. The script where this limited processing was conducted is clean_sea_level_data.R. In addition, the raw data file can be downloaded from SMHI (https://www.smhi.se/).
 
 + Havsvattenstånd RH2000, minutvärde, (station: Kungsvik)
 + https://www.smhi.se/data/oceanografi/ladda-ner-oceanografiska-observationer#param=sealevelMinutes,stations=all,stationid=2130
