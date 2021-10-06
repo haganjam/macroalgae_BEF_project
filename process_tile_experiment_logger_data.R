@@ -3,12 +3,6 @@
 
 # Title: Generate ecologically relevant variables from the logger data
 
-# Next steps:
-
-# - calculate summary statistics for light intensity
-# - calculate the length of time spent continuously over 27 degrees
-
-
 # load libraries using groundhog
 library(groundhog)
 groundhog.day <- "2020-06-1"
@@ -136,134 +130,66 @@ logvars[[1]]$date_corrected %>% range()
 
 # which variables would we like to generate?
 
-# classic temperature data
+# classic summary statistics for both temperature and light
 
-# maximum temperature
-# minimum temperature
-# temperature range
-# mean temperature
-# coefficient of variation in temperature
+# 1. maximum 
+# 2. minimum 
+# 3. range
+# 4. mean
+# 5. coefficient of variation
 
 # biologically meaningful temperature variables
 
-# 1. time spent above 27 degrees (upper tolerance for F. vesiculosus: https://www.sciencedirect.com/science/article/pii/S0022098115001276?casa_token=MVT95rCJjKIAAAAA:lFAFLcQy7v3NTwhVUV9lpSnPgykRdccV34sWmyvEySd4QdQV1Urlnt61ebUSMHY4402-vMpGhv4)
-# Ascophyllum might have similar thermal limits: https://www.sciencedirect.com/science/article/pii/S1385110105000365?casa_token=iUfVLnbMJ-4AAAAA:6x8Mso59wCSegKSVKVHFGLjFRNB65G4ykDsQ2hYCDBDGvi_C-gvfiRPo-1CBoIra38R0RHlHcXI
+# 27 degrees is the upper tolerance for F. vesiculosus: https://www.sciencedirect.com/science/article/pii/S0022098115001276?casa_token=MVT95rCJjKIAAAAA:lFAFLcQy7v3NTwhVUV9lpSnPgykRdccV34sWmyvEySd4QdQV1Urlnt61ebUSMHY4402-vMpGhv4)
+# Ascophyllum nodosum: https://www.sciencedirect.com/science/article/pii/S1385110105000365?casa_token=iUfVLnbMJ-4AAAAA:6x8Mso59wCSegKSVKVHFGLjFRNB65G4ykDsQ2hYCDBDGvi_C-gvfiRPo-1CBoIra38R0RHlHcXI
 # Fucus serratus: https://www.sciencedirect.com/science/article/pii/S1874778713000871?casa_token=9bE-J_MvWoUAAAAA:pCq4lCynQ5V7sAjcERYNef2ksPQXj10j_G8R7roEAeejBO4oEo7qvQTqI_HUtAKPdUv3qYMo0sk
-# Fucus spiralis?
+# Fucus spiralis: ?
 
-# calculate several temperature summary statistics
-# also calculate the number of hours spent over 27 degrees
+# 1. total hours over 27 degrees
+# 2. mean length of consecutive periods with temperatures over 27 degrees
+# 3. longest consecutive period with temperatures over 27 degrees
 
-# make a variable for hours that exceeded 27 degrees
-df <- 
-  logvars[[1]] %>%
-  mutate(exceed_27 = if_else(temperature_C > 27, 1, 0))
+logvars_summary <- 
+  lapply(logvars, function(data) {
+    
+    df <- 
+      data %>%
+      mutate(exceed_27 = if_else(temperature_C > 27, 1, 0))
+    
+    # calculate periods of consecutive hours that exceeded 27 degrees
+    x <- rle(df$exceed_27)
+    y <- x$lengths[x$values == 1]
+    
+    z <- 
+      df %>%
+      group_by(site_code, water_level_treat) %>%
+      summarise(hours_exceeding_27 = sum(exceed_27),
+                con_hours_exceeding_27_mean = if_else(length(y) == 0, 0, as.numeric(mean(y)) ),
+                con_hours_exceeding_27_max = if_else(length(y) == 0, 0, as.numeric(max(y)) ),
+                mean_temp_C = mean(temperature_C),
+                sd_temp_C = sd(temperature_C),
+                max_temp_C = max(temperature_C),
+                min_temp_C = min(temperature_C),
+                range_temp_C = diff(range(temperature_C)),
+                cv_temp_C = sd(temperature_C)/mean(temperature_C),
+                mean_light_C = mean(intensity_lux),
+                sd_light_C = sd(intensity_lux),
+                max_light_C = max(intensity_lux),
+                min_light_C = min(intensity_lux),
+                range_light_C = diff(range(intensity_lux)),
+                cv_light_C = sd(intensity_lux)/mean(intensity_lux))
+    
+    z
+    
+  })
 
-# calculate periods of consecutive hours that exceeded 27 degrees
-x <- rle(df$exceed_27)
-y <- x$lengths[x$values == 1]
+# bind this into a data.frame
+# ignore the warning
+logvars_summary <- 
+  logvars_summary %>%
+  bind_rows(.) %>% 
+  arrange(site_code, water_level_treat)
+  
+View(logvars_summary)
 
-z <- 
-  df %>%
-  group_by(site_code, water_level_treat) %>%
-  summarise(hours_exceeding_27 = sum(exceed_27),
-            con_hours_exceeding_27_mean = mean(y),
-            con_hours_exceeding_27_max = max(y),
-            mean_temp_C = mean(temperature_C),
-            sd_temp_C = sd(temperature_C),
-            max_temp_C = max(temperature_C),
-            min_temp_C = min(temperature_C),
-            range_temp_C = diff(range(temperature_C)),
-            cv_temp_C = sd(temperature_C)/mean(temperature_C))
-
-
-# next, calculate the longest period spent over 27 degrees
-df <- 
-  logvars[[1]] %>%
-  mutate(exceed_27 = if_else(temperature_C > 27, 1, 0))
-
-
-
-rle
-
-x <- 
-  df %>%
-  mutate(date_time = paste(date_corrected, time)) %>%
-  group_by(site_code, water_level_treat, date_corrected) %>%
-  filter(time == first(time) | time == last(time)) %>%
-  summarise(min_time = first(date_time) ,
-            max_time = last(date_time) ) %>%
-  ungroup()
-
-y <- mapply(difftime, y$max_date_time, y$min_date_time)
-
-z <- as.numeric(y)
-
-x$hours_27_over <- z
-
-
-
-
-
-
-df %>%
-  group_by(site_code, water_level_treat, date_corrected) %>%
-  filter(time == first(time) | time == last(time)) %>%
-  summarise(min_time = as.character(first(time)),
-            max_time = as.character(last(time))) %>%
-  ungroup() %>%
-  mutate(min_date_time = print(paste(date_corrected, min_time)),
-         max_date_time = print(paste(date_corrected, max_time)) ) %>%
-  select(-min_time, -max_time) %>%
-  mutate(time_difference = difftime(max_date_time, min_date_time, units = "secs"))
-
-y <-
-  df %>%
-  group_by(site_code, water_level_treat, date_corrected) %>%
-  filter(time == first(time) | time == last(time)) %>%
-  summarise(min_time = as.character(first(time)),
-            max_time = as.character(last(time))) %>%
-  ungroup() %>%
-  mutate(min_date_time = print(paste(date_corrected, min_time)),
-         max_date_time = print(paste(date_corrected, max_time)) ) %>%
-  select(-min_time, -max_time)
-
-
-
-difftime(y$min_date_time[1], y$max_date_time[1])
-
-  group_by(site_code, water_level_treat, date_corrected) %>%
-  filter(time == first(time) | time == last(time)) %>%
-  summarise(min_time = as.character(first(date_time)) ,
-         max_time = as.character(last(date_time)) ) %>%
-  mutate(time_difference = difftime(max_time, min_time) ) %>%
-  ungroup()
-
-x <- 
-  df %>%
-  mutate(date_time = paste(date_corrected, time)) %>%
-  group_by(site_code, water_level_treat, date_corrected) %>%
-  filter(time == first(time) | time == last(time)) %>%
-  summarise(min_time = first(date_time) ,
-            max_time = last(date_time) )
-
-x$min_time[1]
-
-
-df1 <- 
-  df %>%
-  mutate(date_time = paste(date_corrected, time))
-
-df1
-
-difftime(df1$date_time[1], df1$date_time[3])
-
-strptime( paste(dat[,1], dat[,2]), "%Y-%m-%d %H:%M:%S")
-
-difftime( c(df$time[3], df$time[1]) )
-
-logvars[[1]]$time[3] -  logvars[[1]]$time[1]
-
-
-
-
+### END
