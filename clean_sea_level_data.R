@@ -6,23 +6,10 @@
 # load libraries using groundhog
 library(groundhog)
 groundhog.day <- "2020-06-1"
-pkgs <- c("here", "dplyr", "tidyr", "readr", "ggplot2")
+pkgs <- c("here", "dplyr", "readr")
 groundhog.library(pkgs, groundhog.day)
 
-# load sea level data to export a cleaned version
-sea_level_raw <- read_delim(here("sea_level_data/smhi-opendata_13_2130_20211006_152803.csv"),
-                            delim = ";", 
-                            skip = 7,
-                            col_names = c("date_time_UTC", "water_level_cm", "quality", "measure_depth"),
-                            col_types = list(col_datetime(), 
-                                             col_double(),
-                                             col_character(),
-                                             col_double(),
-                                             col_skip(),
-                                             col_skip()))
-head(sea_level_raw)
-
-# details regarding the sea-level data
+# load and clean the sea-level data
 
 # Havsvattenstånd RH2000, minutvärde (https://www.smhi.se/data/oceanografi/ladda-ner-oceanografiska-observationer#param=sealevelMinutes,stations=all,stationid=2130)
 
@@ -42,6 +29,25 @@ head(sea_level_raw)
 # Gul (Y) = Grovt kontrollerade värden, misstänkta eller aggregerade värden (Roughly controlled values, suspicious or aggregated values)
 # Orange (O) = Okontrollerade värden (Uncontrolled values)
 
+# load sea level data to export a cleaned version
+sea_level_raw <- read_delim(here("sea_level_data/smhi-opendata_13_2130_20211006_152803.csv"),
+                            delim = ";", 
+                            skip = 7,
+                            col_names = c("date_time_UTC", "water_level_cm", "quality", "measure_depth"),
+                            col_types = list(col_datetime(), 
+                                             col_double(),
+                                             col_character(),
+                                             col_double(),
+                                             col_skip(),
+                                             col_skip()))
+head(sea_level_raw)
 
+# subset the last 6 years of data
+sea_level_raw <- 
+  sea_level_raw %>%
+  filter(date_time_UTC > as.POSIXct("2015-01-01 00:00:00", tz="UTC"))
 
+# output a csv with this cleaned and reduced data
+write_csv(x = sea_level_raw, path = here("sea_level_data/sea_level_data_raw_2016_2021.csv"))
 
+### END
