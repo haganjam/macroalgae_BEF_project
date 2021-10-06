@@ -153,10 +153,22 @@ logvars[[1]]$date_corrected %>% range()
 
 # calculate several temperature summary statistics
 # also calculate the number of hours spent over 27 degrees
-logvars[[1]] %>%
-  mutate(exceed_27 = if_else(temperature_C > 27, 1, 0)) %>%
+
+# make a variable for hours that exceeded 27 degrees
+df <- 
+  logvars[[1]] %>%
+  mutate(exceed_27 = if_else(temperature_C > 27, 1, 0))
+
+# calculate periods of consecutive hours that exceeded 27 degrees
+x <- rle(df$exceed_27)
+y <- x$lengths[x$values == 1]
+
+z <- 
+  df %>%
   group_by(site_code, water_level_treat) %>%
   summarise(hours_exceeding_27 = sum(exceed_27),
+            con_hours_exceeding_27_mean = mean(y),
+            con_hours_exceeding_27_max = max(y),
             mean_temp_C = mean(temperature_C),
             sd_temp_C = sd(temperature_C),
             max_temp_C = max(temperature_C),
@@ -166,7 +178,13 @@ logvars[[1]] %>%
 
 
 # next, calculate the longest period spent over 27 degrees
+df <- 
+  logvars[[1]] %>%
+  mutate(exceed_27 = if_else(temperature_C > 27, 1, 0))
 
+
+
+rle
 
 x <- 
   df %>%
