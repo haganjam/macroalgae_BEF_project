@@ -28,19 +28,21 @@ sea_dat <- read_csv(here("sea_level_data/sea_level_data_raw_2015_2021.csv"))
 # check the time zone names available
 OlsonNames()
 
-# we will essentially to test these in a time-zone specific way... could be tricky...
+# with_tz() with tzone = "Europe/Berlin" harmonises to CET and CEST
+head(sea_dat)
 
-sea_dat$date_time_UTC[2]
-with_tz(sea_dat$date_time_UTC[2], tzone =  "Europe/Berlin")
+# convert time from UTC to CET
+sea_dat <- 
+  sea_dat %>%
+  mutate(date_time_CET = with_tz(date_time_UTC, tzone = "Europe/Berlin")) %>%
+  select(date_time_CET, water_level_cm, quality, measure_depth)
 
-sea_dat$date_time_UTC[2]
-with_tz(sea_dat$date_time_UTC[2], tzone =  "Etc/GMT-2")
+head(sea_dat)
 
-
-sea_dat$date_time_UTC[1]
-as.POSIXct(sea_dat$date_time_UTC[1], tzone = "Europe/Berlin")
-
-
+sea_dat %>%
+  filter(date_time_CET > as.POSIXct("2021-06-23 11:00:00", tz = "CET"),
+         date_time_CET < as.POSIXct("2021-06-23 12:00:00", tz = "CET")) %>%
+  View()
 
 
 
