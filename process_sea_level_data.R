@@ -39,10 +39,74 @@ sea_dat <-
 
 head(sea_dat)
 
+# test the time and sea-level with the reported sea-levels from the field
 sea_dat %>%
   filter(date_time_CET > as.POSIXct("2021-06-23 11:00:00", tz = "CET"),
          date_time_CET < as.POSIXct("2021-06-23 12:00:00", tz = "CET")) %>%
   View()
+
+# we will need a more robust testhing mechanism once the data are all inputted
+# in addition, we will need to decide whether to use the time or the water level
+
+# generate some ecologically meaningful variables from these time-series data
+# given a particular water height
+
+# we will have to define the depth of each point relative to the RH2000 standard
+
+# e.g. water level -22, depth + 2
+
+# we should do these calculations for the last 6 years but then also for
+# the study period specifically
+
+# we need to make a generalisable function with sea-level data with a date
+# and a sea level
+
+# point is -20 below RH2000
+x <- 20
+
+df <- sea_dat[1:100, ]
+df$row_id <- c(1:nrow(df))
+df$water_level_cm %>% summary()
+df$dessication_point <- if_else(df$water_level_cm < (x), 1, 0)
+df
+
+y <- rle(df$dessication_point)
+y
+
+u <- rep(1:length(y$lengths), y$lengths)
+u
+
+v <- rep(y$values, y$lengths)
+v
+
+df$dessication_groups <- u
+
+df
+
+z <- 
+  df[v == TRUE, ] %>%
+  group_by(dessication_groups) %>%
+  filter(row_id == first(row_id) |
+         row_id == last(row_id)) %>%
+  summarise(time_diff = as.numeric(diff(date_time_CET)) )
+
+z
+
+diff(z$date_time_CET)
+z$date_time_CET[1]
+z$date_time_CET[2]
+
+y$values
+y$lengths
+y
+
+
+
+sea_dat$water_level_cm %>% hist()
+
+
+
+
 
 
 
