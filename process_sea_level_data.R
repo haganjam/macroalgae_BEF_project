@@ -61,6 +61,13 @@ sea_dat %>%
 # we need to make a generalisable function with sea-level data with a date
 # and a sea level
 
+# what would the parameters need to be
+# sea level data
+# column specifying date in the correct format
+# column specifying water level in the correct format
+# start date and end date
+# focal depth value
+
 # point is -20 below RH2000
 x <- 20
 
@@ -92,13 +99,22 @@ z <-
 
 z
 
-diff(z$date_time_CET)
-z$date_time_CET[1]
-z$date_time_CET[2]
+# which summary variables to make?
 
-y$values
-y$lengths
-y
+# total time above water
+# total time below water
+
+# average length of submerged periods
+# average length of dessicated periods
+
+# frequency of dessication (per week?)
+# mean of the 5% longest dessication periods
+
+
+
+
+
+
 
 
 
