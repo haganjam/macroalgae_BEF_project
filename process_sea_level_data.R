@@ -71,14 +71,46 @@ sea_dat %>%
 # point is -20 below RH2000
 x <- 20
 
-df <- sea_dat[1:100, ]
+df <- sea_dat[1:1000, ]
+
+df <- sea_dat
+
 df$row_id <- c(1:nrow(df))
 df$water_level_cm %>% summary()
 df$dessication_point <- if_else(df$water_level_cm < (x), 1, 0)
 df
 
+names(df)
+
+df <- tibble(row_id = 1:10, date_time_CET = sea_dat[1:10, ]$date_time_CET,
+       dessication_point = c(0, 1, 1, 0, 1, 1, 1, 0, 0 ,0))
+
+# this might just work...
+
+df$time <- c(diff(df$date_time_CET), "NA")
+df
+
+x <- vector()
+for (i in 1:length(df$dessication_point)) {
+  
+  if(df$dessication[i] == df$dessication_point[i+1])
+  
+}
+
+if(df$dessication_point[1] == df$dessication_point[1+1]) {
+  
+}
+
+
+x
+df$dessication_point
+
 y <- rle(df$dessication_point)
 y
+
+sum(y$lengths == 1)
+
+
 
 u <- rep(1:length(y$lengths), y$lengths)
 u
@@ -86,18 +118,45 @@ u
 v <- rep(y$values, y$lengths)
 v
 
+v %>% diff()
+
 df$dessication_groups <- u
+
+df$above_below <- v
+
+df %>%
+  View()
+
+# z <- 
+  df %>%
+  group_by(above_below, dessication_groups) %>%
+  filter(row_id == first(row_id) |
+         row_id == last(row_id)) # %>%
+  # summarise(time_diff = as.numeric(diff(date_time_CET)) )
+
+x <- df$dessication_point %>%
+  diff(.)
+
+df$change <- c(x[1], if_else(x == 0, 1, 0))
 
 df
 
-z <- 
-  df[v == TRUE, ] %>%
-  group_by(dessication_groups) %>%
-  filter(row_id == first(row_id) |
-         row_id == last(row_id)) %>%
-  summarise(time_diff = as.numeric(diff(date_time_CET)) )
+z 
 
-z
+summary_metric = "total_time_below_h"
+
+# response variables
+if (summary_metric == "total_time_below_h") {
+  
+  x <- 
+    z %>%
+    filter(above_below == 1) %>%
+    sum(., na.rm = TRUE)
+  
+}
+
+x
+
 
 # which summary variables to make?
 
