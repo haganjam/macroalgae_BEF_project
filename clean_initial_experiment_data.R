@@ -47,6 +47,9 @@ init_dat <-
          depth_treatment = substr(tile_id, 3, 3))
 
 # check if these inputs are correct
+unique(init_dat$tile_id)
+length(unique(init_dat$tile_id)) == (5*4*4)
+
 unique(init_dat$site_code)
 length(unique(init_dat$site_code)) == 5
 
@@ -55,5 +58,128 @@ length(unique(init_dat$hor_pos)) == 4
 
 unique(init_dat$depth_treatment)
 length(unique(init_dat$depth_treatment)) == 4
+
+# fix the date and time variables
+
+# write a function to do this
+date_fixer <- function(x) {
+  
+  if( sum(is.na(x)) == length(x) ) {
+    
+    y <- NA
+    
+  } else {
+    
+    y <- unique(x)[!is.na(unique(x))]
+    
+  } 
+  
+  return(y)
+  
+}
+
+init_dat <- 
+  init_dat %>%
+  group_by(tile_id) %>%
+  mutate(date_corrected = date_fixer(date) )
+
+# test if this assigned the dates properly  
+# if this sums to zero, then all new assigned dates correspond to the old dates
+init_dat %>%
+  filter(!is.na(date)) %>%
+  mutate(date_correct = if_else(date == date_corrected, 0, 1)) %>%
+  pull(date_correct) %>%
+  sum(.)
+
+# check how many tiles have missing dates
+init_dat %>%
+  group_by(tile_id) %>%
+  summarise(date_yes = first(date_corrected)) %>%
+  View()
+
+View(init_dat)  
+
+# how many rows still have NAs for dates
+init_dat %>%
+  filter(is.na(date_corrected) ) %>%
+  nrow()
+
+# most tiles do not have dates assigned
+# to fix this, we will assign dates on a per site basis as this is how the experiment was conducted
+init_dat %>%
+  group_by(site_code) %>%
+  summarise(date_corrected = (unique(date_corrected)))
+
+# before this, we must get the dates into a common format
+unique(init_dat$date[1])
+
+fix_dates_df <- 
+  lapply(init_dat$date_corrected, function(x) {
+  
+  if (!is.na(x)) {
+    
+    z <- strsplit(x, split = "\\.|\\:")[[1]]
+    
+  } else {
+    
+    z <- c(NA, NA, NA)
+    
+  }
+  
+  names(z) <- c("day", "month", "year")
+  
+  z
+  
+})
+
+fix_dates_df <- bind_rows(fix_dates_df)
+
+# what's wrong with the day variable?
+# 1 must be converted to 01
+unique(fix_dates_df$day)
+fix_dates_df$day <- ifelse(fix_dates_df$day == "1", "01", fix_dates_df$day)
+
+# what's wrong with the month variable?
+# nothing
+unique(fix_dates_df$month)
+
+# what's wrong with the year variable?
+# 21 must be converted to 2021
+unique(fix_dates_df$year)
+fix_dates_df$year <- ifelse(fix_dates_df$year == "21", "2021", fix_dates_df$year)
+
+# make a new date_corrected variable
+fix_dates_df$date_corrected2 <- ifelse(!is.na(fix_dates_df$day),
+                                      paste(fix_dates_df$day, fix_dates_df$month, fix_dates_df$year, sep = "-"),
+                                      NA)
+
+# write this new date_corrected2 variable into the init_dat data
+init_dat$date_corrected2 <- fix_dates_df$date_corrected2
+
+# check these data
+View(init_dat)
+sum( is.na(init_dat$date_corrected) != is.na(init_dat$date_corrected2) )
+
+# add dates based on site for tiles that do not have associated dates
+# check if site (i.e. site_codes) have multiple dates
+# no, but does not have a date
+init_dat %>%
+  group_by(site_code) %>%
+  summarise(unique_dates = unique(date_corrected2) )
+
+# check if imputing works by adding correct date on a per site basis
+init_dat %>%
+  group_by(site_code) %>%
+  mutate(date_corr_imputed = date_fixer(date_corrected2) ) %>%
+  group_by(site_code) %>%
+  summarise(unique_dates = unique(date_corr_imputed ) )
+
+# overwrite the init_dat data
+init_dat <- 
+  init_dat %>%
+  group_by(site_code) %>%
+  mutate(date_corr_imputed = date_fixer(date_corrected2) )
+
+# check lab notes to try and figure out the details for site_code: X
 
 
