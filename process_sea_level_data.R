@@ -48,6 +48,33 @@ sea_dat %>%
 # we will need a more robust testhing mechanism once the data are all inputted
 # in addition, we will need to decide whether to use the time or the water level
 
+# explore the data a bit
+summary(sea_dat)
+
+sea_dat %>%
+  filter(date_time_CET > as.POSIXct("2021-06-23 11:00:00", tz = "CET"),
+         date_time_CET < as.POSIXct("2021-08-23 12:00:00", tz = "CET")) %>%
+  summary()
+  
+sea_dat %>%
+  filter(date_time_CET > as.POSIXct("2021-06-23 11:00:00", tz = "CET"),
+         date_time_CET < as.POSIXct("2021-08-23 12:00:00", tz = "CET")) %>%
+  pull(water_level_cm) %>%
+  hist(.)
+
+ggplot(data = sea_dat,
+       mapping = aes(x = date_time_CET, y = water_level_cm)) +
+  geom_line()
+
+sea_dat %>%
+  filter(date_time_CET > as.POSIXct("2021-06-23 11:00:00", tz = "CET"),
+         date_time_CET < as.POSIXct("2021-08-23 12:00:00", tz = "CET")) %>%
+  ggplot(data = .,
+         mapping = aes(x = date_time_CET, y = water_level_cm)) +
+  geom_line() +
+  geom_hline(yintercept = -40)
+
+
 # generate some ecologically meaningful variables from these time-series data
 # given a particular water height
 
@@ -68,27 +95,59 @@ tile_depths
 
 # generate the summary variables
 
+# output_variable: 
+# - "time_submerged_mins"
+# - "time_exposed_mins"
+# - "mean_length_submerged_mins"
+# - "mean_length_exposed_mins"
+# - "frequency_dessication_2_hours"
+# - "top_5%_dessication_length_mins"
 
+# make a vector of output variable names
+output_names <- c("time_submerged_mins",
+                 "time_exposed_mins",
+                 "mean_length_submerged_mins",
+                 "mean_length_exposed_mins",
+                 "frequency_dessication_2_hours",
+                 "top_5%_dessication_length_mins")
 
+# last 5 years of data
+# loop over each of these variables and add it to the tile_depths data
+for(i in 1:length(output_names)) {
+  
+  x.in <- 
+    sea_level_func(focal_depth = tile_depths$depth_cm,
+                   sea_data = sea_dat,
+                   date_col = "date_time_CET",
+                   sea_level_col = "water_level_cm",
+                   output_variable = output_names[i]
+                   )
+  
+  tile_depths[[paste("year_5_", output_names[i], sep = "")]] <- x.in
+  
+}
 
+# study period variables
+for(i in 1:length(output_names)) {
+  
+  x.in <- 
+    sea_level_func(focal_depth = tile_depths$depth_cm,
+                   sea_data = sea_dat,
+                   date_col = "date_time_CET",
+                   start_date = as.POSIXct("2021-06-23 11:00:00", tz = "CET"),
+                   end_date = as.POSIXct("2021-08-01 11:00:00", tz = "CET"),
+                   sea_level_col = "water_level_cm",
+                   output_variable = output_names[i]
+    )
+  
+  tile_depths[[paste("study_", output_names[i], sep = "")]] <- x.in
+  
+}
 
+View(tile_depths)
 
+# output a cleaned .csv file of tile_depths
 
+# output a cleaned .csv file of the sea_dat data file for plotting
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+### END

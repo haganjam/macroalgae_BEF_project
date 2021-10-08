@@ -5,7 +5,7 @@
 
 # arguments:
 
-# x - depth below RH2000 (cm)
+# focal_depth - depth below RH2000 (cm)
 # sea_data - data containing sea level
 # date_col - name of the column containing the date and time in "POSIXct" format
 # sea_level_col - name of the column specifying the water level in cm
@@ -14,14 +14,14 @@
 # - note: if not start and end dates are supplied then the entire time series will be used
 
 # output_variable: 
-# - "time_below_water_mins"
-# - "time_above_water_mins"
-# - "mean_length_below_water_mins"
-# - "mean_length_above_water_mins"
+# - "time_submerged_mins"
+# - "time_exposed_mins"
+# - "mean_length_submerged_mins"
+# - "mean_length_exposed_mins"
 # - "frequency_dessication_2_hours"
-# - "top_5%_dessication_length"
+# - "top_5%_dessication_length_mins"
 
-sea_level_func <- function(x, sea_data, date_col, sea_level_col, start_date, end_date, output_variable) {
+sea_level_func <- function(focal_depth, sea_data, date_col, sea_level_col, start_date = NA, end_date = NA, output_variable) {
   
   # check that the correct version of dplyr is loaded
   l <- sessionInfo()
@@ -59,25 +59,25 @@ sea_level_func <- function(x, sea_data, date_col, sea_level_col, start_date, end
   
   # make sure start dates are present and in the correct format
   # otherwise use the first row in the sea_data data
-  if (class(start_date)[1] != "POSIXct") {
+  if (class(start_date)[1] == "POSIXct") {
     
-    d1 <- sea_data[1, date_col][[date_col]]
+    d1 <- start_date
     
   } else {
     
-    d1 <- start_date
+    d1 <- sea_data[1, date_col][[date_col]]
     
   }
   
   # make sure end dates are present and in the correct format
   # otherwise use the final row in the sea_data data
-  if (class(end_date)[1] != "POSIXct") {
+  if (class(end_date)[1] == "POSIXct") {
     
-    d2 <- sea_data[nrow(sea_data), date_col][[date_col]]
+    d2 <- end_date
     
   } else {
     
-    d2 <- end_date
+    d2 <- sea_data[nrow(sea_data), date_col][[date_col]]
     
   }
   
@@ -88,93 +88,99 @@ sea_level_func <- function(x, sea_data, date_col, sea_level_col, start_date, end
   # filter the data to match the chosen timeframe
   df <- 
     df %>%
-    filter(date_time > d1 | date_time < d2)
+    filter(date_time > d1, date_time < d2)
   
-  # classify points as either below (submerged, 0) or above water (out of water, 1)
-  df$dessication_point <- if_else(df$water_level_cm < (x), 1, 0)
-  
-  # get the time difference in minutes between each point
-  df$time_mins <- c(as.double(diff(df$date_time), units = "mins"), NA)
-  
-  # calculate the number of dessicated points
-  y <- rle(df$dessication_point)
-  u <- rep(1:length(y$lengths), y$lengths)
-  v <- rep(y$values, y$lengths)
-  
-  # make a variable for each period of either above or below water
-  df$groups <- u
-  
-  # classify these periods as above or below water
-  df$above_below <- v
-  
-  # output the response variable of interest
-  if(output_variable == "time_below_water_mins"){
+  sapply(focal_depth, function(x) {
     
-    df.x <- 
-      df %>%
-      filter(above_below == 0)
+    # classify points as either below (submerged, 0) or above water (out of water, 1)
+    df$dessication_point <- if_else(df$water_level_cm < (x), 1, 0)
     
-    sum(df.x$time_mins, na.rm = TRUE)
+    # get the time difference in minutes between each point
+    df$time_mins <- c(as.double(diff(df$date_time), units = "mins"), NA)
     
-  } else if(output_variable == "time_above_water_mins") {
+    # calculate the number of dessicated points
+    y <- rle(df$dessication_point)
+    u <- rep(1:length(y$lengths), y$lengths)
+    v <- rep(y$values, y$lengths)
     
-    df.x <- 
-      df %>%
-      filter(above_below == 1)
+    # make a variable for each period of either above or below water
+    df$groups <- u
     
-    sum(df.x$time_mins, na.rm = TRUE)
+    # classify these periods as above or below water
+    df$above_below <- v
     
-  } else if(output_variable == "mean_length_below_water_mins") {
+    # output the response variable of interest
+    if(output_variable == "time_submerged_mins"){
+      
+      df.x <- 
+        df %>%
+        filter(above_below == 0)
+      
+      output <- sum(df.x$time_mins, na.rm = TRUE)
+      
+    } else if(output_variable == "time_exposed_mins") {
+      
+      df.x <- 
+        df %>%
+        filter(above_below == 1)
+      
+      output <- sum(df.x$time_mins, na.rm = TRUE)
+      
+    } else if(output_variable == "mean_length_submerged_mins") {
+      
+      df.x <- 
+        df %>%
+        filter(above_below == 0) %>%
+        group_by(groups) %>%
+        summarise(length_below_water_mins = sum(time_mins, na.rm = TRUE))
+      
+      output <- mean(df.x$length_below_water_mins, na.rm = TRUE)
+      
+    } else if(output_variable == "mean_length_exposed_mins") {
+      
+      df.x <- 
+        df %>%
+        filter(above_below == 1) %>%
+        group_by(groups) %>%
+        summarise(length_below_water_mins = sum(time_mins, na.rm = TRUE))
+      
+      output <- mean(df.x$length_below_water_mins, na.rm = TRUE)
+      
+    } else if(output_variable == "frequency_dessication_2_hours") {
+      
+      y <- as.double(diff(c(d1, d2)), units = "mins")
+      z <- ((y/60)/24)/7
+      
+      df.x <- 
+        df %>%
+        filter(above_below == 1) %>%
+        group_by(groups) %>%
+        summarise(length_below_water_mins = sum(time_mins, na.rm = TRUE), .groups = "drop") %>%
+        filter(length_below_water_mins > 120)
+      
+      output <- nrow(df.x)/z
+      
+    } else if(output_variable == "top_5%_dessication_length_mins") {
+      
+      df.x <- 
+        df %>%
+        filter(above_below == 1) %>%
+        group_by(groups) %>%
+        summarise(length_below_water_mins = sum(time_mins, na.rm = TRUE))
+      
+      y <- quantile(df.x$length_below_water_mins, 0.95)
+      
+      output <- mean(df.x$length_below_water_mins[df.x$length_below_water_mins > y], na.rm = TRUE)
+      
+    } else {
+      
+      stop("error, select an output variable")
+      
+    }
     
-    df.x <- 
-      df %>%
-      filter(above_below == 0) %>%
-      group_by(groups) %>%
-      summarise(length_below_water_mins = sum(time_mins, na.rm = TRUE))
+    return(output)
     
-    mean(df.x$length_below_water_mins, na.rm = TRUE)
-    
-  } else if(output_variable == "mean_length_above_water_mins") {
-    
-    df.x <- 
-      df %>%
-      filter(above_below == 1) %>%
-      group_by(groups) %>%
-      summarise(length_below_water_mins = sum(time_mins, na.rm = TRUE))
-    
-    mean(df.x$length_below_water_mins, na.rm = TRUE)
-    
-  } else if(output_variable == "frequency_dessication_2_hours") {
-    
-    y <- as.double(diff(c(d1, d2)), units = "mins")
-    z <- ((y/60)/24)/7
-    
-    df.x <- 
-      df %>%
-      filter(above_below == 1) %>%
-      group_by(groups) %>%
-      summarise(length_below_water_mins = sum(time_mins, na.rm = TRUE), .groups = "drop") %>%
-      filter(length_below_water_mins > 120)
-    
-    nrow(df.x)/z
-    
-  } else if(output_variable == "top_5%_dessication_length") {
-    
-    df.x <- 
-      df %>%
-      filter(above_below == 1) %>%
-      group_by(groups) %>%
-      summarise(length_below_water_mins = sum(time_mins, na.rm = TRUE))
-    
-    y <- quantile(x$length_below_water_mins, 0.95)
-    
-    mean(df.x$length_below_water_mins[x$length_below_water_mins > y], na.rm = TRUE)
-    
-  } else {
-    
-    stop("error, select an output variable")
-    
-  }
+  })
   
 }
 
