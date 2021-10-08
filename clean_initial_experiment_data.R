@@ -3,6 +3,11 @@
 
 # Title: Clean the experiment data from the initial measurements
 
+# Next steps: 
+# - check lab notes to try and figure out the details for site_code: X
+# - check the lab notes for XDE2 pre measurements
+# - check which tiles were mixed up with Ben and correct them
+
 # load libraries using groundhog
 library(groundhog)
 groundhog.day <- "2020-06-1"
@@ -178,8 +183,52 @@ init_dat %>%
 init_dat <- 
   init_dat %>%
   group_by(site_code) %>%
-  mutate(date_corr_imputed = date_fixer(date_corrected2) )
+  mutate(date_corr_imputed = date_fixer(date_corrected2) ) %>%
+  ungroup()
 
 # check lab notes to try and figure out the details for site_code: X
+
+# subset the relevant columns after correcting the dates
+names(init_dat)
+
+init_dat <- 
+  init_dat %>%
+  select(date_corrected2, date_corrected2, date_corr_imputed, site_code, hor_pos, depth_treatment,
+         tile_id, plant_no, plant_id, origin_site_code, binomial_code, sex_fu_ve,
+         initial_wet_weight_g, initial_length_cm, observers, notes)
+
+# check if rows correspond to the correct number of plants
+nrow(init_dat)
+16*5*9
+
+# there is a missing row
+init_dat %>%
+  group_by(tile_id) %>%
+  summarise(plant_count = length(unique(plant_no))) %>%
+  filter(plant_count != 9)
+
+# yes, the missing row in tile XDE
+# which plant_no is it?
+z <- 
+  init_dat %>%
+  filter(tile_id == "XDE") %>%
+  pull(plant_no)
+
+c(1:9)[ !(1:9 %in% z) ] # 2
+
+# during fieldwork, we noticed that we accidentally placed the tile labelled WAG at depth H
+# likewise, we placed the tile labelled WCH at depth G
+
+# the raw data is unchanged but we correct this here
+
+# ask Ben
+
+
+
+
+
+
+
+
 
 
