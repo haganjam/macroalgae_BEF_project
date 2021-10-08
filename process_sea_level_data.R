@@ -84,33 +84,15 @@ names(df)
 
 df <- tibble(row_id = 1:10, date_time_CET = sea_dat[1:10, ]$date_time_CET,
        dessication_point = c(0, 1, 1, 0, 1, 1, 1, 0, 0 ,0))
+df
 
 # this might just work...
 
-df$time <- c(diff(df$date_time_CET), "NA")
+df$time_mins <- c(as.numeric(diff(df$date_time_CET)), "NA")
 df
-
-x <- vector()
-for (i in 1:length(df$dessication_point)) {
-  
-  if(df$dessication[i] == df$dessication_point[i+1])
-  
-}
-
-if(df$dessication_point[1] == df$dessication_point[1+1]) {
-  
-}
-
-
-x
-df$dessication_point
 
 y <- rle(df$dessication_point)
 y
-
-sum(y$lengths == 1)
-
-
 
 u <- rep(1:length(y$lengths), y$lengths)
 u
@@ -118,14 +100,54 @@ u
 v <- rep(y$values, y$lengths)
 v
 
-v %>% diff()
-
 df$dessication_groups <- u
 
 df$above_below <- v
 
+df
+
+# which summary variables to make?
+
+# total time above water
+# total time below water
+
+# average length of submerged periods
+# average length of dessicated periods
+
+# frequency of dessication (per week?)
+# mean of the 5% longest dessication periods
+
+response <- "time_above_water_mins"
+
+if(response == "time_above_water_mins"){
+  
+  x <- 
+    df %>%
+    filter(above_below == 0)
+  
+  sum(x$time_mins, na.rm = TRUE)
+  
+} else if(response == "time_below_water_mins") {
+  
+  x <- 
+    df %>%
+    filter(above_below == 1)
+  
+  sum(x$time_mins, na.rm = TRUE)
+  
+} else if(response == "mean_length_below_water_mins") {
+  
+  x <- 
+    df %>%
+    filter(above_below == 1)
+  
+}
+
+
+
+
 df %>%
-  View()
+  group_by()
 
 # z <- 
   df %>%
@@ -158,16 +180,7 @@ if (summary_metric == "total_time_below_h") {
 x
 
 
-# which summary variables to make?
 
-# total time above water
-# total time below water
-
-# average length of submerged periods
-# average length of dessicated periods
-
-# frequency of dessication (per week?)
-# mean of the 5% longest dessication periods
 
 
 
