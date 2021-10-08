@@ -29,6 +29,11 @@ groundhog.library(pkgs, groundhog.day)
 # Gul (Y) = Grovt kontrollerade värden, misstänkta eller aggregerade värden (Roughly controlled values, suspicious or aggregated values)
 # Orange (O) = Okontrollerade värden (Uncontrolled values)
 
+# check that the correct folder is present
+if(! dir.exists(here("sea_level_data"))){
+  print("make a folder called sea_level_data in the working directory and save the raw sea level in that folder, see README for details")
+}
+
 # load sea level data to export a cleaned version
 sea_level_raw <- read_delim(here("sea_level_data/smhi-opendata_13_2130_20211006_152803.csv"),
                             delim = ";", 

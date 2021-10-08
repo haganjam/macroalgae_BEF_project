@@ -28,3 +28,8 @@ Once the file from the raw_sea_level_data section has been downloaded into a fol
 
 > Experiment data
 
+To clean the initial measurements for the experimental data, download the tile_experiment_data_plants_pre.csv under the experimental_data section on RESEARCHBOX (link above). Save this file into a file in the working directory called experiment_data. Download the script called clean_initial_experiment_data.R. Run this script which will clean the data and output a cleaned version of the data into an analysis_data folder.
+
+
+
+

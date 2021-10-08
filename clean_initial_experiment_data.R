@@ -14,6 +14,11 @@ groundhog.day <- "2020-06-1"
 pkgs <- c("here", "dplyr", "readr", "tidyr", "ggplot2", "lubridate")
 groundhog.library(pkgs, groundhog.day)
 
+# check that the correct folder is present
+if(! dir.exists(here("experiment_data"))){
+  print("make a folder called experiment_data in the working directory and save the initial experiment data, see README for details")
+}
+
 # load the raw initial data
 init_dat <- read_csv(file = here("experiment_data/tile_experiment_data_plants_pre.csv"),
                      col_types = list(date = col_character(), 

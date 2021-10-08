@@ -15,7 +15,7 @@ sessionInfo()
 # download the 20 raw logger data from ResearchBox: https://researchbox.org/435&PEER_REVIEW_passcode=ECOTGX
 # save this into a folder called tile_logger_data
 
-# make a folder to export the cleaned data
+# check that the correct folder is present
 if(! dir.exists(here("tile_logger_data"))){
   print("make a folder called tile_logger_data in the working directory and save the 20 raw data files into this folder see ReadMe for more details")
 }
