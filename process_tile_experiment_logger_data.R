@@ -188,8 +188,20 @@ logvars_summary <-
 logvars_summary <- 
   logvars_summary %>%
   bind_rows(.) %>% 
-  arrange(site_code, water_level_treat)
+  rename(depth_treatment = water_level_treat) %>%
+  arrange(site_code, depth_treatment)
   
 View(logvars_summary)
+
+# output these cleaned files into an analysis data folder
+
+# make a folder to export the cleaned data
+if(! dir.exists(here("analysis_data"))){
+  dir.create(here("analysis_data"))
+}
+
+# output a cleaned .csv file of logvars_summary
+
+# output a cleaned .csv file of the bound raw data file for plotting
 
 ### END

@@ -89,7 +89,7 @@ sea_dat %>%
 source(here("functions/sea_level_function.R"))
 
 # what are the depths of our tiles?
-tile_depths <- tibble(depth_label = c("E", "F", "G", "H"),
+tile_depths <- tibble(depth_treatment = c("E", "F", "G", "H"),
                       depth_cm = c(-5, -12, -28, -40))
 tile_depths
 
@@ -145,6 +145,13 @@ for(i in 1:length(output_names)) {
 }
 
 View(tile_depths)
+
+# output these cleaned files into an analysis data folder
+
+# make a folder to export the cleaned data
+if(! dir.exists(here("analysis_data"))){
+  dir.create(here("analysis_data"))
+}
 
 # output a cleaned .csv file of tile_depths
 
