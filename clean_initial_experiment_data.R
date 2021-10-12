@@ -4,9 +4,8 @@
 # Title: Clean the experiment data from the initial measurements
 
 # Next steps: 
-# - check lab notes to try and figure out the details for site_code: X
-# - check the lab notes for XDE2 pre measurements
-# - check which tiles were mixed up with Ben and correct them
+# - check lab notes to try and figure out the dates for site_code: X
+# - check which tiles were mixed up with Ben and correct them once the image analysis is done
 
 # load libraries using groundhog
 library(groundhog)
@@ -107,8 +106,6 @@ init_dat %>%
   summarise(date_yes = first(date_corrected)) %>%
   View()
 
-View(init_dat)  
-
 # how many rows still have NAs for dates
 init_dat %>%
   filter(is.na(date_corrected) ) %>%
@@ -191,7 +188,7 @@ init_dat <-
   mutate(date_corr_imputed = date_fixer(date_corrected2) ) %>%
   ungroup()
 
-# check lab notes to try and figure out the details for site_code: X
+# check lab notes to try and figure out the date for site_code: X (assuming other imputed dates are correct)
 
 # subset the relevant columns after correcting the dates
 names(init_dat)
@@ -221,17 +218,26 @@ z <-
 
 c(1:9)[ !(1:9 %in% z) ] # 2
 
+# XDE2 is missing which means it was not measured in this initial phase
+
 # during fieldwork, we noticed that we accidentally placed the tile labelled WAG at depth H
 # likewise, we placed the tile labelled WCH at depth G
 
-# the raw data is unchanged but we correct this here
+# add information about this under the notes column
+init_dat %>%
+  filter(tile_id %in% c("WAG", "WCH")) %>%
+  View()
 
-# ask Ben
+init_dat <- 
+  init_dat %>%
+  mutate(notes = if_else(tile_id == "WAG", "this tile was placed in the H depth zone", notes)) %>%
+  mutate(notes = if_else(tile_id == "WCH", "this tile was placed in the G depth zone", notes)) %>%
+  filter(tile_id %in% c("WAG", "WCH"))
 
+# the raw data is unchanged but we will correct once we have joined the image data
+View(init_dat)
 
-
-
-
+# read in the image processing data
 
 
 
