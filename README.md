@@ -19,16 +19,41 @@ Download the script from the RESEARCHBOX repository called: process_tile_experim
 
 > Sea level data analysis
 
-To process the raw sea-level data, go to the RESEARCHBOX repository (link above). Then, select and download the file from the raw_sea_level_data section. Save this into a folder called "sea_level_data" in the current working directory. Some limited processing of these data was done before uploading it to the RESEARCHBOX repository. The script where this limited processing was conducted is clean_sea_level_data.R. In addition, the raw data file can be downloaded from SMHI (https://www.smhi.se/):
+To process the raw sea-level data, go to the RESEARCHBOX repository (link above). Then, select and download the file from the raw_sea_level_data section:
+
++ sea_level_data_raw_2015_2021.csv
+
+Save this into a folder called "sea_level_data" in the current working directory. Some limited processing of these data was done before uploading it to the RESEARCHBOX repository. The script where this limited processing was conducted is clean_sea_level_data.R. In addition, the raw data file can be downloaded from SMHI (https://www.smhi.se/):
 
 + Havsvattenstånd RH2000, minutvärde, (station: Kungsvik)
 + https://www.smhi.se/data/oceanografi/ladda-ner-oceanografiska-observationer#param=sealevelMinutes,stations=all,stationid=2130
 
-Once the file from the raw_sea_level_data section has been downloaded into a folder in the working directory called sea_level_data, open the script called: process_sea_level_data.R. This will clean the raw sea level data and output a table with summary variables for each treatment depth used in the experiment. The full cleaned data and the summary table are then outputted as .csv files into a folder called analysis_data. If the folder does not exist, the script will create the folder.
+In addition, you will need to download two files from the RESEARCHBOX repository from the section called preliminary_supporting_data:
+
++ transect_data.csv
++ sample_data_biomass_allometry.csv
+
+These files should be saved in a folder in the working directory called: preliminary_supporting_data.
+
+Once these three files have been downloaded and saved into the appropriate folders (see above), open the script called: 
+
++ process_sea_level_data.R 
+
+This will clean the raw sea level data and output a table with summary variables for each treatment depth used in the experiment. The full cleaned data and the summary table are then outputted as .csv files into a folder called analysis_data. If the folder does not exist, the script will create the folder.
+
+In addition, the script will output a data file that will later be used to calibrate the sea level data taken in the field from an environmental data application (VIVA) with the published sea level data.
 
 > Experiment data
 
-To clean the initial measurements for the experimental data, download the tile_experiment_data_plants_pre.csv under the experimental_data section on RESEARCHBOX (link above). Save this file into a file in the working directory called experiment_data. Download the script called clean_initial_experiment_data.R. Run this script which will clean the data and output a cleaned version of the data into an analysis_data folder.
+To clean the initial measurements for the experimental data, download the following dataset from the experimental_data section on RESEARCHBOX (link above):
+
++ tile_experiment_data_plants_pre.csv 
+
+Save this file into a folder in the working directory called: 
+
++ experiment_data
+
+Download the script called clean_initial_experiment_data.R. Run this script which will clean the data and output a cleaned version of the data into an analysis_data folder.
 
 
 
