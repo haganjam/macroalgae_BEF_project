@@ -9,6 +9,12 @@ library(dplyr)
 library(here)
 library(slider)
 
+# load libraries using groundhog
+library(groundhog)
+groundhog.day <- "2020-06-1"
+pkgs <- c("here", "dplyr", "readr", "googlesheets4", "ggplot2", "slider")
+groundhog.library(pkgs, groundhog.day)
+
 
 # import the transect data
 
@@ -111,7 +117,6 @@ tra_a <-
 View(tra_a)
   
 # work with the transect data
-library(ggplot2)
 ggplot(data = tra_a %>% filter(binomial_code != -9999),
        mapping = aes(x = binomial_code, y = depth_interpolated)) +
   geom_point()
@@ -173,7 +178,6 @@ allo_summary <-
   allo_summary %>%
   select(data_id, binomial_code, mean_depth:quant_80)
 
-library(readr)
 bind_rows(transect_summary, allo_summary) %>%
   write_csv(x = ., file = "C:/Users/james/OneDrive/PhD_Gothenburg/Chapter_2_Fucus_landscape/datasheets_print/zonation_data.csv")
 

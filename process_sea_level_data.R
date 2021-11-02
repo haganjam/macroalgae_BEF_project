@@ -82,6 +82,14 @@ sea_dat %>%
 
 # e.g. water level -22, depth + 2
 
+# before we do this, we need to calibrate the RH2000 to determine when something is or isn't submerged
+# to do this, we utilise preliminary data that we collected on depths in the field along with
+# recorded water levels
+
+
+
+
+
 # we should do these calculations for the last 6 years but then also for
 # the study period specifically
 
