@@ -6,11 +6,14 @@
 # load libraries using groundhog
 library(groundhog)
 groundhog.day <- "2020-06-1"
-pkgs <- c("here", "dplyr", "readr", "ggplot2", "lubridate")
+pkgs <- c("here", "dplyr", "readr", "tidyr", "ggplot2", "lubridate")
 groundhog.library(pkgs, groundhog.day)
 
 # check the loaded packages for their correct versions
 sessionInfo()
+
+# load the plotting theme
+# source(here())
 
 # download the raw sea level data from ResearchBox: https://researchbox.org/435&PEER_REVIEW_passcode=ECOTGX
 # save this into a folder called sea_level_data
@@ -45,6 +48,152 @@ sea_dat %>%
          date_time_CET < as.POSIXct("2021-06-23 12:00:00", tz = "CET")) %>%
   View()
 
+# use the preliminary supporting data to test whether RH2000 water levels taken
+# using the Viva app in the field correspond to the sea_level_data we have
+
+# download two files from from ResearchBox: https://researchbox.org/435&PEER_REVIEW_passcode=ECOTGX
+# these files can be found under the preliminary_supporting_data section:
+# 1. sample_data_biomass_allometry.csv
+# 2. transect_data.csv
+
+# save this into a folder on your computer called: preliminary_supporting_data
+
+# load the biomass allometry data
+allo_dat <- read_csv(file = here("preliminary_supporting_data/sample_data_biomass_allometry.csv"),
+                     col_types = list(sample_id = col_character()))
+str(allo_dat)
+head(allo_dat)
+
+# for this, we need dates, times and water levels so we extract these columns as complete cases
+allo_dat <- allo_dat[complete.cases(allo_dat[, c("date", "time", "water_level_cm")]), ]
+
+# add a data_set identifier
+allo_dat$data_set <- "allometry"
+
+# get those columns
+allo_sub <- 
+  allo_dat %>%
+  select(data_set, date, time, water_level_cm)
+# rm(allo_dat)
+
+# load the transect data
+tra_dat <- read_csv(file = here("preliminary_supporting_data/transect_data.csv"))
+str(tra_dat)
+head(tra_dat)
+
+# for this, we need dates, times and water levels so we extract these columns as complete cases
+tra_dat <- tra_dat[complete.cases(tra_dat[, c("date", "time", "water_level_cm")]), ]
+
+# get an identifier for the dataset
+tra_dat$data_set <- "transect"
+
+# get those columns
+tra_sub <- 
+  tra_dat %>%
+  select(data_set, date, time, water_level_cm)
+# rm(tra_dat)
+
+# bind these data together
+pre_dat <- bind_rows(allo_sub, tra_sub)
+head(pre_dat)
+
+# check that the time variables are all correct
+x <- grepl(pattern = "[0-9]{2}[h][0-9]{2}", pre_dat$time)
+any(x == FALSE)
+
+# correct these mistakes
+pre_dat[!(x), ]$time <- c("09h52", "09h57", "10h53")
+
+# check that the time variables are all correct
+x <- grepl(pattern = "[0-9]{2}[h][0-9]{2}", pre_dat$time)
+any(x == FALSE)
+
+# get the data and time into the correct format
+x <- gsub(pattern = "_", replacement = "-", pre_dat$date)
+y <- paste(gsub(pattern = "h", replacement = ":", pre_dat$time), "00", sep = ":")
+z <- paste(x, y, sep = " ")
+
+pre_dat$date_time_CET <- as.POSIXct(z, tz="CET")
+rm(x, y, z)
+
+# select the correct columns
+pre_dat <- 
+  pre_dat %>%
+  select(data_set, date_time_CET, water_level_cm_viva = water_level_cm)
+head(pre_dat)
+
+# filter the sea_dat by the dates where have data for
+lev_comp <- inner_join(sea_dat, pre_dat, by = "date_time_CET" )
+head(lev_comp)
+nrow(lev_comp)
+nrow(pre_dat)
+
+ggplot(data = lev_comp, 
+       mapping = aes(x = water_level_cm, y = water_level_cm_viva)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  geom_abline(intercept = 0, slope = 1, colour = "red", linetype = "dashed") +
+  theme_classic()
+
+lm.1 <- lm(water_level_cm ~ poly(water_level_cm_viva, 2), data = lev_comp %>% filter(data_set == "allometry"))
+plot(lm.1)
+summary(lm.1)
+
+pred_dat <- 
+  lev_comp %>%
+  filter(data_set == "transect")
+
+plot(predict(lm.1, pred_dat[, "water_level_cm_viva"]), pred_dat$water_level_cm )
+
+
+cor.test(lev_comp$water_level_cm, lev_comp$water_level_cm_viva, method = "pearson")
+
+# test the mean absolute difference between the water-levels
+y <- abs(lev_comp$water_level_cm - lev_comp$water_level_cm_viva)
+mean(y)
+sd(y)
+hist(y)
+
+# remove the very large outliers which are unlikely to be a problem for
+# the tile experiment (but should be checked for Merle's data)
+lev_sub <- 
+  lev_comp %>% 
+  filter(water_level_cm_viva < 20)
+
+ggplot(data = lev_sub, 
+       mapping = aes(x = water_level_cm, y = water_level_cm_viva)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  geom_abline(intercept = 0, slope = 1, colour = "red", linetype = "dashed") +
+  theme_classic()
+
+cor.test(lev_sub$water_level_cm, lev_sub$water_level_cm_viva, method = "pearson")
+
+# test the mean absolute difference between the water-levels
+y <- abs(lev_sub$water_level_cm - lev_sub$water_level_cm_viva)
+mean(y)
+sd(y)
+hist(y)
+
+allo_dat %>%
+  filter(water_level_cm > 20) %>%
+  View()
+
+lev_comp %>%
+  pivot_longer(data = .,
+               cols = c("water_level_cm", "water_level_cm_viva"),
+               names_to = "measurement",
+               values_to = "water_level_cm") %>%
+  ggplot(data = .,
+       mapping = aes(x = water_level_cm, colour = measurement, fill = measurement)) +
+  geom_histogram(alpha = 0.5) +
+  theme_classic()
+
+# test if the values we recorded are particularly extreme
+range(pre_dat$water_level_cm_viva)
+range(sea_dat$water_level_cm)
+
+
 # we will need a more robust testhing mechanism once the data are all inputted
 # in addition, we will need to decide whether to use the time or the water level
 
@@ -78,20 +227,25 @@ sea_dat %>%
 # generate some ecologically meaningful variables from these time-series data
 # given a particular water height
 
-# we will have to define the depth of each point relative to the RH2000 standard
+# how to do this?
 
+# we will have to define the depth of each point relative to the RH2000 standard
 # e.g. water level -22, depth + 2
 
-# before we do this, we need to calibrate the RH2000 to determine when something is or isn't submerged
-# to do this, we utilise preliminary data that we collected on depths in the field along with
-# recorded water levels
+# given this depth correction i.e. we can use the following formula:
+# depth in relation to the RH2000 = RH2000 water level + depth
 
+# it follows logically that we can calculate depth with
+# depth in relation to the RH2000 and RH2000 water level as:
+# depth = depth in relation to the RH2000 - RH2000 water level
 
+# this means that for each tile height, we can derive time-series
+# where we know a tile was above or below water
 
+# we do these calculations over two times periodss:
 
-
-# we should do these calculations for the last 6 years but then also for
-# the study period specifically
+# 1. the last 6 years
+# 2. the study period specifically
 
 # use the sea level function to calculate these variables for each depth
 source(here("functions/sea_level_function.R"))

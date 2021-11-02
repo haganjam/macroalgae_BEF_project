@@ -5,10 +5,12 @@
 
 # arguments:
 
-# focal_depth - depth below RH2000 (cm)
-# sea_data - data containing sea level
-# date_col - name of the column containing the date and time in "POSIXct" format
-# sea_level_col - name of the column specifying the water level in cm
+# focal_depth - depth relative to the RH2000 standard (cm)
+
+# sea_data - data containing sea level relative to the RH2000 standard
+# - date_col - name of the column containing the date and time in "POSIXct" format
+# - sea_level_col - name of the column specifying the water level in cm relative to the RH2000 standard
+
 # start_date - date to start calculating summary statistics in "POSIXct" format
 # end_date - date to stop calculating summary statistics in "POSIXct" format
 # - note: if not start and end dates are supplied then the entire time series will be used
@@ -93,7 +95,7 @@ sea_level_func <- function(focal_depth, sea_data, date_col, sea_level_col, start
   sapply(focal_depth, function(x) {
     
     # classify points as either below (submerged, 0) or above water (out of water, 1)
-    df$dessication_point <- if_else(df$water_level_cm < (x), 1, 0)
+    df$dessication_point <- if_else( (x - df$water_level_cm) > 0 , 1, 0)
     
     # get the time difference in minutes between each point
     df$time_mins <- c(as.double(diff(df$date_time), units = "mins"), NA)
