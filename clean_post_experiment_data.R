@@ -108,6 +108,16 @@ source(here("functions/date_fixer.R"))
 # if multiple dates are associated with a tile, then they are assigned randomly
 
 # if no dates are associated with a tile, then the values remain NAs
+unique(post_dat$date)
+
+# fix the incorrect direction dates
+post_dat <- 
+  post_dat %>%
+  mutate(date = if_else(date == "2021_09_02", "02_09_2021", date)) %>%
+  mutate(date = if_else(date == "2021_09_01", "01_09_2021", date))
+
+unique(post_dat$date)
+
 post_dat <- 
   post_dat %>%
   group_by(tile_id) %>%
@@ -122,8 +132,10 @@ post_dat <-
 
 sum(is.na(post_dat$date_corrected))
 
-# check the missing date
-post_dat %>%
-  filter(is.na(date_corrected)) %>%
-  View()
+
+
+
+
+
+
 
