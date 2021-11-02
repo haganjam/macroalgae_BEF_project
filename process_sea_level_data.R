@@ -15,6 +15,11 @@ sessionInfo()
 # load the plotting theme
 # source(here())
 
+# make a folder to export the cleaned data
+if(! dir.exists(here("analysis_data"))){
+  dir.create(here("analysis_data"))
+}
+
 # download the raw sea level data from ResearchBox: https://researchbox.org/435&PEER_REVIEW_passcode=ECOTGX
 # save this into a folder called sea_level_data
 
@@ -135,17 +140,6 @@ ggplot(data = lev_comp,
   geom_abline(intercept = 0, slope = 1, colour = "red", linetype = "dashed") +
   theme_classic()
 
-lm.1 <- lm(water_level_cm ~ poly(water_level_cm_viva, 2), data = lev_comp %>% filter(data_set == "allometry"))
-plot(lm.1)
-summary(lm.1)
-
-pred_dat <- 
-  lev_comp %>%
-  filter(data_set == "transect")
-
-plot(predict(lm.1, pred_dat[, "water_level_cm_viva"]), pred_dat$water_level_cm )
-
-
 cor.test(lev_comp$water_level_cm, lev_comp$water_level_cm_viva, method = "pearson")
 
 # test the mean absolute difference between the water-levels
@@ -175,27 +169,18 @@ mean(y)
 sd(y)
 hist(y)
 
-allo_dat %>%
-  filter(water_level_cm > 20) %>%
-  View()
-
-lev_comp %>%
-  pivot_longer(data = .,
-               cols = c("water_level_cm", "water_level_cm_viva"),
-               names_to = "measurement",
-               values_to = "water_level_cm") %>%
-  ggplot(data = .,
-       mapping = aes(x = water_level_cm, colour = measurement, fill = measurement)) +
-  geom_histogram(alpha = 0.5) +
-  theme_classic()
-
 # test if the values we recorded are particularly extreme
 range(pre_dat$water_level_cm_viva)
 range(sea_dat$water_level_cm)
 
+# what do we need to do here?
+# we essentially need to correct this somehow
 
-# we will need a more robust testhing mechanism once the data are all inputted
-# in addition, we will need to decide whether to use the time or the water level
+# write a .csv file out so that we can model this and try to correct it
+write_csv(x = lev_comp, path = here("analysis_data/sea_level_viva_calibration_data.csv"))
+
+
+### explore the sea-level data
 
 # explore the data a bit
 summary(sea_dat)
@@ -309,11 +294,6 @@ for(i in 1:length(output_names)) {
 View(tile_depths)
 
 # output these cleaned files into an analysis data folder
-
-# make a folder to export the cleaned data
-if(! dir.exists(here("analysis_data"))){
-  dir.create(here("analysis_data"))
-}
 
 # output a cleaned .csv file of tile_depths
 
