@@ -18,6 +18,9 @@ if(! dir.exists(here("experiment_data"))){
   print("make a folder called experiment_data in the working directory and save the initial experiment data, see README for details")
 }
 
+# load the date_fixer function
+source(here("functions/date_fixer.R"))
+
 # load the raw initial data
 init_dat <- read_csv(file = here("experiment_data/tile_experiment_data_plants_pre.csv"),
                      col_types = list(date = col_character(), 
@@ -68,25 +71,7 @@ length(unique(init_dat$hor_pos)) == 4
 unique(init_dat$depth_treatment)
 length(unique(init_dat$depth_treatment)) == 4
 
-# fix the date and time variables
-
-# write a function to do this
-date_fixer <- function(x) {
-  
-  if( sum(is.na(x)) == length(x) ) {
-    
-    y <- NA
-    
-  } else {
-    
-    y <- unique(x)[!is.na(unique(x))]
-    
-  } 
-  
-  return(y)
-  
-}
-
+# use the date_fixer function to fill in missing dates
 init_dat <- 
   init_dat %>%
   group_by(tile_id) %>%
