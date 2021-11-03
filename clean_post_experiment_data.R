@@ -121,7 +121,8 @@ unique(post_dat$date)
 post_dat <- 
   post_dat %>%
   group_by(tile_id) %>%
-  mutate(date_corrected = date_fixer(date))
+  mutate(date_corrected = date_fixer(date)) %>%
+  ungroup()
 
 sum(is.na(post_dat$date_corrected))
 
@@ -132,10 +133,93 @@ post_dat <-
 
 sum(is.na(post_dat$date_corrected))
 
+# add Elena's measurement error
+# during the measurements, we noticed the one of the researchers mis-read the length measurement
+# consistently by one cm
+# we correct this by adding one centimeter
 
+post_dat <- 
+  post_dat %>%
+  mutate(total_length_cm2 = if_else(is.na(`elena measurement error, add to length`), total_length_cm, (total_length_cm + `elena measurement error, add to length`) )) %>%
+  select(-`elena measurement error, add to length`)
 
+# test if this worked and remove the measurement error column
+max(post_dat$total_length_cm2 - post_dat$total_length_cm, na.rm = TRUE)
 
+# remove the uncorrected total_length_cm and rename the corrected one
+post_dat <- 
+  post_dat %>%
+  select(-total_length_cm) %>%
+  rename(total_length_cm = total_length_cm2)
 
+# reorder and rename the columns where necessary
+names(post_dat)
 
+post_dat <- 
+  post_dat %>%
+  select(-date) %>%
+  rename(date_end = date_corrected)
 
+# subset out the basic data
+final_dat <- 
+  post_dat %>%
+  select(date_end, site_code, hor_pos, depth_treatment, tile_id, plant_no,
+         plant_id, binomial_code, wet_weight_g, total_length_cm, brittleness,
+         epiphyte_wet_weight_g, person_photo, person_measure, person_writing, Obs) %>%
+  rename(final_wet_weight_g = wet_weight_g, final_length_cm = total_length_cm,
+         final_observer_photo = person_photo, 
+         final_observer_measure = person_measure, 
+         final_observer_writing = person_writing, final_notes = Obs)
 
+# here, we need to add the area measurements
+final_dat
+
+# subset out the trait_data
+# this will also include area measurements!
+names(post_dat)
+
+bt <- 
+  post_dat %>%
+  select(starts_with("blade_thickness"))
+
+blt <- 
+  post_dat %>%
+  select(starts_with("bladder_thickness"))
+
+mdt <- 
+  post_dat %>%
+  select(starts_with("midrib"))
+
+trait_dat <- 
+  post_dat %>%
+  select(date_end, site_code, hor_pos, depth_treatment, tile_id, plant_no, plant_id, binomial_code,
+         number_of_bladders, number_receptacles, stipe_thickness_mm,
+         contains("tray"))
+
+# summarise blade thickness measurements
+trait_dat$blade_thickness_mean <- apply(bt, 1, mean)
+trait_dat$blade_thickness_cv <- apply(bt, 1, sd)/apply(bt, 1, mean)
+
+# summarise bladder thickness measurements
+trait_dat$bladder_thickness_mean <- apply(blt, 1, mean)
+trait_dat$bladder_thickness_cv <- apply(blt, 1, sd)/apply(blt, 1, mean)
+
+# summarise midrib thickness measurements
+trait_dat$midrib_mean <- apply(mdt, 1, mean)
+trait_dat$midrib_cv <- apply(mdt, 1, sd)/apply(mdt, 1, mean)
+
+rm(bt, blt, mdt)
+
+# check the trait data
+View(trait_dat)
+
+# remove the tray weights from the rest and blade measurements
+trait_dat <- 
+  trait_dat %>%
+  mutate(dry_weight_blade_g = (dry_weight_g_blade_with_tray - tray_weight_blade_g) ) %>%
+  mutate(dry_weight_total_g = ((dry_weight_g_rest_with_tray - tray_weight_rest_g) + dry_weight_blade_g) ) %>%
+  select(-contains("tray"))
+
+View(trait_dat)
+
+### END

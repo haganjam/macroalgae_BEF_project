@@ -150,6 +150,8 @@ init_dat$date_corrected2 <- fix_dates_df$date_corrected2
 
 # check these data
 View(init_dat)
+
+# this should sum to zero
 sum( is.na(init_dat$date_corrected) != is.na(init_dat$date_corrected2) )
 
 # add dates based on site for tiles that do not have associated dates
@@ -180,7 +182,7 @@ names(init_dat)
 
 init_dat <- 
   init_dat %>%
-  select(date_corrected2, date_corrected2, date_corr_imputed, site_code, hor_pos, depth_treatment,
+  select(date_corrected, date_corrected2, date_corr_imputed, site_code, hor_pos, depth_treatment,
          tile_id, plant_no, plant_id, origin_site_code, binomial_code, sex_fu_ve,
          initial_wet_weight_g, initial_length_cm, observers, notes)
 
@@ -221,6 +223,15 @@ init_dat <-
 
 # the raw data is unchanged but we will correct once we have joined the image data
 View(init_dat)
+names(init_dat)
+
+# just use the imputed date for simplicity
+init_dat <- 
+  init_dat %>%
+  select(-date_corrected, -date_corrected2) %>%
+  rename(date_start = date_corr_imputed)
+
+names(init_dat)
 
 # read in the image processing data
 

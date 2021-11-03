@@ -43,17 +43,39 @@ This will clean the raw sea level data and output a table with summary variables
 
 In addition, the script will output a data file that will later be used to calibrate the sea level data taken in the field from an environmental data application (VIVA) with the published sea level data.
 
+> Calibrate in-situ water-level measurements
+
+Water-level measurements taken in the field using the ViVa application do not perfectly correspond to those published by SMHI. This does not necessarily matter for the Tile Experiment but we want to better correct some of our other studies.
+
+We use the following script to fit models to predict the SMHI water-level using the ViVa water levels:
+
++ calibrate_viva_published_sea_level.R
+
+Then, there is a script that uses this model to correct the depth using the model predictions:
+
++ depth_correcter_example.R
+
+This script calls a function that should have been downloaded already if the readme has been properly followed:
+
++ depth_correcter.R
+
 > Experiment data
 
-To clean the initial measurements for the experimental data, download the following dataset from the experimental_data section on RESEARCHBOX (link above):
+To clean the initial measurements and final measurements for the experimental data, download the following datasets from the experimental_data section on RESEARCHBOX (link above):
 
 + tile_experiment_data_plants_pre.csv 
++ tile_experiment_post.csv
 
 Save this file into a folder in the working directory called: 
 
 + experiment_data
 
-Download the script called clean_initial_experiment_data.R. Run this script which will clean the data and output a cleaned version of the data into an analysis_data folder.
+Download the following scripts: 
+
++ clean_initial_experiment_data.R
++ clean_post_experiment_data.R
+
+Run these scripts which will clean the data and output a cleaned version of the data into an analysis_data folder.
 
 
 
