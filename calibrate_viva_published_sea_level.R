@@ -6,94 +6,131 @@
 # load libraries using groundhog
 library(groundhog)
 groundhog.day <- "2020-06-1"
-pkgs <- c("here", "dplyr", "readr", "glmnet")
+pkgs <- c("here", "dplyr", "readr", "glmnet", "tidyr", "mgcv", "ggplot2", "lubridate")
 groundhog.library(pkgs, groundhog.day)
 
-library(glmnet)
+# load the calibration data
+sea_cal <- read_csv(file = here("analysis_data/sea_level_viva_calibration_data.csv"))
+head(sea_cal)
+str(sea_cal)
 
-as.matrix(allo_dat.fu_ve$cyl_vol)
+# add a row.id variable
+sea_cal$row_id <- 1:nrow(sea_cal)
 
-cv.out <- 
-  cv.glmnet(x = matrix(c(log(allo_dat.fu_ve$cyl_vol), (allo_dat.fu_ve$len_circum_ratio)),
-                       ncol = 2, nrow = nrow(allo_dat.fu_ve)), 
-          y = as.matrix(log(allo_dat.fu_ve$dry_weight_g) ),
-          nfolds = 5, alpha = 0,
-          type.measure = "mse")
+# samples are horribly autocorrelated
+paste(hour(sea_cal$date_time_CET), date(sea_cal$date_time_CET)) %>%
+  unique() %>%
+  length()
 
-cv.out
+set.seed(135830153)
+sea_sub <- 
+  sea_cal %>%
+  group_by(hour(date_time_CET), date(date_time_CET)) %>%
+  sample_n(size = 1) %>%
+  ungroup()
 
-cv.out$lambda.min
+# plot the data
+ggplot(data = sea_sub,
+       mapping = aes(x = water_level_cm_viva, y = water_level_cm)) +
+  geom_point() +
+  geom_smooth() +
+  geom_smooth(method = "lm", colour = "red") +
+  theme_classic()
 
-coef(cv.out, s = "lambda.min") %>%
-  as.matrix()
+gam.1 <- 
+  mgcv::gam(water_level_cm ~ s(water_level_cm_viva, k=-1,fx=FALSE,bs="tp",m=NA,by=NA,xt=NULL,id=NULL,sp=NULL,pc=NULL),
+            data = sea_sub, family = gaussian(), method = "REML")
+par(mfrow = c(2,2))
+gam.check(gm.1)
 
-df[,1]
+lm.1 <- 
+  lm(water_level_cm ~ water_level_cm_viva, data = sea_sub)
+par(mfrow = c(2, 2)) 
+plot(lm.1)
 
-glmnet(x = matrix(c(log(allo_dat.fu_ve$cyl_vol), (allo_dat.fu_ve$len_circum_ratio)),
-                      ncol = 2, nrow = nrow(allo_dat.fu_ve)), 
-       y = as.matrix(log(allo_dat.fu_ve$dry_weight_g) ), 
-      alpha = 0,
-      lambda = cv.out$lambda.min)
+lm.2 <- 
+  lm(water_level_cm ~ poly(water_level_cm_viva, 2), data = sea_sub)
+par(mfrow = c(2, 2)) 
+plot(lm.2)
 
-print(cv.out)
-coef(cv.out)
+lm.null <- 
+  lm(water_level_cm ~ 1, data = sea_sub)
+
+# test the predictions of these models on the rest of the data
+sea_test <- sea_cal[!(sea_cal$row_id %in% sea_sub$row_id), ]
+
+x <- sea_test[, "water_level_cm_viva"]
+
+# collate the models into a list
+mod.list <- c("gam.1", "lm.1", "lm.2", "lm.null")
+
+# create an output list for the different models
+pred.out <- vector("list", length = length(mod.list))
+
+for(i in 1:length(mod.list)) {
+  
+  # get the predicted values 
+  y <- predict(get(mod.list[i]), newdata = x)
+  
+  # calculate root mean square error
+  rmse <- sqrt( sum( ((x[[1]] - y)^2)/length(y) ) )
+  
+  # calculate mean absolute error
+  mae <- ( sum( abs( (x[[1]] - y) ) ) )/length(y)
+  
+  pred.out[[i]] <- data.frame(model = mod.list[i], 
+                              metric = c("rmse", "mae"),
+                              value = c(rmse, mae))
+  
+}
+
+mod.summary <- bind_rows(pred.out)
+
+# the gam has the lowest rmse
+mod.summary %>%
+  filter(metric == "rmse") %>%
+  filter(value == min(value))
+
+# the gam has the lowest mae
+mod.summary %>%
+  filter(metric == "mae") %>%
+  filter(value == min(value)) 
+
+# save the gam model
+saveRDS(gam.1, file = here("analysis_data/sea_cal_gam.rds"))
 
 
 
-set.seed(1010)
-n = 1000
-p = 100
-nzc = trunc(p/10)
-x = matrix(rnorm(n * p), n, p)
-beta = rnorm(nzc)
-fx = x[, seq(nzc)] %*% beta
-eps = rnorm(n) * 5
-y = drop(fx + eps)
-px = exp(fx)
-px = px/(1 + px)
-ly = rbinom(n = length(px), prob = px, size = 1)
-set.seed(1011)
-cvob1 = cv.glmnet(x, y)
+# plot the predicted values from the GAM on the sea_test data
+r.pred <- range(sea_cal$water_level_cm_viva)
+gam.dat <- tibble(water_level_cm_viva = seq(r.pred[1], r.pred[2], 0.05))
+gam.pred <- predict(gam.1, newdata = gam.dat, se.fit = TRUE )
+gam.dat$pred_water_level_cm <- gam.pred$fit
+gam.dat$se <- gam.pred$se.fit
+
+# add upper and lower confidence intervals
+gam.dat <- 
+  gam.dat %>%
+  mutate(lower_ci = pred_water_level_cm - (2 * se),
+         upper_ci = pred_water_level_cm + (2 * se))
+
+ggplot() +
+  geom_line(data = gam.dat,
+            mapping = aes(x = water_level_cm_viva,
+                          y = pred_water_level_cm)) +
+  geom_point(data = sea_test,
+             mapping = aes(x = water_level_cm_viva,
+                           y = water_level_cm)) +
+  geom_point(data = sea_sub,
+             mapping = aes(x = water_level_cm_viva,
+                           y = water_level_cm), colour = "red") +
+  theme_classic()
+
+summary(gam.1)
+gam.1
 
 
-x
 
-dim(x)
-length(y)
 
-plot(cvob1)
-coef(cvob1)
 
-coef(cvob1, s = "lambda.min") %>%
-  as.matrix()
 
-predict(cvob1, newx = x[1:5, ], s = "lambda.min")
-title("Gaussian Family", line = 2.5)
-set.seed(1011)
-cvob1a = cv.glmnet(x, y, type.measure = "mae")
-plot(cvob1a)
-title("Gaussian Family", line = 2.5)
-set.seed(1011)
-par(mfrow = c(2, 2), mar = c(4.5, 4.5, 4, 1))
-cvob2 = cv.glmnet(x, ly, family = "binomial")
-plot(cvob2)
-title("Binomial Family", line = 2.5)
-frame()
-set.seed(1011)
-cvob3 = cv.glmnet(x, ly, family = "binomial", type.measure = "class")
-plot(cvob3)
-title("Binomial Family", line = 2.5)
-## Not run: 
-cvob1r = cv.glmnet(x, y, relax = TRUE)
-plot(cvob1r)
-predict(cvob1r, newx = x[, 1:5])
-set.seed(1011)
-cvob3a = cv.glmnet(x, ly, family = "binomial", type.measure = "auc")
-plot(cvob3a)
-title("Binomial Family", line = 2.5)
-set.seed(1011)
-mu = exp(fx/10)
-y = rpois(n, mu)
-cvob4 = cv.glmnet(x, y, family = "poisson")
-plot(cvob4)
-title("Poisson Family", line = 2.5)
