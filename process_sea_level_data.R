@@ -71,6 +71,8 @@ head(allo_dat)
 
 # for this, we need dates, times and water levels so we extract these columns as complete cases
 allo_dat <- allo_dat[complete.cases(allo_dat[, c("date", "time", "water_level_cm")]), ]
+unique(allo_dat$date)
+unique(allo_dat$time)
 
 # add a data_set identifier
 allo_dat$data_set <- "allometry"
@@ -138,6 +140,8 @@ ggplot(data = lev_comp,
   geom_point() +
   geom_smooth(method = "lm") +
   geom_abline(intercept = 0, slope = 1, colour = "red", linetype = "dashed") +
+  scale_x_continuous(limits = c(-22.5, 31.5)) +
+  scale_y_continuous(limits = c(-22.5, 31.5)) +
   theme_classic()
 
 cor.test(lev_comp$water_level_cm, lev_comp$water_level_cm_viva, method = "pearson")

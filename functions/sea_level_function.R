@@ -95,6 +95,10 @@ sea_level_func <- function(focal_depth, sea_data, date_col, sea_level_col, start
   sapply(focal_depth, function(x) {
     
     # classify points as either below (submerged, 0) or above water (out of water, 1)
+    # here, I could just add the standard error estimates to focal depth
+    
+    # i.e. using just the prediction or using the error range as well
+    
     df$dessication_point <- if_else( (x - df$water_level_cm) > 0 , 1, 0)
     
     # get the time difference in minutes between each point

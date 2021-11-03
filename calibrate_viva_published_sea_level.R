@@ -99,38 +99,4 @@ mod.summary %>%
 # save the gam model
 saveRDS(gam.1, file = here("analysis_data/sea_cal_gam.rds"))
 
-
-
-# plot the predicted values from the GAM on the sea_test data
-r.pred <- range(sea_cal$water_level_cm_viva)
-gam.dat <- tibble(water_level_cm_viva = seq(r.pred[1], r.pred[2], 0.05))
-gam.pred <- predict(gam.1, newdata = gam.dat, se.fit = TRUE )
-gam.dat$pred_water_level_cm <- gam.pred$fit
-gam.dat$se <- gam.pred$se.fit
-
-# add upper and lower confidence intervals
-gam.dat <- 
-  gam.dat %>%
-  mutate(lower_ci = pred_water_level_cm - (2 * se),
-         upper_ci = pred_water_level_cm + (2 * se))
-
-ggplot() +
-  geom_line(data = gam.dat,
-            mapping = aes(x = water_level_cm_viva,
-                          y = pred_water_level_cm)) +
-  geom_point(data = sea_test,
-             mapping = aes(x = water_level_cm_viva,
-                           y = water_level_cm)) +
-  geom_point(data = sea_sub,
-             mapping = aes(x = water_level_cm_viva,
-                           y = water_level_cm), colour = "red") +
-  theme_classic()
-
-summary(gam.1)
-gam.1
-
-
-
-
-
-
+### END
