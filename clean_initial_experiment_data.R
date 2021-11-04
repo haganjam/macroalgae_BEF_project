@@ -235,7 +235,9 @@ names(init_dat)
 
 # read in the image processing data
 
+# join it and then add a column for 
+# initial area
 
-
+# output a csv file 
 
 

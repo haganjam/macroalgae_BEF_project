@@ -172,7 +172,7 @@ final_dat <-
          final_observer_writing = person_writing, final_notes = Obs)
 
 # here, we need to add the area measurements
-final_dat
+View(final_dat)
 
 # subset out the trait_data
 # this will also include area measurements!
@@ -221,5 +221,21 @@ trait_dat <-
   select(-contains("tray"))
 
 View(trait_dat)
+
+# load the area data
+# add a column for final area (total)
+# traits total and blade area
+
+# import the pre csv file
+
+# merge everything up
+
+# output the cleaned csv file for the initial and final data
+# traits
+
+# output this to (analysis_data)
+
+
+
 
 ### END
