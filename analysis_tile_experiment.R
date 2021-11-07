@@ -31,7 +31,6 @@ hist(analysis_data$growth_perimeter_cm)
 cor(na.omit(analysis_data %>% select(contains("growth"))))
 plot(na.omit(analysis_data %>% select(contains("growth"))))
 
-test = analysis_data %>% filter(trait_tdmc<.2)
 
 # Calculating traits after the experiment after https://seaweedtraits.github.io/traits-db.html
 
@@ -161,8 +160,21 @@ autoplot(pca_res, data = pca_data_fu_ve, colour = 'sex_fu_ve',
          loadings = TRUE, loadings.colour = 'red',
          loadings.label = TRUE, loadings.label.size = 3,loadings.label.colour="black")
 
+### preliminary data analysis ###
+
+analysis_data %>% group_by(binomial_code) %>% filter(!is.na(growth_area_cm2)) %>% kruskal_test(growth_area_cm2~depth_treatment)
+analysis_data %>% group_by(binomial_code) %>% filter(!is.na(growth_length_cm)) %>% kruskal_test(growth_length_cm~depth_treatment)
+analysis_data %>% group_by(binomial_code) %>% filter(!is.na(growth_perimeter_cm)) %>% kruskal_test(growth_perimeter_cm~depth_treatment)
+analysis_data %>% group_by(binomial_code) %>% filter(!is.na(growth_wet_weight_g)) %>% kruskal_test(growth_wet_weight_g~depth_treatment)
 
 
+#growth_percent
+analysis_data$growth_area_cm2_percent = analysis_data$growth_area_cm2 / analysis_data$initial_area_cm2
+analysis_data$growth_length_cm_percent = analysis_data$growth_length_cm / analysis_data$initial_length_cm
+analysis_data$growth_perimeter_cm_percent = analysis_data$growth_perimeter_cm / analysis_data$initial_perimeter_cm
+analysis_data$growth_wet_weight_g_percent = analysis_data$growth_wet_weight_g / analysis_data$initial_wet_weight_g
 
-
-
+ggboxplot(analysis_data,y="growth_length_cm_percent",x="depth_treatment",color = "binomial_code",facet.by = "binomial_code")
+ggboxplot(analysis_data,y="growth_perimeter_cm_percent",x="depth_treatment",color = "binomial_code",facet.by = "binomial_code")
+ggboxplot(analysis_data,y="growth_wet_weight_g_percent",x="depth_treatment",color = "binomial_code",facet.by = "binomial_code")
+ggboxplot(analysis_data,y="growth_area_cm2_percent",x="depth_treatment",color = "binomial_code",facet.by = "binomial_code")
