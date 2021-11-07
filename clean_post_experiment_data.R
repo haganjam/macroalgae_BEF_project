@@ -9,6 +9,15 @@ groundhog.day <- "2020-06-1"
 pkgs <- c("here", "dplyr", "readr", "tidyr", "ggplot2", "lubridate")
 groundhog.library(pkgs, groundhog.day)
 
+
+library(here)
+library(dplyr)
+library(readr)
+library(tidyr)
+library(ggplot2)
+library(lubridate)
+
+
 # check that the correct folder is present
 if(! dir.exists(here("experiment_data"))){
   print("make a folder called experiment_data in the working directory and save the initial experiment data, see README for details")
@@ -214,11 +223,19 @@ rm(bt, blt, mdt)
 #View(trait_dat)
 
 # remove the tray weights from the rest and blade measurements
+
 trait_dat <- 
   trait_dat %>%
   mutate(dry_weight_blade_g = (dry_weight_g_blade_with_tray - tray_weight_blade_g) ) %>%
-  mutate(dry_weight_total_g = ((dry_weight_g_rest_with_tray - tray_weight_rest_g) + dry_weight_blade_g) ) %>%
+  mutate(dry_weight_rest_g = (dry_weight_g_rest_with_tray - tray_weight_rest_g)) %>%
   select(-contains("tray"))
+
+# set the NAs for dry weight 0 -> for Ascophyllum, dry weight blade is not NA, sometimes no "rest" was measured
+trait_dat$dry_weight_blade_g[is.na(trait_dat$dry_weight_blade_g)]=0
+trait_dat$dry_weight_rest_g[is.na(trait_dat$dry_weight_rest_g)]=0
+
+trait_dat$dry_weight_total_g = trait_dat$dry_weight_rest_g + trait_dat$dry_weight_blade_g
+trait_dat = trait_dat %>% select(-dry_weight_rest_g)
 
 #View(trait_dat)
 
