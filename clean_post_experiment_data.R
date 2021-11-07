@@ -307,6 +307,18 @@ analysis_data$depth_treatment[analysis_data$tile_id=="WAG"] = "-40"
 analysis_data$depth_treatment[analysis_data$tile_id=="WCH"] = "-28"
 
 
+#VDH1 - impute wet weight
+#create model with area
+fuve_dat= analysis_data %>% filter(binomial_code=="fu_ve")
+lm1=lm(fuve_dat$final_wet_weight_g[fuve_dat$plant_id!="VDH1"] ~ fuve_dat$final_area_cm2[fuve_dat$plant_id!="VDH1"])
+summary(lm1)
+coef(lm1)
+#impute wront data
+analysis_data$final_wet_weight_g[analysis_data$plant_id=="VDH1"]=as.numeric(coef(lm1)[1] + coef(lm1)[2]*analysis_data$final_area_cm2[analysis_data$plant_id=="VDH1"])
+rm(lm1,fuve_dat)
+
+
+
 # output the cleaned csv file for the initial and final data
 if(!dir.exists("analysis_data")){dir.create("analysis_data")}
 
