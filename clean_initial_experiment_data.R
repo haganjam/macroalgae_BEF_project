@@ -215,11 +215,11 @@ init_dat %>%
   filter(tile_id %in% c("WAG", "WCH")) %>%
   View()
 
-init_dat <- 
-  init_dat %>%
-  mutate(notes = if_else(tile_id == "WAG", "this tile was placed in the H depth zone", notes)) %>%
-  mutate(notes = if_else(tile_id == "WCH", "this tile was placed in the G depth zone", notes)) %>%
-  filter(tile_id %in% c("WAG", "WCH"))
+#init_dat <- 
+#  init_dat %>%
+#  mutate(notes = if_else(tile_id == "WAG", "this tile was placed in the H depth zone", notes)) %>%
+#  mutate(notes = if_else(tile_id == "WCH", "this tile was placed in the G depth zone", notes)) %>%
+#  filter(tile_id %in% c("WAG", "WCH"))
 
 # the raw data is unchanged but we will correct once we have joined the image data
 View(init_dat)
@@ -235,9 +235,24 @@ names(init_dat)
 
 # read in the image processing data
 
-# join it and then add a column for 
-# initial area
+# load the area data
+library(readr)
+library(stringr)
+image_dat_initial <- read_csv("experiment_data/tiles_image_analysis_before.csv")
 
-# output a csv file 
+# apply labeling scheme
+image_dat_initial$plant_id = image_dat_initial$id
+
+
+image_dat_initial$initial_area_cm2 = image_dat_initial$area_cm2
+image_dat_initial$initial_perimeter_cm = image_dat_initial$perimeter_cm
+image_dat_initial = image_dat_initial %>% select(plant_id:initial_perimeter_cm)
+
+init_dat=left_join(image_dat_initial,init_dat,by= c("plant_id" ))
+rm(image_dat_initial,fix_dates_df)
+
+write.csv(init_dat,"experiment_data/initial_data_clean.csv")
+rm(list = ls())
+
 
 

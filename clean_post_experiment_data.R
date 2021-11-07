@@ -211,7 +211,7 @@ trait_dat$midrib_cv <- apply(mdt, 1, sd)/apply(mdt, 1, mean)
 rm(bt, blt, mdt)
 
 # check the trait data
-View(trait_dat)
+#View(trait_dat)
 
 # remove the tray weights from the rest and blade measurements
 trait_dat <- 
@@ -220,20 +220,81 @@ trait_dat <-
   mutate(dry_weight_total_g = ((dry_weight_g_rest_with_tray - tray_weight_rest_g) + dry_weight_blade_g) ) %>%
   select(-contains("tray"))
 
-View(trait_dat)
+#View(trait_dat)
 
 # load the area data
+library(readr)
+library(stringr)
+image_dat_post <- read_csv("experiment_data/tiles_image_analysis_after.csv")
+View(image_dat_post)
+
+# apply labeling scheme
+image_dat_post$plant_id = image_dat_post$id
+image_dat_post$site_code = str_sub(image_dat_post$plant_id,start = 1,end = 1)
+image_dat_post$hor_pos  = str_sub(image_dat_post$plant_id,start = 2,end = 2)
+image_dat_post$depth_treatment  = str_sub(image_dat_post$plant_id,start = 3,end = 3)
+image_dat_post$tile_id = str_sub(image_dat_post$plant_id,start = 1,end = 3)
+
 # add a column for final area (total)
-# traits total and blade area
+final_blade = image_dat_post %>% filter(thallus_blade=="blade")
+final_thallus = image_dat_post %>% filter(thallus_blade=="thallus")
+
+final_thallus$final_area_cm2 = final_thallus$area_cm2
+final_thallus$final_perimeter_cm = final_thallus$perimeter_cm
+final_thallus = final_thallus %>% select(plant_id:final_perimeter_cm)
+
+final_blade$final_blade_area_cm2 = final_blade$area_cm2
+final_blade$final_blade_perimeter_cm = final_blade$perimeter_cm
+final_blade = final_blade %>% select(plant_id:final_blade_perimeter_cm)
+
+
+# add to final table
+final_dat=left_join(final_dat,final_thallus,by= c("plant_id","site_code","hor_pos","depth_treatment","tile_id" ))
+final_dat=left_join(final_dat,final_blade,by= c("plant_id","site_code","hor_pos","depth_treatment","tile_id" ))
+rm(final_blade,final_thallus,image_dat_post)
 
 # import the pre csv file
+library(readr)
+initial_data_clean <- read_csv("experiment_data/initial_data_clean.csv")[-1]
 
 # merge everything up
+initial_data_clean$plant_no = as.character(initial_data_clean$plant_no)
+pre_post = left_join(initial_data_clean,final_dat,
+                          by = c("site_code","hor_pos","depth_treatment",
+                                 "tile_id","plant_id","binomial_code","plant_no")  )
+rm(initial_data_clean,final_dat,post_dat)
+
+#merge_trait_data
+names(trait_dat)
+
+analysis_data = left_join(pre_post,trait_dat,
+                          by = c("site_code","hor_pos","depth_treatment",
+                                  "tile_id","plant_id","binomial_code","plant_no"))
+
+
+analysis_data = analysis_data %>% filter(!plant_id=="XDE2")
+
+#create treatment column
+analysis_data$depth_id=analysis_data$depth_treatment
+analysis_data$depth_treatment[analysis_data$depth_id=="E"] = -5
+analysis_data$depth_treatment[analysis_data$depth_id=="F"] = -12
+analysis_data$depth_treatment[analysis_data$depth_id=="G"] = -28
+analysis_data$depth_treatment[analysis_data$depth_id=="H"] = -40
+
+table(analysis_data$depth_treatment)
+
+#error correction for wrong construction of WAG and WCH, both ascophyllum
+# during fieldwork, we noticed that we accidentally placed the tile labelled WAG at depth H
+# likewise, we placed the tile labelled WCH at depth G
+analysis_data$depth_treatment[analysis_data$tile_id=="WAG"] = "-40"
+analysis_data$depth_treatment[analysis_data$tile_id=="WCH"] = "-28"
+
 
 # output the cleaned csv file for the initial and final data
-# traits
+if(!dir.exists("analysis_data")){dir.create("analysis_data")}
 
 # output this to (analysis_data)
+write.csv(analysis_data,file = "analysis_data/analysis_data.csv")
 
 
 
