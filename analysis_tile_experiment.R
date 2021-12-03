@@ -249,14 +249,28 @@ mod1=lm(growth_wet_weight_g ~ depth_treatment*Species,data = analysis_data)
 
 
 summary(aov(mod1))
-mod1=lmer(growth_wet_weight_g ~ depth_treatment*Species+(1|Site/tile_id),data = analysis_data)
+mod1=lmer(growth_wet_weight_g_percent ~ depth_treatment*Species+(1|tile_id),data = analysis_data)
 anova((mod1))
 summary(aov(mod1))
 
-mod1=lmer(growth_wet_weight_g ~ depth_treatment*Species+depth_treatment:(trait_float+trait_SAP+trait_STA+trait_thickness+trait_tdmc)+(1|tile_id),data = analysis_data)
+
+mod1=lmer(growth_wet_weight_g_percent ~ depth_treatment*Species+depth_treatment:(trait_float+trait_SAP+trait_STA+trait_thickness+trait_tdmc)+(1|tile_id),data = analysis_data)
 anova((mod1))
 
 vif(mod1)
+
+
+ggscatter(analysis_data,y="growth_wet_weight_g_percent",x="trait_SAP",facet.by = "Species",color = "depth_treatment")
+ggscatter(analysis_data,y="growth_wet_weight_g_percent",x="trait_STA",facet.by = "Species",color = "depth_treatment")
+ggscatter(analysis_data,y="growth_wet_weight_g_percent",x="trait_tdmc",facet.by = "Species",color = "depth_treatment")
+
+
+
+depth_treatment
+
+
+
+
 
 
 
@@ -264,13 +278,13 @@ vif(mod1)
 #here not nested in sites
 
 #Boot size
-boot_size = 1000
+samplesize = 100
 comm_sim = data.frame(type = character(),growth = numeric())
 
 species = as.character(unique(analysis_data$Species))
 
-for(i in 1:boot_size){
-message(paste("Step", i, "of", boot_size))
+for(i in 1:samplesize){
+message(paste("Step", i, "of", samplesize))
 
 ##Pick one plant on each depth
 
@@ -364,7 +378,305 @@ rm(temp_community)
 
 boxplot(comm_sim$growth ~ comm_sim$type)
 
-#nested in sites?
+#########----###########
+
+
+comm_sim_2 = data.frame(heterogeniety = numeric(),species = numeric(),growth = numeric())
+
+species = as.character(unique(analysis_data$Species))
+species = data.frame(species)
+
+depths = data.frame(depth=c(-5,-12,-28,-40))
+samplesize = 100
+
+
+for(i in 1:samplesize){
+  message(paste("Step", i, "of", samplesize))
+  
+
+### Pick one plant ### grow at 1 place ###
+
+randsubset_species = sample_n(species,4)
+randsubset_depths = sample_n(depths,1)
+
+#one species at 1 place
+temp_comm=analysis_data %>% filter(depth_treatment == randsubset_depths[1,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,]) %>% sample_n(4)
+
+comm_sim_2 = rbind(comm_sim_2,data.frame(heterogeniety = 1,species = 1,growth = median(temp_comm$growth_wet_weight_g_percent)))
+rm(temp_comm)
+
+#Several species at 1 place
+temp_comm=analysis_data %>% filter(depth_treatment == randsubset_depths[1,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,] | Species==randsubset_species[2,] | Species==randsubset_species[3,] | Species==randsubset_species[4,]) %>% sample_n(4)
+
+comm_sim_2 = rbind(comm_sim_2,data.frame(heterogeniety = 1,species = 4,growth = median(temp_comm$growth_wet_weight_g_percent)))
+rm(temp_comm)
+
+#one species at 2 places average
+randsubset_species = sample_n(species,4)
+randsubset_depths = sample_n(depths,2)
+
+temp_comm = rbind(analysis_data %>% filter(depth_treatment == randsubset_depths[1,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,]) %>% sample_n(4),
+                  analysis_data %>% filter(depth_treatment == randsubset_depths[2,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,]) %>% sample_n(4))
+
+comm_sim_2 = rbind(comm_sim_2,data.frame(heterogeniety = 2,species = 1,growth = median(temp_comm$growth_wet_weight_g_percent)))
+rm(temp_comm)
+
+#several species at 2 places
+temp_comm = rbind(analysis_data %>% filter(depth_treatment == randsubset_depths[1,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,] | Species==randsubset_species[2,] | Species==randsubset_species[3,] | Species==randsubset_species[4,]) %>% sample_n(4),
+                  analysis_data %>% filter(depth_treatment == randsubset_depths[2,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,] | Species==randsubset_species[2,] | Species==randsubset_species[3,] | Species==randsubset_species[4,]) %>% sample_n(4))
+
+comm_sim_2 = rbind(comm_sim_2,data.frame(heterogeniety = 2,species = 4,growth = median(temp_comm$growth_wet_weight_g_percent)))
+rm(temp_comm)
+
+
+#one species at 3 places average
+randsubset_species = sample_n(species,4)
+randsubset_depths = sample_n(depths,3)
+
+temp_comm = rbind(analysis_data %>% filter(depth_treatment == randsubset_depths[1,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,]) %>% sample_n(4),
+                  analysis_data %>% filter(depth_treatment == randsubset_depths[2,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,]) %>% sample_n(4),
+                  analysis_data %>% filter(depth_treatment == randsubset_depths[3,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,]) %>% sample_n(4))
+
+comm_sim_2 = rbind(comm_sim_2,data.frame(heterogeniety = 3,species = 1,growth = median(temp_comm$growth_wet_weight_g_percent)))
+rm(temp_comm)
+
+# several species at 4 places
+
+temp_comm = rbind(analysis_data %>% filter(depth_treatment == randsubset_depths[1,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,] | Species==randsubset_species[2,] | Species==randsubset_species[3,] | Species==randsubset_species[4,]) %>% sample_n(4),
+                  analysis_data %>% filter(depth_treatment == randsubset_depths[2,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,] | Species==randsubset_species[2,] | Species==randsubset_species[3,] | Species==randsubset_species[4,]) %>% sample_n(4),
+                  analysis_data %>% filter(depth_treatment == randsubset_depths[3,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,] | Species==randsubset_species[2,] | Species==randsubset_species[3,] | Species==randsubset_species[4,]) %>% sample_n(4))
+
+comm_sim_2 = rbind(comm_sim_2,data.frame(heterogeniety = 3,species = 4,growth = median(temp_comm$growth_wet_weight_g_percent)))
+rm(temp_comm)
+
+#one species at 4 places average
+randsubset_species = sample_n(species,4)
+randsubset_depths = sample_n(depths,4)
+
+temp_comm = rbind(analysis_data %>% filter(depth_treatment == randsubset_depths[1,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,]) %>% sample_n(4),
+                  analysis_data %>% filter(depth_treatment == randsubset_depths[2,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,]) %>% sample_n(4),
+                  analysis_data %>% filter(depth_treatment == randsubset_depths[3,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,]) %>% sample_n(4),
+                  analysis_data %>% filter(depth_treatment == randsubset_depths[4,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,]) %>% sample_n(4))
+
+comm_sim_2 = rbind(comm_sim_2,data.frame(heterogeniety = 4,species = 1,growth = median(temp_comm$growth_wet_weight_g_percent)))
+rm(temp_comm)
+
+#several species at 4 places
+temp_comm = rbind(analysis_data %>% filter(depth_treatment == randsubset_depths[1,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,] | Species==randsubset_species[2,] | Species==randsubset_species[3,] | Species==randsubset_species[4,]) %>% sample_n(4),
+                  analysis_data %>% filter(depth_treatment == randsubset_depths[2,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,] | Species==randsubset_species[2,] | Species==randsubset_species[3,] | Species==randsubset_species[4,]) %>% sample_n(4),
+                  analysis_data %>% filter(depth_treatment == randsubset_depths[3,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,] | Species==randsubset_species[2,] | Species==randsubset_species[3,] | Species==randsubset_species[4,]) %>% sample_n(4),
+                  analysis_data %>% filter(depth_treatment == randsubset_depths[4,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,] | Species==randsubset_species[2,] | Species==randsubset_species[3,] | Species==randsubset_species[4,]) %>% sample_n(4))
+
+comm_sim_2 = rbind(comm_sim_2,data.frame(heterogeniety = 4,species = 4,growth = median(temp_comm$growth_wet_weight_g_percent)))
+rm(temp_comm)
+
+
+
+}
+
+
+comm_sim_2_median = comm_sim_2
+
+ggboxplot(comm_sim_2_median, y="growth", x="heterogeniety",facet.by = "species")
+
+
+# Maximum function
+comm_sim_2 = data.frame(heterogeniety = numeric(),species = numeric(),growth = numeric())
+
+species = as.character(unique(analysis_data$Species))
+species = data.frame(species)
+
+depths = data.frame(depth=c(-5,-12,-28,-40))
+samplesize = 1000
+
+
+for(i in 1:samplesize){
+  message(paste("Step", i, "of", samplesize))
+  
+  
+  ### Pick one plant ### grow at 1 place ###
+  
+  randsubset_species = sample_n(species,4)
+  randsubset_depths = sample_n(depths,1)
+  
+  #one species at 1 place
+  temp_comm=analysis_data %>% filter(depth_treatment == randsubset_depths[1,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,]) %>% sample_n(4)
+  
+  comm_sim_2 = rbind(comm_sim_2,data.frame(heterogeniety = 1,species = 1,growth = max(temp_comm$growth_wet_weight_g_percent)))
+  rm(temp_comm)
+  
+  #Several species at 1 place
+  temp_comm=analysis_data %>% filter(depth_treatment == randsubset_depths[1,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,] | Species==randsubset_species[2,] | Species==randsubset_species[3,] | Species==randsubset_species[4,]) %>% sample_n(4)
+  
+  comm_sim_2 = rbind(comm_sim_2,data.frame(heterogeniety = 1,species = 4,growth = max(temp_comm$growth_wet_weight_g_percent)))
+  rm(temp_comm)
+  
+  #one species at 2 places average
+  randsubset_species = sample_n(species,4)
+  randsubset_depths = sample_n(depths,2)
+  
+  temp_comm = rbind(analysis_data %>% filter(depth_treatment == randsubset_depths[1,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,]) %>% sample_n(4),
+                    analysis_data %>% filter(depth_treatment == randsubset_depths[2,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,]) %>% sample_n(4))
+  
+  comm_sim_2 = rbind(comm_sim_2,data.frame(heterogeniety = 2,species = 1,growth = max(temp_comm$growth_wet_weight_g_percent)))
+  rm(temp_comm)
+  
+  #several species at 2 places
+  temp_comm = rbind(analysis_data %>% filter(depth_treatment == randsubset_depths[1,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,] | Species==randsubset_species[2,] | Species==randsubset_species[3,] | Species==randsubset_species[4,]) %>% sample_n(4),
+                    analysis_data %>% filter(depth_treatment == randsubset_depths[2,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,] | Species==randsubset_species[2,] | Species==randsubset_species[3,] | Species==randsubset_species[4,]) %>% sample_n(4))
+  
+  comm_sim_2 = rbind(comm_sim_2,data.frame(heterogeniety = 2,species = 4,growth = max(temp_comm$growth_wet_weight_g_percent)))
+  rm(temp_comm)
+  
+  
+  #one species at 3 places average
+  randsubset_species = sample_n(species,4)
+  randsubset_depths = sample_n(depths,3)
+  
+  temp_comm = rbind(analysis_data %>% filter(depth_treatment == randsubset_depths[1,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,]) %>% sample_n(4),
+                    analysis_data %>% filter(depth_treatment == randsubset_depths[2,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,]) %>% sample_n(4),
+                    analysis_data %>% filter(depth_treatment == randsubset_depths[3,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,]) %>% sample_n(4))
+  
+  comm_sim_2 = rbind(comm_sim_2,data.frame(heterogeniety = 3,species = 1,growth = max(temp_comm$growth_wet_weight_g_percent)))
+  rm(temp_comm)
+  
+  # several species at 4 places
+  
+  temp_comm = rbind(analysis_data %>% filter(depth_treatment == randsubset_depths[1,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,] | Species==randsubset_species[2,] | Species==randsubset_species[3,] | Species==randsubset_species[4,]) %>% sample_n(4),
+                    analysis_data %>% filter(depth_treatment == randsubset_depths[2,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,] | Species==randsubset_species[2,] | Species==randsubset_species[3,] | Species==randsubset_species[4,]) %>% sample_n(4),
+                    analysis_data %>% filter(depth_treatment == randsubset_depths[3,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,] | Species==randsubset_species[2,] | Species==randsubset_species[3,] | Species==randsubset_species[4,]) %>% sample_n(4))
+  
+  comm_sim_2 = rbind(comm_sim_2,data.frame(heterogeniety = 3,species = 4,growth = max(temp_comm$growth_wet_weight_g_percent)))
+  rm(temp_comm)
+  
+  #one species at 4 places average
+  randsubset_species = sample_n(species,4)
+  randsubset_depths = sample_n(depths,4)
+  
+  temp_comm = rbind(analysis_data %>% filter(depth_treatment == randsubset_depths[1,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,]) %>% sample_n(4),
+                    analysis_data %>% filter(depth_treatment == randsubset_depths[2,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,]) %>% sample_n(4),
+                    analysis_data %>% filter(depth_treatment == randsubset_depths[3,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,]) %>% sample_n(4),
+                    analysis_data %>% filter(depth_treatment == randsubset_depths[4,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,]) %>% sample_n(4))
+  
+  comm_sim_2 = rbind(comm_sim_2,data.frame(heterogeniety = 4,species = 1,growth = max(temp_comm$growth_wet_weight_g_percent)))
+  rm(temp_comm)
+  
+  #several species at 4 places
+  temp_comm = rbind(analysis_data %>% filter(depth_treatment == randsubset_depths[1,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,] | Species==randsubset_species[2,] | Species==randsubset_species[3,] | Species==randsubset_species[4,]) %>% sample_n(4),
+                    analysis_data %>% filter(depth_treatment == randsubset_depths[2,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,] | Species==randsubset_species[2,] | Species==randsubset_species[3,] | Species==randsubset_species[4,]) %>% sample_n(4),
+                    analysis_data %>% filter(depth_treatment == randsubset_depths[3,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,] | Species==randsubset_species[2,] | Species==randsubset_species[3,] | Species==randsubset_species[4,]) %>% sample_n(4),
+                    analysis_data %>% filter(depth_treatment == randsubset_depths[4,],!is.na(growth_wet_weight_g),Species==randsubset_species[1,] | Species==randsubset_species[2,] | Species==randsubset_species[3,] | Species==randsubset_species[4,]) %>% sample_n(4))
+  
+  comm_sim_2 = rbind(comm_sim_2,data.frame(heterogeniety = 4,species = 4,growth = max(temp_comm$growth_wet_weight_g_percent)))
+  rm(temp_comm)
+  
+  
+  
+}
+
+comm_sim_2_max = comm_sim_2
+
+ggboxplot(comm_sim_2_max, y="growth", x="heterogeniety",facet.by = "species")
+
+
+
+
+#loop approach
+
+
+# create a 16 fields plot with heterogeniety 1 - 4
+# plant out monoculture on all 16
+# plant out multiculture on all 16
+
+species = as.character(unique(analysis_data$Species))
+species = data.frame(species)
+
+depths = data.frame(depth=c(-5,-12,-28,-40))
+
+
+
+#set the depths that will be used
+depths_1 = c(1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1) #set depths
+depths_2 = c(1,1,1,1, 1,1,1,1, 2,2,2,2, 2,2,2,2) #set depths
+depths_3 = c(1,1,1,1, 2,2,2,2, 3,3,3,3, 1,2,3,1) #set depths # there is one more 1, but this will even out 
+depths_4 = c(1,1,1,1, 2,2,2,2, 3,3,3,3, 4,4,4,4) #set depths
+depth_configurations= list(depths_1,depths_2,depths_3,depths_4)
+
+#set the species that will be used
+species_1 = c(1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1) #set species
+species_2 = c(1,1,1,1, 1,1,1,1, 2,2,2,2, 2,2,2,2) #set species
+species_3 = c(1,2,3,1, 2,3,1,2, 3,1,2,3, 1,2,3,1) #set species # there is one more 1, but this will even out 
+species_4 = c(1,1,1,1, 2,2,2,2, 3,3,3,3, 4,4,4,4) #set species
+species_configurations= list(species_1,species_2,species_3,species_4)
+
+
+
+# create basic dataframe for simulation
+comm_sim_3 = data.frame(heterogeniety = numeric(),nspecies = numeric(),growth = numeric())
+
+#number of iterations
+nreps= 200
+
+#big loop
+for(repeats in 1:nreps){
+message(paste(100*repeats/nreps, "% completed"))
+
+#shuffle species configuration
+species_configurations[[1]]=species_configurations[[1]][sample(16)]
+species_configurations[[2]]=species_configurations[[2]][sample(16)]
+species_configurations[[3]]=species_configurations[[3]][sample(16)]
+species_configurations[[4]]=species_configurations[[4]][sample(16)]
+
+#shuffle species and depths, so different species and depths are combined
+species = data.frame(species=c("Fucus spiralis","Fucus vesiculosus","Ascophyllum nodosum", "Fucus serratus")[sample(4)])
+#message(species)
+depths = data.frame(depth=c(-5,-12,-28,-40)[sample(4)])
+#message(depths)
+
+
+###Create 16 fields with a number of species and 
+# here 16 plants from the same or n different species (configuration), will be assigned to m different depths
+
+for (spec in 1:4){
+  for (het in 1:4){
+    for(i in 1:16){
+      #message(paste(het,spec,i))
+      temp_comm = analysis_data %>% sample_n(0) # get empty table
+      
+      pick = analysis_data %>% filter(!is.na(growth_wet_weight_g),
+                                      Species == species[species_configurations[[spec]][i],], #get the species
+                                      depth_treatment == depths[depth_configurations[[het]][i],]) %>%  sample_n(1) #get the depth
+       
+      temp_comm = rbind(temp_comm,pick)
+      
+      rm(pick)
+      
+    }
+    comm_sim_3 = rbind(comm_sim_3, data.frame(heterogeniety = het,nspecies = spec,growth = sum(temp_comm$growth_wet_weight_g)))
+    rm(temp_comm)
+  }
+  }
+}
+
+comm_sim_3$heterogeniety=as.factor(comm_sim_3$heterogeniety)
+ggboxplot(comm_sim_3,y="growth",color="heterogeniety",x = "nspecies")
+ggscatter(comm_sim_3,y="growth",color="heterogeniety",x = "nspecies",add = "reg.line")
+
+#16 in monoculture
+table(comm_sim_3$growth)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
