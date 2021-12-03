@@ -77,6 +77,17 @@ Download the following scripts:
 
 Run these scripts which will clean the data and output a cleaned version of the data into an analysis_data folder.
 
+> Analysis of the depths at which different species naturally occur (Fig. 1)
+
+To analyse the depth distrbutions of the four species in their natural settings, we used two datasets: dedicated transects and other field collections of the four species where depths were measured. These two datasets can be downloaded from the research box and should be placed in a folder called: preliminary_supporting_data:
+
++ sample_data_biomass_allometry.csv
++ transect_data.csv
+
+Running the following script will then reproduce the raw figures found in the manuscript:
+
++ transect_depth_analysis
+
 
 
 
