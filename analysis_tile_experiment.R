@@ -4,14 +4,18 @@
 # Benedikt Schrofner-Brunner
 # benedikt.brunner@gu.se
 
-# LOAD packages
+# LOAD packages 
 library(car)
 library(dplyr)
 library(rstatix)
 library(ggpubr)
 library(reshape2)
+library(lme4)
+library(lmerTest)
+library(purrr)
+library(tidyr)
+library(ggplot2)
 # TODO groundhog
-
 
 #import cleaned dataset
 library(readr)
@@ -130,7 +134,7 @@ autoplot(pca_res, data = pca_data_fu_se, colour = 'depth_treatment',
 #max PCA
 pca_data
 
-pca_data=analysis_data %>% select(Species,depth_treatment,site_code,contains("trait"))
+pca_data=analysis_data %>% select(Species,depth_treatment,site_code,final_length_cm,epiphyte_wet_weight_g,contains("trait"))
 
 #Changing depth treatment to factor
 pca_data$depth_treatment = as.factor(pca_data$depth_treatment)
@@ -138,9 +142,22 @@ pca_data$depth_treatment = as.factor(pca_data$depth_treatment)
 
 pca_max=na.omit(pca_data %>% select(-trait_SBA))
 
+
+
 #Rename
-colnames(pca_max) = c("Species", "depth","site", "TDMC", "thickness",
-                      "STA",       "S:AP" ,      "Pneumatocysts")
+colnames(pca_max) = c("Species", "depth","site","length","epiphytes", "TDMC", "thickness",
+                      "STA",       "SA:P" ,      "Pneumatocysts")
+
+pca_max$epiphytes=log(pca_max$epiphytes+1)#transform epiphytes
+
+gghistogram(pca_max,x="length",facet.by = "Species")
+gghistogram(pca_max,x="epiphytes",facet.by = "Species")
+gghistogram(pca_max,x="TDMC",facet.by = "Species")
+gghistogram(pca_max,x="thickness",facet.by = "Species")
+gghistogram(pca_max,x="STA",facet.by = "Species")
+gghistogram(pca_max,x="SA:P",facet.by = "Species")
+gghistogram(pca_max,x="Pneumatocysts",facet.by = "Species")
+
 
 pca_res <- prcomp(pca_max[-c(1,2,3)], scale = TRUE)
 
@@ -163,6 +180,7 @@ ggboxplot(analysis_data,y="growth_length_cm",x="depth_treatment",color = "binomi
 ggboxplot(analysis_data,y="growth_perimeter_cm",x="depth_treatment",color = "binomial_code",facet.by = "binomial_code")
 ggboxplot(analysis_data,y="growth_wet_weight_g",x="depth_treatment",color = "binomial_code",facet.by = "binomial_code")
 ggboxplot(analysis_data,y="growth_area_cm2",x="depth_treatment",color = "binomial_code",facet.by = "binomial_code")
+
 
 #Epiphytes
 ggboxplot(analysis_data,y="epiphyte_wet_weight_g",x="depth_treatment",color = "binomial_code",facet.by = "binomial_code")
@@ -240,7 +258,94 @@ analysis_data %>% group_by(Species,depth_treatment) %>% summarise(survival = sum
 analysis_data %>% group_by(Species) %>% summarise(survival = sum(survived)) %>% mutate (survival=survival/(720/4))
 
 
+
+#####Growth analysis#######
+
+analysis_data$origin_site_code
+
+pca_growth = na.omit(analysis_data %>% select(Species,growth_area_cm2_percent:growth_wet_weight_g_percent))
+
+pca_res <- prcomp(pca_growth[-c(1)], scale = TRUE)
+
+#How much do the growths correlate to each other
+autoplot(pca_res, data = pca_growth, colour = 'Species',
+         loadings = TRUE, loadings.colour = 'red',
+         loadings.label = TRUE, loadings.label.size = 3,loadings.label.colour="black")
+
+#Species
+model1=lm(growth_area_cm2_percent ~ Species+origin_,data=analysis_data)
+summary(aov(model1))
+eta_squared(model1)
+
+#Does origin site matter
+model1=lm(growth_area_cm2_percent ~ Species+origin_site_code,data=analysis_data)
+summary(aov(model1))
+eta_squared(model1)
+
+#Does transplant site matter?
+model1=lm(growth_area_cm2_percent ~ Species*depth_treatment+origin_site_code+site_code+tile_id,data=analysis_data)
+summary(aov(model1))
+eta_squared(model1)
+
+###Linear mixed effects model:
+model1 = lmer(growth_area_cm2_percent ~ Species*factor(depth_treatment) + (1|origin_site_code)+(1|site_code/tile_id),data = analysis_data)
+anova(model1)
+
+summary(model1)
+
+library(sjstats)
+library(MuMin)
+
+library(emmeans)
+emm=emmeans(model1, list(pairwise ~ factor(depth_treatment)/Species), adjust = "tukey")
+
+#emmeants plot
+emm=as.data.frame(emm$`emmeans of depth_treatment, Species`)
+ggbarplot(data = emm,x="depth_treatment",y="emmean",fill="Species",position = position_dodge(0.9))
+
+# Convert dose to a factor variable
+df2$dose=as.factor(df2$dose)
+# Default line plot
+p<- ggplot(emm, aes(x=factor(depth_treatment), y=emmean, group=Species, color=Species)) + 
+  geom_line(position=position_dodge(.2)) +
+  geom_point(position=position_dodge(.2))+
+  geom_errorbar(aes(ymin=lower.CL, ymax=upper.CL), width=.4,
+                position=position_dodge(.2))+geom_hline(yintercept=0, linetype="dashed", 
+                                                        color = "red", size=1)
+print(p)
+# Finished line plot
+p+labs(title="Emmeans of areal growth in %", x="depth (cm)", y = "% areal growth")+theme_bw()+ scale_color_viridis(discrete = TRUE, option = "D")+
+  scale_fill_viridis(discrete = TRUE) + theme_bw()
+library(viridis)
+
+#GAM does not work because there are only 4 depths....
+gam.alg = mgcv::gam(growth_area_cm2_percent ~ s(depth_treatment),data=analysis_data)
+plot(gam.alg)
+library(voxel)
+plotGAM(gamFit = gam.alg)
+
+plot(gam.alg, se=TRUE,col="red")
+
+
+data <- data.frame(x = rep(1:20, 2), group = rep(1:2, each = 20))
+set.seed(1)
+data$y <- (data$x^2)*data$group*3 + rnorm(40, sd = 200)
+data$group <- ordered(data$group)
+
+gam <- mgcv::gam(y ~ s(x) + group, data=data)
+
+plot1 <- plotGAM(gamFit = gam, smooth.cov = "x", groupCovs = NULL,
+                 rawOrFitted = "raw", plotCI=TRUE, orderedAsFactor = FALSE)
+gam <- mgcv::gam(y ~ s(x) + group + s(x, by=group), data=data)
+plot2 <- plotGAM(gamFit = gam, smooth.cov = "x", groupCovs = "group",
+                 rawOrFitted = "raw", orderedAsFactor = FALSE)
+
+
+
+#rainbow plot
+
 ####Trait environment intreraction####
+
 
 library(lme4)
 library(lmerTest)
