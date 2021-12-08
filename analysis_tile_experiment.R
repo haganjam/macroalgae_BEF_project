@@ -440,11 +440,124 @@ anova(mod0,mod1)
 anova(mod1,mod2)
 anova(mod0,mod2)
 
+################################################################################
+################################################################################
+################################################################################
+################################################################################
+###############################END Analysis#####################################
 
 
 
 
-######Random combination vs natural combination#####
+###############################Simulation A#####################################
+#I this simulation we have several combinations of habitats (depths)
+#1 is we have 16 fields with 1 habitat
+#4 is we have 16 fields with 4 habitats, 4 of each.
+#On each field one alga grows. Growth is the actual observed growth of a randomly
+#picked alga of a certain species.
+################################################################################
+
+##this code has an error, often, there is the same growth
+
+
+repeats =100 #how often the simulation is repeated
+
+# create basic dataframe for simulation
+comm_sim = data.frame(heterogeniety = numeric(),nspecies = numeric(),growth = numeric())
+
+#set the depths that will be used
+depths_1 = c(1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1) #set depths
+depths_2 = c(1,1,1,1, 1,1,1,1, 2,2,2,2, 2,2,2,2) #set depths
+depths_3 = c(1,1,1,1, 2,2,2,2, 3,3,3,3, 1,2,3,1) #set depths # there is one more 1, but this will even out 
+depths_4 = c(1,1,1,1, 2,2,2,2, 3,3,3,3, 4,4,4,4) #set depths
+depth_configurations= list(depths_1,depths_2,depths_3,depths_4)
+
+#set the species that will be used
+species_1 = c(1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1) #set species
+species_2 = c(1,1,1,1, 1,1,1,1, 2,2,2,2, 2,2,2,2) #set species
+species_3 = c(1,2,3,1, 2,3,1,2, 3,1,2,3, 1,2,3,1) #set species # there is one more 1, but this will even out 
+species_4 = c(1,1,1,1, 2,2,2,2, 3,3,3,3, 4,4,4,4) #set species
+species_configurations= list(species_1,species_2,species_3,species_4)
+
+#Filter data beforehand
+loop_data = analysis_data %>% filter(!is.na(growth_area_cm2_percent))
+
+
+#loop 1 shuffles the species list and runs as often as defined in "repeats
+for(reps in 1:repeats){
+  message(paste(100*reps/repeats, "% completed"))
+  
+  #shuffle species configuration
+  species_configurations[[1]]=species_configurations[[1]][sample(16)]
+  species_configurations[[2]]=species_configurations[[2]][sample(16)]
+  species_configurations[[3]]=species_configurations[[3]][sample(16)]
+  species_configurations[[4]]=species_configurations[[4]][sample(16)]
+  
+  #shuffle species and depths, so different species and depths are combined
+  species = data.frame(species=c("Fucus spiralis","Fucus vesiculosus","Ascophyllum nodosum", "Fucus serratus")[sample(4)])
+  depths = data.frame(depth=c(-5,-12,-28,-40)[sample(4)])
+  loop_data = loop_data[sample(length(loop_data$plant_id)),]
+  
+  ###Create 16 fields with a number of species and 
+  # here 16 plants from the same or n different species (configuration), will be assigned to m different depths
+  
+  #loop 2 this runs four times for each species (note, this does not mean that different species are used, it corrosponds to the configuration list)
+  for (spec in 1:4){
+    #loop 3 this runs four times for each habitat - see configuration list
+    #here, the community of 16 algae is created
+    for (het in 1:4){
+      
+      #loop 4 this pics a random plant, restricted by the configuration -> e.g. either 1 species 16 times planted out in the same habitat, or 4 species planted out in 4 different habitats
+      #it is not defined what exact species goes where, this is random
+      for(i in 1:16){
+        #message(paste(het,spec,i))
+        temp_comm = analysis_data %>% sample_n(0) # get empty table
+        
+        pick = loop_data %>% filter(Species == species[species_configurations[[spec]][i],], #get the species
+                                        depth_treatment == depths[depth_configurations[[het]][i],]) %>%  sample_n(1) #get the depth
+        
+        temp_comm = rbind(temp_comm,pick)
+        
+        rm(pick)
+        
+      }
+      comm_sim = rbind(comm_sim, data.frame(heterogeniety = het,nspecies = spec,growth = sum(temp_comm$growth_area_cm2_percent)))
+      rm(temp_comm)
+    }
+  }
+}
+
+comm_sim$heterogeniety=as.factor(comm_sim$heterogeniety)
+comm_sim$nspecies=as.factor(comm_sim$nspecies)
+
+ggboxplot(comm_sim,y="growth",x="heterogeniety",color = "nspecies")
+
+#16 in monoculture
+table(comm_sim$growth)
+
+
+
+
+###############################Simulation B#####################################
+#competition situation where 4 apply for a spot and only the first one is picked
+
+################################################################################
+
+
+
+
+
+
+################################################################################
+################################################################################
+##############################OLD CODE##########################################
+##################TO BE REMOVED BEFORE PUBLICATION##############################
+################################################################################
+
+
+
+##############################
+#########Random combination vs natural combination#########
 #here not nested in sites
 
 #Boot size
