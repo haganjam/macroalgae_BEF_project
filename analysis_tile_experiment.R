@@ -441,6 +441,9 @@ anova(mod1,mod2)
 anova(mod0,mod2)
 
 
+
+
+
 ######Random combination vs natural combination#####
 #here not nested in sites
 
