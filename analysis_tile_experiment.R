@@ -35,6 +35,7 @@ hist(analysis_data$growth_perimeter_cm)
 cor(na.omit(analysis_data %>% select(contains("growth"))))
 plot(na.omit(analysis_data %>% select(contains("growth"))))
 
+plot(na.omit(analysis_data %>% select(dry_weight_total_g,final_area_cm2)))
 
 # Species names
 analysis_data$Species = "Fucus spiralis"
@@ -85,6 +86,19 @@ analysis_data$lift = (4/3)*pi* (analysis_data$bladder_thickness_mean / 2 ) *anal
 analysis_data$trait_float = analysis_data$lift / analysis_data$dry_weight_total_g
 hist(analysis_data$trait_float)
 analysis_data$trait_float[is.na(analysis_data$trait_float)] = 0
+
+
+#Predict dryweight before
+
+mod_dw = lm(dry_weight_total_g ~ final_area_cm2 * Species + final_wet_weight_g * Species,data=analysis_data)
+summary(mod_dw)
+
+plot( mod_dw$fitted.values,mod_dw$model$dry_weight_total_g)
+
+#get data for dryweight:
+pred_dw=analysis_data %>% select(initial_area_cm2,initial_wet_weight_g,Species)
+colnames(pred_dw) = c("final_area_cm2","final_wet_weight_g","Species")
+predict(mod_dw,newdata=pred_dw)
 
 
 ##### PCA within species ####
@@ -281,20 +295,32 @@ summary(aov(model1))
 eta_squared(model1)
 
 #Does origin site matter
-model1=lm(growth_area_cm2_percent ~ Species+origin_site_code,data=analysis_data)
+model1=lm(growth_area_cm2_percent ~ Species+origin_site_code+site_code,data=analysis_data)
 summary(aov(model1))
 eta_squared(model1)
 
 #Does transplant site matter?
-model1=lm(growth_area_cm2_percent ~ Species*depth_treatment+origin_site_code+site_code+tile_id,data=analysis_data)
+model1=lm(growth_area_cm2_percent ~ Species*depth_treatment+origin_site_code+site_code,data=analysis_data)
 summary(aov(model1))
 eta_squared(model1)
+
+boxplot(analysis_data$growth_area_cm2 ~ analysis_data$site_code)
+
 
 ###Linear mixed effects model:
 model1 = lmer(growth_area_cm2_percent ~ Species*factor(depth_treatment) + (1|origin_site_code)+(1|site_code/tile_id),data = analysis_data)
 anova(model1)
 
+densityPlot(resid(model1))
 
+plot(model1)
+
+#dharma 
+
+hist(analysis_data$growth_area_cm2_percent)
+
+library(piecewiseSEM)
+rsquared(model1)
 summary(model1)
 
 library(jtools)
@@ -460,7 +486,7 @@ anova(mod0,mod2)
 ##this code has an error, often, there is the same growth
 
 
-repeats =100 #how often the simulation is repeated
+repeats =50 #how often the simulation is repeated
 
 # create basic dataframe for simulation
 comm_sim = data.frame(heterogeniety = numeric(),nspecies = numeric(),growth = numeric())
