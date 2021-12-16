@@ -20,7 +20,8 @@
 # - "time_exposed_mins"
 # - "mean_length_submerged_mins"
 # - "mean_length_exposed_mins"
-# - "frequency_dessication_2_hours"
+# - "sd_length_exposed_mins"
+# - "frequency_dessication_2_hours" (per week)
 # - "top_5%_dessication_length_mins"
 
 sea_level_func <- function(focal_depth, sea_data, date_col, sea_level_col, start_date = NA, end_date = NA, output_variable) {
@@ -151,6 +152,16 @@ sea_level_func <- function(focal_depth, sea_data, date_col, sea_level_col, start
         summarise(length_below_water_mins = sum(time_mins, na.rm = TRUE))
       
       output <- mean(df.x$length_below_water_mins, na.rm = TRUE)
+      
+    } else if(output_variable == "sd_length_exposed_mins") {
+      
+      df.x <- 
+        df %>%
+        filter(above_below == 1) %>%
+        group_by(groups) %>%
+        summarise(length_below_water_mins = sum(time_mins, na.rm = TRUE))
+      
+      output <- sd(df.x$length_below_water_mins, na.rm = TRUE)
       
     } else if(output_variable == "frequency_dessication_2_hours") {
       
