@@ -13,7 +13,7 @@ groundhog.library(pkgs, groundhog.day)
 sessionInfo()
 
 # load the plotting theme
-# source(here())
+source(here("functions/function_plotting_theme.R"))
 
 # make a folder to export the cleaned data
 if(! dir.exists(here("analysis_data"))){
@@ -177,8 +177,12 @@ hist(y)
 range(pre_dat$water_level_cm_viva)
 range(sea_dat$water_level_cm)
 
-# what do we need to do here?
-# we essentially need to correct this somehow
+# for the tile experiment, we can report the viva measurement, published measurement correlation
+# this doesn't matter because we only really care about relative differences in the tiles
+
+# for other experiments, we might need to correct this more thoroughly
+
+# we output the .csv file so that we can model it
 
 # write a .csv file out so that we can model this and try to correct it
 write_csv(x = lev_comp, path = here("analysis_data/sea_level_viva_calibration_data.csv"))
@@ -200,17 +204,22 @@ sea_dat %>%
   pull(water_level_cm) %>%
   hist(.)
 
-ggplot(data = sea_dat,
-       mapping = aes(x = date_time_CET, y = water_level_cm)) +
-  geom_line()
+View(sea_dat)
+
+# make a plot for the last five years with the RH2000 depths as hlines
 
 sea_dat %>%
   filter(date_time_CET > as.POSIXct("2021-06-23 11:00:00", tz = "CET"),
-         date_time_CET < as.POSIXct("2021-08-23 12:00:00", tz = "CET")) %>%
-  ggplot(data = .,
-         mapping = aes(x = date_time_CET, y = water_level_cm)) +
-  geom_line() +
-  geom_hline(yintercept = -40)
+         date_time_CET < as.POSIXct("2021-08-01 11:00:00", tz = "CET")) %>%
+  ggplot(data = ., 
+       mapping = aes(x = date_time_CET, y = water_level_cm)) +
+  geom_line(size = 0.1, alpha = 0.2) +
+  geom_hline(data = tile_depths,
+             mapping = aes(yintercept = depth_cm, colour = depth_treatment)) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_meta()
+
+
 
 
 # generate some ecologically meaningful variables from these time-series data
@@ -231,7 +240,7 @@ sea_dat %>%
 # this means that for each tile height, we can derive time-series
 # where we know a tile was above or below water
 
-# we do these calculations over two times periodss:
+# we do these calculations over two times periods:
 
 # 1. the last 6 years
 # 2. the study period specifically

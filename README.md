@@ -55,7 +55,7 @@ Then, there is a script that uses this model to correct the depth using the mode
 
 + depth_correcter_example.R
 
-This script calls a function that should have been downloaded already if the readme has been properly followed:
+This script calls a function that should have been downloaded already if the readme has been properly followed. This function will only run if the model from the calibrate_viva_published_sea_level.R has been run:
 
 + depth_correcter.R
 
