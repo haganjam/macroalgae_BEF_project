@@ -2,32 +2,38 @@
 
 Repository for the macroalgae transplant and experiment and field surveys planned for the 2021 field season at Tjarno marine station.
 
-> Data availability
+## Data availability
 
 All data and scripts are hosted on RESEARCHBOX and can be found at this link:
 
 + https://researchbox.org/435&PEER_REVIEW_passcode=ECOTGX
 
-# Reproduce the reported analyses
+## Reproduce the reported analyses
 
 To reproduce the analyses reported in the manuscript, three preparation steps are required.
 
-Step 1: Download the scripts under the "function" section (which always end with a suffix "function.R") and save it in a folder in the working directory called:
+> Step 1: 
+
+Download the scripts under the "function" section (which always end with a suffix "function.R") and save it in a folder in the working directory called:
 
 + functions
 
-Step 2: Download the scripts under the "analysis_scripts" section and save it in the working directory.
+> Step 2: 
 
-Step 3: Download all data under the "analysis_data" section and save it in the working directory in a folder called:
+Download the scripts under the "analysis_scripts" section and save it in the working directory.
 
-+ functions
+> Step 3: 
+
+Download all data under the "analysis_data" section and save it in the working directory in a folder called:
+
++ analysis_data
 
 Once these preparation steps have been completed, you can run the scripts downloaded from the "analysis_scripts" section and all analyses reported in the manuscript will be reproduced.
 
 Note that these scripts perform analyses on cleaned version of the data. If you would like to reproduce the entire analysis from scratch, see the rest of this ReadMe.
 
 
-# Reproduce the entire analysis from the raw data
+## Reproduce the entire analysis from the raw data
 
 The following description takes you through how we processed all the raw data we collected and outputted dataset ready for analysis into the "analysis_data" folder.
 
@@ -44,8 +50,8 @@ Save this file into a folder in the working directory called:
 
 Download the following scripts from the "cleaning_scripts" section of the RESEARCHBOX: 
 
-+ clean_initial_experiment_data.R
-+ clean_post_experiment_data.R
++ 1_clean_initial_experiment_data.R
++ 2_clean_post_experiment_data.R
 
 Run these scripts which will clean the data and output a cleaned version of the data into an analysis_data folder.
 
@@ -95,7 +101,7 @@ This script cleans and processes the data and outputs a cleaned version of the d
 
 > Analysis of the depths at which different species naturally occur (Fig. 1)
 
-To analyse the depth distrbutions of the four species in their natural settings, we used two datasets: dedicated transects and other field collections of the four species where depths were measured. These two datasets can be downloaded from the research box and should be placed in a folder called: preliminary_supporting_data:
+To analyse the depth distributions of the four species in their natural settings, we used two datasets: dedicated transects and other field collections of the four species where depths were measured. These two datasets can be downloaded from the research box and should be placed in a folder called: preliminary_supporting_data:
 
 + sample_data_biomass_allometry.csv
 + transect_data.csv
@@ -104,7 +110,8 @@ Running the following script found in the "cleaning_scripts" sectoin will then o
 
 + 5_process_species_depth_data.R
 
-> Optional: Calibrate in-situ water-level measurements
+
+## Optional: Calibrate in-situ water-level measurements
 
 Water-level measurements taken in the field using the ViVa application do not perfectly correspond to those published by SMHI. This does not necessarily matter for the Tile Experiment but we want to better correct some of our other studies.
 
