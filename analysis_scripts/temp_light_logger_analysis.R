@@ -6,7 +6,8 @@
 # load libraries using groundhog
 library(groundhog)
 groundhog.day <- "2020-06-1"
-pkgs <- c("here", "dplyr", "tidyr", "readr", "ggplot2")
+pkgs <- c("here", "dplyr", "tidyr", "readr", "ggplot2", "lubridate",
+          "slider", "ggforce", "gghalves", "ggbeeswarm")
 groundhog.library(pkgs, groundhog.day)
 
 # check the loaded packages for their correct versions
@@ -14,6 +15,7 @@ sessionInfo()
 
 # read in the cleaned logger data
 logvars <- read_rds(path = here("analysis_data/temp_light_logger_data.rds"))
+
 
 # which variables would we like to generate?
 
@@ -80,7 +82,62 @@ logvars_summary <-
 
 View(logvars_summary)
 
+# summarise across sites
+logvars_summary %>%
+  group_by(depth_treatment) %>%
+  summarise(hours_exceeding_27_m = mean(hours_exceeding_27, na.rm = TRUE),
+            hours_exceeding_27_sd = sd(hours_exceeding_27, na.rm = TRUE),
+            max_temp_C_m = mean(max_temp_C, na.rm = TRUE),
+            max_temp_C_sd = sd(max_temp_C, na.rm = TRUE))
+
+
 # plot the light and temperature information
 
+# bind the different site, depth combinations into a large data.frame
+logvars_df <- bind_rows(logvars, .id = "id")
+head(logvars_df)
+
+# make a datetime variable
+logvars_df <- 
+  logvars_df %>%
+  mutate(date_time = ymd_hms(paste(date_corrected, time, sep = " ")))
+
+# change the factors for plotting
+logvars_df$water_level_treat <- factor(logvars_df$water_level_treat, levels = c("E", "F", "G", "H") )
+levels(logvars_df$water_level_treat) <- c("-5 cm", "-12 cm", "-28 cm", "-40 cm")
+
+# make a temperature comparison plot
+p1 <- 
+  ggplot(data = logvars_df, 
+       mapping = aes(x = water_level_treat, y = temperature_C, 
+                     colour = water_level_treat,
+                     group = id)) +
+  geom_quasirandom(groupOnX = TRUE, alpha = 0.3, shape = 16, size = 0.5) +
+  geom_boxplot(outlier.shape = NA, width = 0.3, notch = TRUE, 
+               position = position_dodge(0.5)) +
+  scale_colour_viridis_d(option = "C") +
+  xlab("Water level treatment") +
+  ylab("Temperature (C)") +
+  theme_meta() +
+  theme(legend.position = "none")
+
+ggsave(filename = here("figures/fig_SX_temp.png"), p1, width = 10, height = 8, units = "cm",
+       dpi = 300)
+
+# make a light comparison plot
+p2 <- 
+  ggplot(data = logvars_df, 
+       mapping = aes(x = water_level_treat, y = intensity_lux, 
+                     colour = water_level_treat,
+                     group = id)) +
+  geom_quasirandom(groupOnX = TRUE, alpha = 0.3, shape = 16, size = 0.5) +
+  scale_colour_viridis_d(option = "C") +
+  xlab("Water level treatment") +
+  ylab("Light intensity (lux)") +
+  theme_meta() +
+  theme(legend.position = "none")
+
+ggsave(filename = here("figures/fig_SX_light.png"), p2, width = 10, height = 8, units = "cm",
+       dpi = 300)
 
 ### END
