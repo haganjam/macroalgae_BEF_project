@@ -12,6 +12,10 @@ groundhog.library(pkgs, groundhog.day)
 # check the loaded packages for their correct versions
 sessionInfo()
 
+if(! dir.exists(here("figures"))){
+  print("make a folder called experiment_data in the working directory and save the figures, see README for details")
+}
+
 # load the plotting theme
 source(here("functions/function_plotting_theme.R"))
 
@@ -30,15 +34,15 @@ p1 <-
          date_time_CET < as.POSIXct("2021-08-01 11:00:00", tz = "CET")) %>%
   ggplot(data = ., 
          mapping = aes(x = date_time_CET, y = water_level_cm)) +
-  geom_line(alpha = 0.7, size = 0.1) +
+  geom_line(alpha = 0.7, size = 0.3) +
   geom_hline(data = tile_depths,
              mapping = aes(yintercept = depth_cm, colour = depth_treatment),
              size = 1) +
-  scale_colour_viridis_d(option = "C") +
+  scale_colour_viridis_d(option = "C",direction = -1) +
   geom_hline(yintercept = 0, linetype = "dashed", size = 1) +
   theme_meta() +
-  ylab("Water depth (cm)") +
-  xlab("Time") +
+  ylab("water level (cm)") +
+  xlab("time") +
   theme(legend.position = "none",
         axis.text.y = element_text(hjust = 0.5, size = 9),
         axis.text.x = element_text(size = 9),
@@ -51,7 +55,7 @@ ggsave(filename = here("figures/fig_3_time_series.png"), plot = p1,
 # choosing viridis colours manually
 # https://www.thinkingondata.com/something-about-viridis-library/
 
-cols <- viridis_pal(option = "C")(4)
+cols <- viridis_pal(option = "C",direction = -1)(4)
 hist_out <- vector("list", length = length(cols))
 for ( j in seq_along(hist_out) ) {
   
@@ -62,7 +66,7 @@ for ( j in seq_along(hist_out) ) {
            mapping = aes(x = sea_lev )) +
     geom_density(fill = cols[j], alpha = 0.75) +
     geom_vline(xintercept = 0, linetype = "dashed") +
-    xlab("Water depth (cm)") +
+    xlab("water level (cm)") +
     scale_x_continuous(limits = c(-165, 125)) +
     ylab("Density") +
     theme_meta() +
