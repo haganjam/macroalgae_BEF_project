@@ -12,6 +12,10 @@ groundhog.library(pkgs, groundhog.day)
 # check the loaded packages for their correct versions
 sessionInfo()
 
+if(! dir.exists(here("figures"))){
+  print("make a folder called experiment_data in the working directory and save the figures, see README for details")
+}
+
 # load the plotting theme
 source(here("functions/function_plotting_theme.R"))
 
@@ -34,7 +38,7 @@ p1 <-
   geom_hline(data = tile_depths,
              mapping = aes(yintercept = depth_cm, colour = depth_treatment),
              size = 1) +
-  scale_colour_viridis_d(option = "C") +
+  scale_colour_viridis_d(option = "C",direction = -1) +
   geom_hline(yintercept = 0, linetype = "dashed", size = 1) +
   theme_meta() +
   ylab("Water depth (cm)") +
@@ -51,7 +55,7 @@ ggsave(filename = here("figures/fig_3_time_series.png"), plot = p1,
 # choosing viridis colours manually
 # https://www.thinkingondata.com/something-about-viridis-library/
 
-cols <- viridis_pal(option = "C")(4)
+cols <- viridis_pal(option = "C",direction = -1)(4)
 hist_out <- vector("list", length = length(cols))
 for ( j in seq_along(hist_out) ) {
   

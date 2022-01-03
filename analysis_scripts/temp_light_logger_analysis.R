@@ -14,7 +14,7 @@ groundhog.library(pkgs, groundhog.day)
 sessionInfo()
 
 # read in the cleaned logger data
-logvars <- read_rds(path = here("analysis_data/temp_light_logger_data.rds"))
+logvars <- read_rds(here("analysis_data/temp_light_logger_data.rds"))
 
 
 # which variables would we like to generate?
@@ -103,8 +103,9 @@ logvars_df <-
   mutate(date_time = ymd_hms(paste(date_corrected, time, sep = " ")))
 
 # change the factors for plotting
-logvars_df$water_level_treat <- factor(logvars_df$water_level_treat, levels = c("E", "F", "G", "H") )
-levels(logvars_df$water_level_treat) <- c("-5 cm", "-12 cm", "-28 cm", "-40 cm")
+logvars_df$water_level_treat <- factor(logvars_df$water_level_treat, levels = c( "H","G","F","E") )
+levels(logvars_df$water_level_treat) <- c("-40 cm","-28 cm","-12 cm","-5 cm")
+
 
 # make a temperature comparison plot
 p1 <- 
@@ -115,9 +116,9 @@ p1 <-
   geom_quasirandom(groupOnX = TRUE, alpha = 0.3, shape = 16, size = 0.5) +
   geom_boxplot(outlier.shape = NA, width = 0.3, notch = TRUE, 
                position = position_dodge(0.5)) +
-  scale_colour_viridis_d(option = "C") +
+  scale_colour_viridis_d(option = "C",direction = 1) +
   xlab("Water level treatment") +
-  ylab("Temperature (C)") +
+  ylab("Temperature (°C)") +
   theme_meta() +
   theme(legend.position = "none")
 
@@ -131,7 +132,7 @@ p2 <-
                      colour = water_level_treat,
                      group = id)) +
   geom_quasirandom(groupOnX = TRUE, alpha = 0.3, shape = 16, size = 0.5) +
-  scale_colour_viridis_d(option = "C") +
+  scale_colour_viridis_d(option = "C",direction = 1) +
   xlab("Water level treatment") +
   ylab("Light intensity (lux)") +
   theme_meta() +
