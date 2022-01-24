@@ -317,10 +317,41 @@ coef(lm1)
 analysis_data$final_wet_weight_g[analysis_data$plant_id=="VDH1"]=as.numeric(coef(lm1)[1] + coef(lm1)[2]*analysis_data$final_area_cm2[analysis_data$plant_id=="VDH1"])
 rm(lm1,fuve_dat)
 
+##Fetch missing dates from time stamp data
+timestamps= read_csv("experiment_data/transplant_image_timestamps.csv")
 
+start_dates = timestamps %>% filter(time=="t0")
+end_dates = timestamps %>% filter(time=="t1")
+
+for(i in 1:length(analysis_data$date_start)) {
+  
+  #fetch start dates
+  if(is.na(analysis_data$date_start[i])){
+    date_id=analysis_data$plant_id[i]
+    
+    #paste date as dd-mm-yyyy
+    analysis_data$date_start[i]=paste(start_dates$day[start_dates$id==date_id],
+                                      "-", start_dates$month[start_dates$id==date_id],"-","2021",sep = "")
+    rm(date_id)
+  }
+  #fetch end dates
+  if(is.na(analysis_data$date_end.x[i])){
+    date_id=analysis_data$plant_id[i]
+    
+    #paste date as dd_mm_yyyy
+    #check if not available
+    if(!is.na(analysis_data$final_wet_weight_g))
+    analysis_data$date_end.x[i]=paste(end_dates$day[end_dates$id==date_id],
+                                      "_", end_dates$month[end_dates$id==date_id],"_","2021",sep = "")
+    rm(date_id)
+  }
+  
+}
 
 # output the cleaned csv file for the initial and final data
 if(!dir.exists("analysis_data")){dir.create("analysis_data")}
+
+
 
 # output this to (analysis_data)
 write.csv(analysis_data,file = "analysis_data/analysis_data.csv")

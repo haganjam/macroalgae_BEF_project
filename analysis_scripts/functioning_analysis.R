@@ -32,6 +32,13 @@ if(! dir.exists(here("figures"))){
 analysis_data <- read_csv("analysis_data/analysis_data.csv")[-1]
 analysis_data = analysis_data[-493,] #outlier, probably wrong measurement
 
+
+table(analysis_data$date_end.y)
+analysis_data$duration = as.numeric(as.Date(analysis_data$date_end.y,"%d_%m_%Y")-as.Date(analysis_data$date_start,"%d-%m-%Y"))
+
+cor.test(analysis_data$duration, analysis_data$growth_area_cm2,use="pairwise.complete.obs")
+length(analysis_data$duration)
+
 # Growth with weight, perimeter,area , length
 analysis_data$growth_length_cm = analysis_data$final_length_cm - analysis_data$initial_length_cm
 analysis_data$growth_area_cm2 = analysis_data$final_area_cm2 - analysis_data$initial_area_cm2
