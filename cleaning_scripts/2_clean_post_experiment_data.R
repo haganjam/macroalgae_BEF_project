@@ -340,10 +340,11 @@ for(i in 1:length(analysis_data$date_start)) {
     
     #paste date as dd_mm_yyyy
     #check if not available
-    if(!is.na(analysis_data$final_wet_weight_g))
+    if(!is.na(analysis_data$final_wet_weight_g[i])){
     analysis_data$date_end.x[i]=paste(end_dates$day[end_dates$id==date_id],
                                       "_", end_dates$month[end_dates$id==date_id],"_","2021",sep = "")
     rm(date_id)
+    }
   }
   
 }
