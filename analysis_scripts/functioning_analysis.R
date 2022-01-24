@@ -32,12 +32,13 @@ if(! dir.exists(here("figures"))){
 analysis_data <- read_csv("analysis_data/analysis_data.csv")[-1]
 analysis_data = analysis_data[-493,] #outlier, probably wrong measurement
 
+#Calculate duration of the growth experiment
+analysis_data$duration = as.numeric(as.Date(analysis_data$date_end.x,"%d_%m_%Y")-as.Date(analysis_data$date_start,"%d-%m-%Y"))
+table(analysis_data$duration)
 
-table(analysis_data$date_end.y)
-analysis_data$duration = as.numeric(as.Date(analysis_data$date_end.y,"%d_%m_%Y")-as.Date(analysis_data$date_start,"%d-%m-%Y"))
+hist(analysis_data$duration)
 
-cor.test(analysis_data$duration, analysis_data$growth_area_cm2,use="pairwise.complete.obs")
-length(analysis_data$duration)
+
 
 # Growth with weight, perimeter,area , length
 analysis_data$growth_length_cm = analysis_data$final_length_cm - analysis_data$initial_length_cm
@@ -121,8 +122,12 @@ analysis_data$dry_weight_total_g_before_predicted = predict(mod_dw,newdata=pred_
 
 #dryweight increase
 analysis_data$dry_weight_total_g_increase = analysis_data$dry_weight_total_g - analysis_data$dry_weight_total_g_before_predicted
-#calculate relative increase
-analysis_data$dry_weight_total_g_relative_increase =100 * analysis_data$dry_weight_total_g_increase/analysis_data$dry_weight_total_g_before_predicted
+
+#calculate relative increase over the whole experiment
+analysis_data$dry_weight_total_g_relative_increase_total =100 * analysis_data$dry_weight_total_g_increase/analysis_data$dry_weight_total_g_before_predicted
+
+#Growth in percent per day - there were slightly differing durations
+analysis_data$dry_weight_g_daily_relative_increase = analysis_data$dry_weight_total_g_relative_increase_total/analysis_data$duration
 
 
 ##### PCA within species ######
@@ -266,7 +271,7 @@ ggboxplot(analysis_data,y="growth_length_cm",x="depth_treatment",color = "binomi
 ggboxplot(analysis_data,y="growth_perimeter_cm",x="depth_treatment",color = "binomial_code",facet.by = "binomial_code")
 ggboxplot(analysis_data,y="growth_wet_weight_g",x="depth_treatment",color = "binomial_code",facet.by = "binomial_code")
 ggboxplot(analysis_data,y="growth_area_cm2",x="depth_treatment",color = "binomial_code",facet.by = "binomial_code")
-ggboxplot(analysis_data,y="dry_weight_total_g_relative_increase",x="depth_treatment",color = "binomial_code",facet.by = "binomial_code")
+ggboxplot(analysis_data,y="dry_weight_g_daily_relative_increase",x="depth_treatment",color = "binomial_code",facet.by = "binomial_code")
 
 
 
@@ -275,7 +280,7 @@ analysis_data %>% group_by(binomial_code) %>% filter(!is.na(growth_length_cm)) %
 analysis_data %>% group_by(binomial_code) %>% filter(!is.na(growth_perimeter_cm)) %>% kruskal_test(growth_perimeter_cm~depth_treatment)
 analysis_data %>% group_by(binomial_code) %>% filter(!is.na(growth_wet_weight_g)) %>% kruskal_test(growth_wet_weight_g~depth_treatment)
 analysis_data %>% group_by(binomial_code) %>% filter(!is.na(growth_wet_weight_g)) %>% kruskal_test(growth_wet_weight_g~depth_treatment)
-analysis_data %>% group_by(binomial_code) %>% filter(!is.na(dry_weight_total_g_relative_increase)) %>% kruskal_test(dry_weight_total_g_relative_increase~depth_treatment)
+analysis_data %>% group_by(binomial_code) %>% filter(!is.na(dry_weight_g_daily_relative_increase)) %>% kruskal_test(dry_weight_g_daily_relative_increase~depth_treatment)
 
 
 #growth_percent
@@ -323,17 +328,17 @@ analysis_data %>% group_by(Species) %>% summarise(survival = sum(survived)) %>% 
 analysis_data$origin_site_code
 
 #Species
-model1=lm(dry_weight_total_g_relative_increase ~ Species+origin_site_code,data=analysis_data)
+model1=lm(dry_weight_g_daily_relative_increase ~ Species+origin_site_code,data=analysis_data)
 summary(aov(model1))
 eta_squared(model1)
 
 #Does origin site matter
-model1=lm(dry_weight_total_g_relative_increase ~ Species+origin_site_code+site_code,data=analysis_data)
+model1=lm(dry_weight_g_daily_relative_increase ~ Species+origin_site_code+site_code,data=analysis_data)
 summary(aov(model1))
 eta_squared(model1)
 
 #Does transplant site matter?
-model1=lm(dry_weight_total_g_relative_increase ~ Species*depth_treatment+origin_site_code+site_code,data=analysis_data)
+model1=lm(dry_weight_g_daily_relative_increase ~ Species*depth_treatment+origin_site_code+site_code,data=analysis_data)
 summary(aov(model1))
 eta_squared(model1)
 
@@ -341,7 +346,7 @@ boxplot(analysis_data$growth_area_cm2 ~ analysis_data$site_code)
 
 
 ###Linear mixed effects model:
-model1 = lmer(analysis_data$dry_weight_total_g_relative_increase ~ Species*factor(depth_treatment) + (1|origin_site_code)+(1|site_code/tile_id),data = analysis_data)
+model1 = lmer(analysis_data$dry_weight_g_daily_relative_increase ~ Species*factor(depth_treatment) + (1|origin_site_code)+(1|site_code/tile_id),data = analysis_data)
 anova(model1)
 
 densityPlot(resid(model1))
@@ -350,7 +355,7 @@ plot(model1)
 
 #dharma 
 
-hist(analysis_data$dry_weight_total_g_relative_increase)
+hist(analysis_data$dry_weight_g_daily_relative_increase)
 
 library(piecewiseSEM)
 rsquared(model1)
@@ -386,14 +391,14 @@ p+labs(title="Emmeans of areal growth in %", x="depth (cm)", y = "% areal growth
 library(viridis)
 
 #GAM does not work because there are only 4 depths....
-gam.alg = mgcv::gam(dry_weight_total_g_relative_increase ~ s(depth_treatment)+s(Species),data=analysis_data)
+gam.alg = mgcv::gam(dry_weight_g_daily_relative_increase ~ s(depth_treatment)+s(Species),data=analysis_data)
 plot(gam.alg)
 
 #Induce small error because GAM seems to need that
 test=analysis_data$depth_treatment+rnorm(n=length(analysis_data$depth_treatment),mean = 0,sd = 0.001)
 analysis_data$test=test
 
-gam.alg = mgcv::gam(dry_weight_total_g_relative_increase ~ s(test,by=Species)+s(test)+Species,data=analysis_data)
+gam.alg = mgcv::gam(dry_weight_g_daily_relative_increase ~ s(test,by=Species)+s(test)+Species,data=analysis_data)
 library(tidymv)
 gam_plot=plot_smooths(
   model = gam.alg,
@@ -411,37 +416,37 @@ ggsave(filename = here("figures/fig_5_GAM.png"), plot = gam_plot,
 library(ggdist)
 
 
-analysis_data_fu_se = analysis_data  %>% filter(Species=="Fucus serratus", !is.na(dry_weight_total_g_relative_increase))
-p_fuse=ggplot(analysis_data_fu_se, aes(factor(depth_treatment), dry_weight_total_g_relative_increase)) + 
+analysis_data_fu_se = analysis_data  %>% filter(Species=="Fucus serratus", !is.na(dry_weight_g_daily_relative_increase))
+p_fuse=ggplot(analysis_data_fu_se, aes(factor(depth_treatment), dry_weight_g_daily_relative_increase)) + 
   ggdist::stat_halfeye(adjust = .5, width = .3, .width = 0, justification = -.3, point_colour = "NA",fill="#0c1787") + 
   geom_boxplot(width = .1, outlier.shape = NA,color="#0c1787") +
   #ggdist::stat_dots(side = "left", dotsize = .4, justification = 1.1, binwidth = .1,color=NA)+
   theme_meta()+
-  xlab("depth [cm]")+ylab("dry weight increase in %")+geom_hline(yintercept =0)+ylim(ylim=c(-100,120))
+  xlab("depth [cm]")+ylab("dry weight increase in % per day")+geom_hline(yintercept =0)+ylim(ylim=c(-100,120))
 
-analysis_data_fu_ve = analysis_data  %>% filter(Species=="Fucus vesiculosus", !is.na(dry_weight_total_g_relative_increase))
-p_fuve=ggplot(analysis_data_fu_ve, aes(factor(depth_treatment), dry_weight_total_g_relative_increase)) + 
+analysis_data_fu_ve = analysis_data  %>% filter(Species=="Fucus vesiculosus", !is.na(dry_weight_g_daily_relative_increase))
+p_fuve=ggplot(analysis_data_fu_ve, aes(factor(depth_treatment), dry_weight_g_daily_relative_increase)) + 
   ggdist::stat_halfeye(adjust = .5, width = .3, .width = 0, justification = -.3, point_colour = "NA",fill="#ec7853") + 
   geom_boxplot(width = .1, outlier.shape = NA,color="#ec7853") +
   #ggdist::stat_dots(side = "left", dotsize = .4, justification = 1.1, binwidth = .1,color=NA)+
   theme_meta()+
-  xlab("depth [cm]")+ylab("dry weight increase in %")+geom_hline(yintercept =0)+ylim(ylim=c(-100,120))
+  xlab("depth [cm]")+ylab("dry weight increase in % per day")+geom_hline(yintercept =0)+ylim(ylim=c(-100,120))
 
-analysis_data_as_no = analysis_data  %>% filter(Species=="Ascophyllum nodosum", !is.na(dry_weight_total_g_relative_increase))
-p_asno=ggplot(analysis_data_as_no, aes(factor(depth_treatment), dry_weight_total_g_relative_increase)) + 
+analysis_data_as_no = analysis_data  %>% filter(Species=="Ascophyllum nodosum", !is.na(dry_weight_g_daily_relative_increase))
+p_asno=ggplot(analysis_data_as_no, aes(factor(depth_treatment), dry_weight_g_daily_relative_increase)) + 
   ggdist::stat_halfeye(adjust = .5, width = .3, .width = 0, justification = -.3, point_colour = "NA",fill="#9c259f") + 
   geom_boxplot(width = .1, outlier.shape = NA,color="#9c259f") +
   #ggdist::stat_dots(side = "left", dotsize = .4, justification = 1.1, binwidth = .1,color=NA)+
   theme_meta()+
-  xlab("depth [cm]")+ylab("dry weight increase in %")+geom_hline(yintercept =0)+ylim(ylim=c(-100,120))
+  xlab("depth [cm]")+ylab("dry weight increase in % per day")+geom_hline(yintercept =0)+ylim(ylim=c(-100,120))
 
-analysis_data_fu_sp = analysis_data  %>% filter(Species=="Fucus spiralis", !is.na(dry_weight_total_g_relative_increase))
-p_fusp=ggplot(analysis_data_fu_sp, aes(factor(depth_treatment), dry_weight_total_g_relative_increase)) + 
+analysis_data_fu_sp = analysis_data  %>% filter(Species=="Fucus spiralis", !is.na(dry_weight_g_daily_relative_increase))
+p_fusp=ggplot(analysis_data_fu_sp, aes(factor(depth_treatment), dry_weight_g_daily_relative_increase)) + 
   ggdist::stat_halfeye(adjust = .5, width = .3, .width = 0, justification = -.3, point_colour = NA,fill="#f1f820") + 
   geom_boxplot(width = .1, outlier.shape = NA,color="#f1f820") +
   #ggdist::stat_dots(side = "left", dotsize = .4, justification = 1.1, binwidth = .1,color=NA)+
   theme_meta()+
-  xlab("depth [cm]")+ylab("dry weight increase in %")+geom_hline(yintercept =0)+ylim(ylim=c(-100,120))
+  xlab("depth [cm]")+ylab("dry weight increase in % per day")+geom_hline(yintercept =0)+ylim(ylim=c(-100,120))
 
 
 p_growths = ggarrange(p_fuse,p_asno,p_fuve,p_fusp)#,labels = c("A: F. serratus","B: A. nodosum","C: F. vesiculosus","D: F. spiralis"))
@@ -452,7 +457,7 @@ ggsave(filename = here("figures/fig_5_boxplots.png"), plot = p_growths,
 ####Trait environment intreraction####
 
 pca_data
-pca_data=analysis_data %>% select(Species,depth_treatment,site_code,tile_id,dry_weight_total_g_relative_increase,contains("trait"))
+pca_data=analysis_data %>% select(Species,depth_treatment,site_code,tile_id,dry_weight_g_daily_relative_increase,contains("trait"))
 
 #Changing depth treatment to factor
 pca_data$depth_treatment = as.factor(pca_data$depth_treatment)
@@ -475,7 +480,7 @@ pc2=data.frame(pca_res$x)$PC2
 
 pc1
 
-model1 = lmer(dry_weight_total_g_relative_increase ~ Species*factor(depth_treatment) + (1|origin_site_code)+(1|site_code/tile_id),data = analysis_data)
+model1 = lmer(dry_weight_g_daily_relative_increase ~ Species*factor(depth_treatment) + (1|origin_site_code)+(1|site_code/tile_id),data = analysis_data)
 anova(model1)
 
 summary(model1)
