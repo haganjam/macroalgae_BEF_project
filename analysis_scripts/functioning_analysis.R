@@ -220,12 +220,22 @@ pca_res <- prcomp(pca_max[-c(1,2,3,4,5)], scale = TRUE)
 colnames(pca_max) = c("Species", "depth","site","length","epiphytes", "TDMC", "thickness",
                       "STA",       "SA:P" ,      "Pneumatocysts")
 
-pca_plot = autoplot(pca_res, data = pca_max, shape = 'depth', size=3,,
+pca_plot = autoplot(pca_res, data = pca_max, #shape = 'depth',
+                    size=3,,
          loadings = TRUE, loadings.colour = 'red',
          loadings.label = TRUE, loadings.label.size = 5,
-         loadings.label.colour="black",colour="Species") + theme_meta() + scale_color_viridis(discrete=TRUE, option="plasma")
+         loadings.label.colour="black",colour="Species",legend.position="none") + theme_meta() + scale_color_viridis(discrete=TRUE, option="plasma") +
+  theme(legend.position = "none")
 
 ggsave(filename = here("figures/fig_4_PCA.png"), plot = pca_plot, 
+       units = "cm", width = 15, height = 10, dpi = 300)
+
+pca_plot_nodepth = autoplot(pca_res, data = pca_max, size=3,,
+                    loadings = TRUE, loadings.colour = 'red',
+                    loadings.label = TRUE, loadings.label.size = 5,
+                    loadings.label.colour="black",colour="Species") + theme_meta() + scale_color_viridis(discrete=TRUE, option="plasma")
+
+ggsave(filename = here("figures/fig_4_PCA_nodepth.png"), plot = pca_plot_nodepth, 
        units = "cm", width = 20, height = 16, dpi = 300)
 
 #adonis(as.matrix(pca_max[-c(1,2,3)]) ~ pca_max$depth * pca_max$Species, method = "euclidean",
@@ -357,10 +367,6 @@ plot(model1)
 
 hist(analysis_data$dry_weight_g_daily_relative_increase)
 
-library(piecewiseSEM)
-rsquared(model1)
-summary(model1)
-
 library(jtools)
 summ(model1)
 anova(model1)
@@ -371,12 +377,12 @@ library(MuMin)
 library(emmeans)
 emm=emmeans(model1, list(pairwise ~ factor(depth_treatment)/Species), adjust = "tukey")
 
+
+
 #emmeants plot
 emm=as.data.frame(emm$`emmeans of depth_treatment, Species`)
 ggbarplot(data = emm,x="depth_treatment",y="emmean",fill="Species",position = position_dodge(0.9))
 
-# Convert dose to a factor variable
-df2$dose=as.factor(df2$dose)
 # Default line plot
 p<- ggplot(emm, aes(x=factor(depth_treatment), y=emmean, group=Species, color=Species)) + 
   geom_line(position=position_dodge(.2)) +
@@ -403,13 +409,13 @@ library(tidymv)
 gam_plot=plot_smooths(
   model = gam.alg,
   series = test,
-  comparison = Species
-)+xlab("depth [cm]")+ylab("dry weight increase in %")+theme_meta()+ scale_color_viridis(discrete = TRUE, option = "plasma")+
-  scale_fill_viridis(discrete = TRUE,option="plasma")+ scale_x_continuous(breaks=c(-40,-28, -12,-5))
+  comparison = Species)+xlab("depth [cm]")+ylab("dry weight increase in % per day")+theme_meta()+ scale_color_viridis(discrete = TRUE, option = "plasma")+
+  scale_fill_viridis(discrete = TRUE,option="plasma")+ scale_x_continuous(breaks=c(-40,-28, -12,-5)) +
+  theme(legend.position = "none")
 
 
 ggsave(filename = here("figures/fig_5_GAM.png"), plot = gam_plot, 
-       units = "cm", width = 10, height = 15, dpi = 300)
+       units = "cm", width = 15, height = 10, dpi = 300)
 
 
 ####Raincloud plot for growth (figure 5)#####
@@ -422,7 +428,7 @@ p_fuse=ggplot(analysis_data_fu_se, aes(factor(depth_treatment), dry_weight_g_dai
   geom_boxplot(width = .1, outlier.shape = NA,color="#0c1787") +
   #ggdist::stat_dots(side = "left", dotsize = .4, justification = 1.1, binwidth = .1,color=NA)+
   theme_meta()+
-  xlab("depth [cm]")+ylab("dry weight increase in % per day")+geom_hline(yintercept =0)+ylim(ylim=c(-100,120))
+  xlab("depth [cm]")+ylab("dry weight increase in % per day")+geom_hline(yintercept =0)+ylim(ylim=c(-2,3))
 
 analysis_data_fu_ve = analysis_data  %>% filter(Species=="Fucus vesiculosus", !is.na(dry_weight_g_daily_relative_increase))
 p_fuve=ggplot(analysis_data_fu_ve, aes(factor(depth_treatment), dry_weight_g_daily_relative_increase)) + 
@@ -430,7 +436,7 @@ p_fuve=ggplot(analysis_data_fu_ve, aes(factor(depth_treatment), dry_weight_g_dai
   geom_boxplot(width = .1, outlier.shape = NA,color="#ec7853") +
   #ggdist::stat_dots(side = "left", dotsize = .4, justification = 1.1, binwidth = .1,color=NA)+
   theme_meta()+
-  xlab("depth [cm]")+ylab("dry weight increase in % per day")+geom_hline(yintercept =0)+ylim(ylim=c(-100,120))
+  xlab("depth [cm]")+ylab("    ")+geom_hline(yintercept =0)+ylim(ylim=c(-2,3))
 
 analysis_data_as_no = analysis_data  %>% filter(Species=="Ascophyllum nodosum", !is.na(dry_weight_g_daily_relative_increase))
 p_asno=ggplot(analysis_data_as_no, aes(factor(depth_treatment), dry_weight_g_daily_relative_increase)) + 
@@ -438,7 +444,7 @@ p_asno=ggplot(analysis_data_as_no, aes(factor(depth_treatment), dry_weight_g_dai
   geom_boxplot(width = .1, outlier.shape = NA,color="#9c259f") +
   #ggdist::stat_dots(side = "left", dotsize = .4, justification = 1.1, binwidth = .1,color=NA)+
   theme_meta()+
-  xlab("depth [cm]")+ylab("dry weight increase in % per day")+geom_hline(yintercept =0)+ylim(ylim=c(-100,120))
+  xlab("depth [cm]")+ylab("    ")+geom_hline(yintercept =0)+ylim(ylim=c(-2,3))
 
 analysis_data_fu_sp = analysis_data  %>% filter(Species=="Fucus spiralis", !is.na(dry_weight_g_daily_relative_increase))
 p_fusp=ggplot(analysis_data_fu_sp, aes(factor(depth_treatment), dry_weight_g_daily_relative_increase)) + 
@@ -446,13 +452,13 @@ p_fusp=ggplot(analysis_data_fu_sp, aes(factor(depth_treatment), dry_weight_g_dai
   geom_boxplot(width = .1, outlier.shape = NA,color="#f1f820") +
   #ggdist::stat_dots(side = "left", dotsize = .4, justification = 1.1, binwidth = .1,color=NA)+
   theme_meta()+
-  xlab("depth [cm]")+ylab("dry weight increase in % per day")+geom_hline(yintercept =0)+ylim(ylim=c(-100,120))
+  xlab("depth [cm]")+ylab("    ")+geom_hline(yintercept =0)+ylim(ylim=c(-2,3))
 
 
-p_growths = ggarrange(p_fuse,p_asno,p_fuve,p_fusp)#,labels = c("A: F. serratus","B: A. nodosum","C: F. vesiculosus","D: F. spiralis"))
+p_growths = ggarrange(p_fuse,p_asno,p_fuve,p_fusp,ncol = 4,nrow = 1)#,labels = c("A: F. serratus","B: A. nodosum","C: F. vesiculosus","D: F. spiralis"))
 
 ggsave(filename = here("figures/fig_5_boxplots.png"), plot = p_growths, 
-       units = "cm", width = 20, height = 20, dpi = 300)
+       units = "cm", width = 30, height = 10, dpi = 300)
 
 ####Trait environment intreraction####
 
