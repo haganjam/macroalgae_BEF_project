@@ -43,6 +43,7 @@ To clean the initial measurements and final measurements for the experimental da
 
 + tile_experiment_data_plants_pre.csv 
 + tile_experiment_post.csv
++ transplant_image_timestamps.csv
 
 Save this file into a folder in the working directory called: 
 
