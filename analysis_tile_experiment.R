@@ -173,23 +173,19 @@ gghistogram(pca_max,x="SA:P",facet.by = "Species")
 gghistogram(pca_max,x="Pneumatocysts",facet.by = "Species")
 
 
-pca_res <- prcomp(pca_max[-c(1,2,3)], scale = TRUE)
+pca_res <- prcomp(pca_max[-c(1,2,3,4,5)], scale = TRUE)
 
 
 colnames(pca_max) = c("Species", "depth","site","length","epiphytes", "TDMC", "thickness",
                       "STA",       "SA:P" ,      "Pneumatocysts")
 
+library(viridis)
 
 autoplot(pca_res, data = pca_max, shape = 'depth', size=3,,
          loadings = TRUE, loadings.colour = 'red',
          loadings.label = TRUE, loadings.label.size = 4,
-         loadings.label.colour="black",colour="Species")  + theme_bw()
+         loadings.label.colour="black",colour="Species") + theme_meta() + scale_color_viridis(discrete=TRUE, option="plasma")
 
-
-autoplot(pca_res, data = pca_max, shape = 'site', size=3,,
-         loadings = TRUE, loadings.colour = 'red',
-         loadings.label = TRUE, loadings.label.size = 4,
-         loadings.label.colour="black",colour="Species")  + theme_bw()
 
 
 # Growth per depth
@@ -357,17 +353,19 @@ gam.alg = mgcv::gam(growth_area_cm2_percent ~ s(depth_treatment)+s(Species),data
 plot(gam.alg)
 
 #Induce small error because GAM seems to need that
-test=analysis_data$depth_treatment+rnorm(n=length(analysis_data$depth_treatment),mean = 0,sd = 0.01)
+test=analysis_data$depth_treatment+rnorm(n=length(analysis_data$depth_treatment),mean = 0,sd = 0.001)
 analysis_data$test=test
 
 gam.alg = mgcv::gam(growth_area_cm2_percent ~ s(test,by=Species)+s(test)+Species,data=analysis_data)
-
+library(tidymv)
 plot_smooths(
   model = gam.alg,
   series = test,
   comparison = Species
-)+theme_bw()+ scale_color_viridis(discrete = TRUE, option = "D")+
-  scale_fill_viridis(discrete = TRUE)
+)+xlab("depth [cm]")+ylab("areal growth in %")+theme_meta()+ scale_color_viridis(discrete = TRUE, option = "plasma")+
+  scale_fill_viridis(discrete = TRUE,option="plasma")+ scale_x_continuous(breaks=c(-40,-28, -12,-5))
+
+
 
 
 ####Raincloud plot
@@ -386,34 +384,38 @@ ggplot(iris, aes(Species, Sepal.Width,fill=Species)) +
 
 analysis_data_fu_se = analysis_data  %>% filter(Species=="Fucus serratus", !is.na(growth_area_cm2_percent))
 p_fuse=ggplot(analysis_data_fu_se, aes(factor(depth_treatment), growth_area_cm2_percent)) + 
-  ggdist::stat_halfeye(adjust = .5, width = .3, .width = 0, justification = -.3, point_colour = "NA") + 
-  geom_boxplot(width = .1, outlier.shape = NA,color="#440c54") +
-  ggdist::stat_dots(side = "left", dotsize = .4, justification = 1.1, binwidth = .1,color=NA)+theme_bw()+
-  xlab("depth")+ylab("areal growth in %")+geom_hline(yintercept =0)+ylim(ylim=c(-100,120))
+  ggdist::stat_halfeye(adjust = .5, width = .3, .width = 0, justification = -.3, point_colour = "NA",fill="#0c1787") + 
+  geom_boxplot(width = .1, outlier.shape = NA,color="#0c1787") +
+  #ggdist::stat_dots(side = "left", dotsize = .4, justification = 1.1, binwidth = .1,color=NA)+
+  theme_meta()+
+  xlab("depth [cm]")+ylab("areal growth in %")+geom_hline(yintercept =0)+ylim(ylim=c(-100,120))
 
 analysis_data_fu_ve = analysis_data  %>% filter(Species=="Fucus vesiculosus", !is.na(growth_area_cm2_percent))
 p_fuve=ggplot(analysis_data_fu_ve, aes(factor(depth_treatment), growth_area_cm2_percent)) + 
-  ggdist::stat_halfeye(adjust = .5, width = .3, .width = 0, justification = -.3, point_colour = "NA") + 
-  geom_boxplot(width = .1, outlier.shape = NA,color="#36b678") +
-  ggdist::stat_dots(side = "left", dotsize = .4, justification = 1.1, binwidth = .1,color=NA)+theme_bw()+
-  xlab("depth")+ylab("areal growth in %")+geom_hline(yintercept =0)+ylim(ylim=c(-100,120))
+  ggdist::stat_halfeye(adjust = .5, width = .3, .width = 0, justification = -.3, point_colour = "NA",fill="#ec7853") + 
+  geom_boxplot(width = .1, outlier.shape = NA,color="#ec7853") +
+  #ggdist::stat_dots(side = "left", dotsize = .4, justification = 1.1, binwidth = .1,color=NA)+
+  theme_meta()+
+  xlab("depth [cm]")+ylab("areal growth in %")+geom_hline(yintercept =0)+ylim(ylim=c(-100,120))
 
 analysis_data_as_no = analysis_data  %>% filter(Species=="Ascophyllum nodosum", !is.na(growth_area_cm2_percent))
 p_asno=ggplot(analysis_data_as_no, aes(factor(depth_treatment), growth_area_cm2_percent)) + 
-  ggdist::stat_halfeye(adjust = .5, width = .3, .width = 0, justification = -.3, point_colour = "NA") + 
-  geom_boxplot(width = .1, outlier.shape = NA,color="#31688e") +
-  ggdist::stat_dots(side = "left", dotsize = .4, justification = 1.1, binwidth = .1,color=NA)+theme_bw()+
-  xlab("depth")+ylab("areal growth in %")+geom_hline(yintercept =0)+ylim(ylim=c(-100,120))
+  ggdist::stat_halfeye(adjust = .5, width = .3, .width = 0, justification = -.3, point_colour = "NA",fill="#9c259f") + 
+  geom_boxplot(width = .1, outlier.shape = NA,color="#9c259f") +
+  #ggdist::stat_dots(side = "left", dotsize = .4, justification = 1.1, binwidth = .1,color=NA)+
+  theme_meta()+
+  xlab("depth [cm]")+ylab("areal growth in %")+geom_hline(yintercept =0)+ylim(ylim=c(-100,120))
 
 analysis_data_fu_sp = analysis_data  %>% filter(Species=="Fucus spiralis", !is.na(growth_area_cm2_percent))
 p_fusp=ggplot(analysis_data_fu_sp, aes(factor(depth_treatment), growth_area_cm2_percent)) + 
-  ggdist::stat_halfeye(adjust = .5, width = .3, .width = 0, justification = -.3, point_colour = "NA") + 
-  geom_boxplot(width = .1, outlier.shape = NA,color="#fde61e") +
-  ggdist::stat_dots(side = "left", dotsize = .4, justification = 1.1, binwidth = .1,color=NA)+theme_bw()+
-  xlab("depth")+ylab("areal growth in %")+geom_hline(yintercept =0)+ylim(ylim=c(-100,120))
+  ggdist::stat_halfeye(adjust = .5, width = .3, .width = 0, justification = -.3, point_colour = NA,fill="#f1f820") + 
+  geom_boxplot(width = .1, outlier.shape = NA,color="#f1f820") +
+  #ggdist::stat_dots(side = "left", dotsize = .4, justification = 1.1, binwidth = .1,color=NA)+
+  theme_meta()+
+  xlab("depth [cm]")+ylab("areal growth in %")+geom_hline(yintercept =0)+ylim(ylim=c(-100,120))
 
 
-ggarrange(p_fuse,p_asno,p_fuve,p_fusp,labels = c("A: F. serratus","B: A. nodosum","C: F. vesiculosus","D: F. spiralis"))
+ggarrange(p_fuse,p_asno,p_fuve,p_fusp)#,labels = c("A: F. serratus","B: A. nodosum","C: F. vesiculosus","D: F. spiralis"))
 
 
 ####Trait environment intreraction####
@@ -450,21 +452,47 @@ summary(model1)
 library(jtools)
 summ(model1)
 
-mod0=lm(growth ~ factor(depth)*Species,pca_max)
+mod0=lm(growth ~ depth*Species,pca_max)
 anova(mod0)
 
-mod10=lm(growth ~ factor(depth)*pc1,pca_max)
+mod10=lm(growth ~ depth*pc1,pca_max)
 anova(mod10)
 
 mod1=lm(growth ~ factor(depth)*Species+factor(depth)*pc1,pca_max)
 anova(mod1)
+plot(mod1)
 
-mod2=lm(growth ~ factor(depth)*Species+factor(depth)*pc1+factor(depth)*pc2,pca_max)
+mod2=lm(growth ~ depth*Species+depth*pc1+depth*pc2,pca_max)
 anova(mod2)
 
 anova(mod0,mod1)
 anova(mod1,mod2)
 anova(mod0,mod2)
+
+####Mixed model approach
+model0 = lmer(growth ~ Species*depth +(1|site/tile_id),data = pca_max)
+anova(model0)
+summ(model0)
+
+model1 = lmer(growth ~ Species*depth+depth*pc1+(1|site/tile_id),data = pca_max)
+anova(model1)
+summ(model1)
+
+model1 = lmer(growth ~ Species*depth*depth*pc1+(1|site/tile_id),data = pca_max)
+anova(model1)
+summ(model1)
+
+
+model1 = lmer(growth ~ Species+depth*pc1+(1|site/tile_id),data = pca_max)
+anova(model1)
+summ(model1)
+
+anova(model0,model1)
+
+model2 = lmer(growth ~ Species*depth*pc1+(1|site/tile_id),data = pca_max)
+anova(model2)
+summ(model2)
+
 
 ################################################################################
 ################################################################################
