@@ -5,7 +5,7 @@
 
 # load libraries using groundhog
 library(groundhog)
-groundhog.day <- "2020-06-1"
+groundhog.day <- "2022-01-01"
 pkgs <- c("here", "dplyr", "readr", "tidyr", "ggplot2")
 groundhog.library(pkgs, groundhog.day)
 

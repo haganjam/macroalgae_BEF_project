@@ -30,7 +30,7 @@ depth_correcter <- function(depth_measured, depth_viva, output = "mean") {
   
   # load libraries using groundhog
   library(groundhog)
-  groundhog.day <- "2020-06-1"
+  groundhog.day <- "2022-01-01"
   pkgs <- c("here", "dplyr")
   groundhog.library(pkgs, groundhog.day)
   
