@@ -21,6 +21,9 @@ source(here("functions/function_plotting_theme.R"))
 
 # load the cleaned sea-level data
 sea_dat <- read_csv(file = here("analysis_data/sea_level_data.csv"))
+head(sea_dat)
+str(sea_dat)
+sea_dat[, 1]
 
 # make a plot for the last five years with the RH2000 depths as hlines
 
