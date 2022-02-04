@@ -38,6 +38,9 @@ table(analysis_data$duration)
 
 hist(analysis_data$duration)
 
+median(analysis_data$duration,na.rm = T)
+min(analysis_data$duration,na.rm = T)
+max(analysis_data$duration,na.rm = T)
 
 
 # Growth with weight, perimeter,area , length
@@ -129,7 +132,7 @@ analysis_data$dry_weight_total_g_relative_increase_total =100 * analysis_data$dr
 #Growth in percent per day - there were slightly differing durations
 analysis_data$dry_weight_g_daily_relative_increase = analysis_data$dry_weight_total_g_relative_increase_total/analysis_data$duration
 
-
+table(is.na(analysis_data$dry_weight_g_daily_relative_increase))
 ##### PCA within species ######
 
 # selecting trait data
@@ -363,20 +366,12 @@ densityPlot(resid(model1))
 
 plot(model1)
 
-#dharma 
-
-hist(analysis_data$dry_weight_g_daily_relative_increase)
-<<<<<<< HEAD
-=======
-
-library(piecewiseSEM)
-rsquared(model1)
-summary(model1)
->>>>>>> 5a3ecd598d72a6dbe775032789606ba994240ae9
-
 library(jtools)
 summ(model1)
 anova(model1)
+
+
+
 
 library(sjstats)
 library(MuMin)
@@ -384,7 +379,30 @@ library(MuMin)
 library(emmeans)
 emm=emmeans(model1, list(pairwise ~ factor(depth_treatment)/Species), adjust = "tukey")
 
+#ANOVA for each species
+#Serratus
+model_fu_se = lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code/tile_id),data = filter(analysis_data,binomial_code=="fu_se"))
+anova(model_fu_se)
+densityPlot(resid(model_fu_se))
+summ(model_fu_se) #R^2 68%, n = 56
 
+#Spiralis
+model_fu_sp = lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code/tile_id),data = filter(analysis_data,binomial_code=="fu_sp"))
+anova(model_fu_sp)
+densityPlot(resid(model_fu_sp))
+summ(model_fu_sp)
+
+#Ascophyllum
+model_as_no = lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code/tile_id),data = filter(analysis_data,binomial_code=="as_no"))
+anova(model_as_no)
+densityPlot(resid(model_as_no))
+summ(model_as_no)
+
+#Ves
+model_fu_ve = lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code/tile_id),data = filter(analysis_data,binomial_code=="fu_ve"))
+anova(model_fu_ve)
+densityPlot(resid(model_fu_ve))
+summ(model_fu_ve)
 
 #emmeants plot
 emm=as.data.frame(emm$`emmeans of depth_treatment, Species`)
@@ -435,11 +453,8 @@ p_fuse=ggplot(analysis_data_fu_se, aes(factor(depth_treatment), dry_weight_g_dai
   geom_boxplot(width = .1, outlier.shape = NA,color="#0c1787") +
   #ggdist::stat_dots(side = "left", dotsize = .4, justification = 1.1, binwidth = .1,color=NA)+
   theme_meta()+
-<<<<<<< HEAD
   xlab("depth [cm]")+ylab("dry weight increase in % per day")+geom_hline(yintercept =0)+ylim(ylim=c(-2,3))
-=======
-  xlab("depth [cm]")+ylab("dry weight increase in % per day")+geom_hline(yintercept =0)+ylim(ylim=c(-100,120))
->>>>>>> 5a3ecd598d72a6dbe775032789606ba994240ae9
+
 
 analysis_data_fu_ve = analysis_data  %>% filter(Species=="Fucus vesiculosus", !is.na(dry_weight_g_daily_relative_increase))
 p_fuve=ggplot(analysis_data_fu_ve, aes(factor(depth_treatment), dry_weight_g_daily_relative_increase)) + 
@@ -447,11 +462,8 @@ p_fuve=ggplot(analysis_data_fu_ve, aes(factor(depth_treatment), dry_weight_g_dai
   geom_boxplot(width = .1, outlier.shape = NA,color="#ec7853") +
   #ggdist::stat_dots(side = "left", dotsize = .4, justification = 1.1, binwidth = .1,color=NA)+
   theme_meta()+
-<<<<<<< HEAD
   xlab("depth [cm]")+ylab("    ")+geom_hline(yintercept =0)+ylim(ylim=c(-2,3))
-=======
-  xlab("depth [cm]")+ylab("dry weight increase in % per day")+geom_hline(yintercept =0)+ylim(ylim=c(-100,120))
->>>>>>> 5a3ecd598d72a6dbe775032789606ba994240ae9
+
 
 analysis_data_as_no = analysis_data  %>% filter(Species=="Ascophyllum nodosum", !is.na(dry_weight_g_daily_relative_increase))
 p_asno=ggplot(analysis_data_as_no, aes(factor(depth_treatment), dry_weight_g_daily_relative_increase)) + 
@@ -459,11 +471,8 @@ p_asno=ggplot(analysis_data_as_no, aes(factor(depth_treatment), dry_weight_g_dai
   geom_boxplot(width = .1, outlier.shape = NA,color="#9c259f") +
   #ggdist::stat_dots(side = "left", dotsize = .4, justification = 1.1, binwidth = .1,color=NA)+
   theme_meta()+
-<<<<<<< HEAD
   xlab("depth [cm]")+ylab("    ")+geom_hline(yintercept =0)+ylim(ylim=c(-2,3))
-=======
-  xlab("depth [cm]")+ylab("dry weight increase in % per day")+geom_hline(yintercept =0)+ylim(ylim=c(-100,120))
->>>>>>> 5a3ecd598d72a6dbe775032789606ba994240ae9
+
 
 analysis_data_fu_sp = analysis_data  %>% filter(Species=="Fucus spiralis", !is.na(dry_weight_g_daily_relative_increase))
 p_fusp=ggplot(analysis_data_fu_sp, aes(factor(depth_treatment), dry_weight_g_daily_relative_increase)) + 
@@ -471,11 +480,8 @@ p_fusp=ggplot(analysis_data_fu_sp, aes(factor(depth_treatment), dry_weight_g_dai
   geom_boxplot(width = .1, outlier.shape = NA,color="#f1f820") +
   #ggdist::stat_dots(side = "left", dotsize = .4, justification = 1.1, binwidth = .1,color=NA)+
   theme_meta()+
-<<<<<<< HEAD
   xlab("depth [cm]")+ylab("    ")+geom_hline(yintercept =0)+ylim(ylim=c(-2,3))
-=======
-  xlab("depth [cm]")+ylab("dry weight increase in % per day")+geom_hline(yintercept =0)+ylim(ylim=c(-100,120))
->>>>>>> 5a3ecd598d72a6dbe775032789606ba994240ae9
+
 
 
 p_growths = ggarrange(p_fuse,p_asno,p_fuve,p_fusp,ncol = 4,nrow = 1)#,labels = c("A: F. serratus","B: A. nodosum","C: F. vesiculosus","D: F. spiralis"))
