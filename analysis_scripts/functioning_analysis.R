@@ -133,6 +133,12 @@ analysis_data$dry_weight_total_g_relative_increase_total =100 * analysis_data$dr
 analysis_data$dry_weight_g_daily_relative_increase = analysis_data$dry_weight_total_g_relative_increase_total/analysis_data$duration
 
 table(is.na(analysis_data$dry_weight_g_daily_relative_increase))
+
+#Epiphyte wet weight per area
+
+analysis_data$epiphyte_wet_weight_g_per_area = analysis_data$epiphyte_wet_weight_g / analysis_data$final_area_cm2
+
+
 ##### PCA within species ######
 
 # selecting trait data
@@ -488,6 +494,27 @@ p_growths = ggarrange(p_fuse,p_asno,p_fuve,p_fusp,ncol = 4,nrow = 1)#,labels = c
 
 ggsave(filename = here("figures/fig_5_boxplots.png"), plot = p_growths, 
        units = "cm", width = 30, height = 10, dpi = 300)
+
+###Epihyte wet weight#####
+ggboxplot(analysis_data,y="epiphyte_wet_weight_g",x="depth_treatment",color = "Species")
+ggboxplot(analysis_data,y="epiphyte_wet_weight_g_per_area",x="depth_treatment",color = "Species")+color_palette()
+
+mod_epi = lmer(epiphyte_wet_weight_g_per_area ~ Species*factor(depth_treatment)+(1|site_code/tile_id),data=analysis_data)
+summ(mod_epi)
+anova(mod_epi)
+emmean(mod_epi)
+
+library(emmeans)
+emmeans(mod_epi, list(pairwise ~ factor(depth_treatment)/Species), adjust = "tukey")
+
+
+mod_epi = lmer(epiphyte_wet_weight_g ~ Species*factor(depth_treatment)+(1|site_code/tile_id),data=analysis_data)
+summ(mod_epi)
+anova(mod_epi)
+
+library(emmeans)
+emmeans(mod_epi, list(pairwise ~ factor(depth_treatment)/Species), adjust = "tukey")
+
 
 ####Trait environment intreraction####
 
