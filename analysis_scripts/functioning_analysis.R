@@ -38,6 +38,9 @@ table(analysis_data$duration)
 
 hist(analysis_data$duration)
 
+median(analysis_data$duration,na.rm = T)
+min(analysis_data$duration,na.rm = T)
+max(analysis_data$duration,na.rm = T)
 
 
 # Growth with weight, perimeter,area , length
@@ -129,7 +132,7 @@ analysis_data$dry_weight_total_g_relative_increase_total =100 * analysis_data$dr
 #Growth in percent per day - there were slightly differing durations
 analysis_data$dry_weight_g_daily_relative_increase = analysis_data$dry_weight_total_g_relative_increase_total/analysis_data$duration
 
-
+table(is.na(analysis_data$dry_weight_g_daily_relative_increase))
 ##### PCA within species ######
 
 # selecting trait data
@@ -363,20 +366,12 @@ densityPlot(resid(model1))
 
 plot(model1)
 
-#dharma 
-
-hist(analysis_data$dry_weight_g_daily_relative_increase)
-<<<<<<< HEAD
-=======
-
-library(piecewiseSEM)
-rsquared(model1)
-summary(model1)
->>>>>>> 5a3ecd598d72a6dbe775032789606ba994240ae9
-
 library(jtools)
 summ(model1)
 anova(model1)
+
+
+
 
 library(sjstats)
 library(MuMin)
@@ -384,7 +379,30 @@ library(MuMin)
 library(emmeans)
 emm=emmeans(model1, list(pairwise ~ factor(depth_treatment)/Species), adjust = "tukey")
 
+#ANOVA for each species
+#Serratus
+model_fu_se = lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code/tile_id),data = filter(analysis_data,binomial_code=="fu_se"))
+anova(model_fu_se)
+densityPlot(resid(model_fu_se))
+summ(model_fu_se) #R^2 68%, n = 56
 
+#Spiralis
+model_fu_sp = lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code/tile_id),data = filter(analysis_data,binomial_code=="fu_sp"))
+anova(model_fu_sp)
+densityPlot(resid(model_fu_sp))
+summ(model_fu_sp)
+
+#Ascophyllum
+model_as_no = lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code/tile_id),data = filter(analysis_data,binomial_code=="as_no"))
+anova(model_as_no)
+densityPlot(resid(model_as_no))
+summ(model_as_no)
+
+#Ves
+model_fu_ve = lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code/tile_id),data = filter(analysis_data,binomial_code=="fu_ve"))
+anova(model_fu_ve)
+densityPlot(resid(model_fu_ve))
+summ(model_fu_ve)
 
 #emmeants plot
 emm=as.data.frame(emm$`emmeans of depth_treatment, Species`)
