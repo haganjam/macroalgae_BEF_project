@@ -592,7 +592,10 @@ anova(model2)
 summ(model2)
 
 ####outlier identification#####
-#####one value is completely off#####
+#####one value is completely off####
+
+          
+    
 mod_dw = lm(dry_weight_total_g ~ final_area_cm2 * Species + final_wet_weight_g * Species,data=analysis_data)
 summary(mod_dw)
 
@@ -603,4 +606,10 @@ sp <- ggplot(a, aes(fitted, vals, label = rownames(a)))+
   geom_point()
 # Add texts
 sp + geom_text()
-#493
+#493 #removed in the beginning
+
+
+
+######Export for simulation
+write.csv(analysis_data,"analysis_data/analysis_data_after_functioning_analysis.csv")
+
