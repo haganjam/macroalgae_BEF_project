@@ -18,7 +18,7 @@ library(ggfortify)
 library(viridis)
 library(vegan)
 library(here)
-
+library(MuMIn)
 
 source("functions/function_plotting_theme.R")
 
@@ -366,8 +366,8 @@ boxplot(analysis_data$growth_area_cm2 ~ analysis_data$site_code)
 
 ###Linear mixed effects model:
 model1 = lmer(analysis_data$dry_weight_g_daily_relative_increase ~ Species*factor(depth_treatment) + (1|origin_site_code)+(1|site_code/tile_id),data = analysis_data)
-anova(model1)
 
+table_1 = cbind(anova(model1),r.squaredGLMM(model1),N=length(resid(model1)),model="all species")
 densityPlot(resid(model1))
 
 plot(model1)
@@ -375,15 +375,18 @@ plot(model1)
 library(jtools)
 summ(model1)
 anova(model1)
-
+anova
 
 
 
 library(sjstats)
-library(MuMin)
+library(MuMIn)
 
 library(emmeans)
 emm=emmeans(model1, list(pairwise ~ factor(depth_treatment)/Species), adjust = "tukey")
+
+write.csv(emm$`emmeans of depth_treatment, Species`,"tables/table2_a_emmeans.csv")
+write.csv(emm$`pairwise differences of depth_treatment, Species`,"tables/table2_b_pairwise_comparisons.csv")
 
 #ANOVA for each species
 #Serratus
@@ -392,11 +395,16 @@ anova(model_fu_se)
 densityPlot(resid(model_fu_se))
 summ(model_fu_se) #R^2 68%, n = 56
 
+table_1_fu_se = cbind(anova(model_fu_se),r.squaredGLMM(model_fu_se),N=length(resid(model_fu_se)),model="fu_se")
+
 #Spiralis
 model_fu_sp = lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code/tile_id),data = filter(analysis_data,binomial_code=="fu_sp"))
 anova(model_fu_sp)
 densityPlot(resid(model_fu_sp))
 summ(model_fu_sp)
+
+table_1_fu_sp = cbind(anova(model_fu_sp),r.squaredGLMM(model_fu_sp),N=length(resid(model_fu_sp)),model="fu_sp")
+
 
 #Ascophyllum
 model_as_no = lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code/tile_id),data = filter(analysis_data,binomial_code=="as_no"))
@@ -404,11 +412,21 @@ anova(model_as_no)
 densityPlot(resid(model_as_no))
 summ(model_as_no)
 
+table_1_as_no = cbind(anova(model_as_no),r.squaredGLMM(model_as_no),N=length(resid(model_as_no)),model="as_no")
+
+
 #Ves
 model_fu_ve = lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code/tile_id),data = filter(analysis_data,binomial_code=="fu_ve"))
 anova(model_fu_ve)
 densityPlot(resid(model_fu_ve))
 summ(model_fu_ve)
+
+table_1_fu_ve = cbind(anova(model_fu_ve),r.squaredGLMM(model_fu_ve),N=length(resid(model_fu_ve)),model="fu_ve")
+
+
+#export table
+write.csv(rbind(table_1,table_1_fu_sp,table_1_fu_ve,table_1_as_no,table_1_fu_se),"tables/table1_anovas.csv")
+
 
 #emmeants plot
 emm=as.data.frame(emm$`emmeans of depth_treatment, Species`)
@@ -629,7 +647,6 @@ summary(aov(lm1))
 ggboxplot(y="survival_rate" ,x="depth_treatment",color = "Species",data = data_survival)
 ggboxplot(y="survival_rate" ,x="depth_treatment",color = "Species",facet.by = "site_code",data = data_survival)
 
-Species*factor(depth_treatment),data=data_survival)
 summary(aov(lm1))
 cor(data)
 
