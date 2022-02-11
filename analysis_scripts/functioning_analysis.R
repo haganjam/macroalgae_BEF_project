@@ -609,6 +609,29 @@ sp + geom_text()
 #493 #removed in the beginning
 
 
+####Correlation with survival rate####
+
+#traits
+#species identity * depth
+#growth
+
+
+data_survival=analysis_data %>% group_by(Species,depth_treatment,site_code) %>% summarise(growth =mean(dry_weight_g_daily_relative_increase,na.rm=T),growth_sd =sd(dry_weight_g_daily_relative_increase,na.rm=T),
+                                                                  trait_STA=mean(trait_STA,na.rm=T),
+                                                                  trait_thickness=mean(trait_thickness,na.rm=T),
+                                                                  trait_tdmc=mean(trait_tdmc,na.rm=T),
+                                                                  survival_rate=mean(survived,na.rm=T)*100)
+lm1=lm(survival_rate ~ Species*factor(depth_treatment),data=data_survival)
+summary(aov(lm1))
+lm1=lm(survival_rate ~ Species*factor(depth_treatment)+site_code,data=data_survival)
+summary(aov(lm1))
+
+ggboxplot(y="survival_rate" ,x="depth_treatment",color = "Species",data = data_survival)
+ggboxplot(y="survival_rate" ,x="depth_treatment",color = "Species",facet.by = "site_code",data = data_survival)
+
+Species*factor(depth_treatment),data=data_survival)
+summary(aov(lm1))
+cor(data)
 
 ######Export for simulation
 write.csv(analysis_data,"analysis_data/analysis_data_after_functioning_analysis.csv")
