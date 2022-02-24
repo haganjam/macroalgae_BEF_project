@@ -1,5 +1,5 @@
 ###Simulation of sortings###
-
+   
 #library
 library(dplyr)
 library(ggplot2)
