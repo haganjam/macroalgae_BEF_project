@@ -352,4 +352,4 @@ data2=data %>%
   table(scenarios$richness)
   
   
-  
+###Create H0 for simulation
