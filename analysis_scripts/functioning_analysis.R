@@ -375,7 +375,7 @@ plot(model1)
 library(jtools)
 summ(model1)
 anova(model1)
-anova
+
 
 
 
@@ -515,12 +515,14 @@ ggsave(filename = here("figures/fig_5_boxplots.png"), plot = p_growths,
 
 ###Epihyte wet weight#####
 ggboxplot(analysis_data,y="epiphyte_wet_weight_g",x="depth_treatment",color = "Species")
-ggboxplot(analysis_data,y="epiphyte_wet_weight_g_per_area",x="depth_treatment",color = "Species")+color_palette()
+ggboxplot(analysis_data,y="epiphyte_wet_weight_g_per_area",
+          x="depth_treatment",color = "Species",xlab="depth", ylab="epiphytes per thallus area [g*cm-2]")+
+  color_palette()
 
 mod_epi = lmer(epiphyte_wet_weight_g_per_area ~ Species*factor(depth_treatment)+(1|site_code/tile_id),data=analysis_data)
 summ(mod_epi)
 anova(mod_epi)
-emmean(mod_epi)
+
 
 library(emmeans)
 emmeans(mod_epi, list(pairwise ~ factor(depth_treatment)/Species), adjust = "tukey")
@@ -529,6 +531,13 @@ emmeans(mod_epi, list(pairwise ~ factor(depth_treatment)/Species), adjust = "tuk
 mod_epi = lmer(epiphyte_wet_weight_g ~ Species*factor(depth_treatment)+(1|site_code/tile_id),data=analysis_data)
 summ(mod_epi)
 anova(mod_epi)
+
+mod_epi = lmer(epiphyte_wet_weight_g ~ factor(depth_treatment)+(1|site_code/tile_id),data=analysis_data)
+summ(mod_epi)
+anova(mod_epi)
+
+
+
 
 library(emmeans)
 emmeans(mod_epi, list(pairwise ~ factor(depth_treatment)/Species), adjust = "tukey")
