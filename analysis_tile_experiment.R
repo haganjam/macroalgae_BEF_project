@@ -250,6 +250,10 @@ ggboxplot(analysis_data,y="growth_area_cm2_percent",
   geom_hline(yintercept=0)+ scale_y_continuous(breaks=c(-100,-50, 0,50, 100,150,200))
 
 ggboxplot(analysis_data,y="epiphyte_wet_weight_g",
+          x="depth_treatment",xlab="depth treatment [cm]",ylab="Epiphyte wet weight [g]",color="Species")+ 
+  geom_hline(yintercept=0)+ scale_y_continuous(breaks=c(0,10,20,30,40,50))
+
+ggboxplot(analysis_data,y="epiphyte_wet_weight_g",
           x="depth_treatment",xlab="depth treatment [cm]",ylab="Epiphyte wet weight [g]")+ 
   geom_hline(yintercept=0)+ scale_y_continuous(breaks=c(0,10,20,30,40,50))
 
