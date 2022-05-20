@@ -10,8 +10,6 @@ pkgs <- c("here", "dplyr", "readr", "ggplot2", "slider",
           "ggforce", "gghalves", "ggbeeswarm")
 groundhog.library(pkgs, groundhog.day)
 
-
-
 # load relevant functions
 source(here("functions/function_plotting_theme.R"))
 
