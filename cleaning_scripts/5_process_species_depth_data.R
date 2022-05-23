@@ -5,7 +5,7 @@
 
 # load libraries using groundhog
 library(groundhog)
-groundhog.day <- "2020-06-1"
+groundhog.day <- "2022-01-01"
 pkgs <- c("here", "dplyr", "readr", "ggplot2")
 groundhog.library(pkgs, groundhog.day)
 
@@ -213,6 +213,6 @@ all_depth <-
   )
 
 # write this into a .csv file into the analysis data
-write_csv(x = all_depth, path = here("analysis_data/species_depth_analysis.csv"))
+write_csv(x = all_depth, file = here("analysis_data/species_depth_data.csv"))
 
 ### END

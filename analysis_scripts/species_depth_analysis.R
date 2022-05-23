@@ -5,7 +5,7 @@
 
 # load libraries using groundhog
 library(groundhog)
-groundhog.day <- "2020-06-1"
+groundhog.day <- "2022-01-01"
 pkgs <- c("here", "dplyr", "readr", "ggplot2", "slider",
           "ggforce", "gghalves", "ggbeeswarm")
 groundhog.library(pkgs, groundhog.day)
@@ -14,7 +14,7 @@ groundhog.library(pkgs, groundhog.day)
 source(here("functions/function_plotting_theme.R"))
 
 # load in the cleaned species depth data
-all_depth <- read_csv(file = here("analysis_data/species_depth_analysis.csv"))
+all_depth <- read_csv(file = here("analysis_data/species_depth_data.csv"))
 
 # change the order of the binomial codes
 all_depth$binomial_code <- factor(all_depth$binomial_code, levels = c("fu_se", "as_no", "fu_ve", "fu_sp" ))
@@ -55,6 +55,7 @@ p1 <-
         axis.text.y = element_text(hjust = 0.5, size = 9),
         axis.text.x = element_text(size = 9),
         axis.title.x = element_text(size = 10.5))
+p1
 
 # make a folder to export the cleaned data
 if(! dir.exists(here("figures"))){
