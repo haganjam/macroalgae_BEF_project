@@ -67,6 +67,12 @@ jena_bio <-
   jena_bio %>%
   filter(time == max(time))
 
+# count the monocultures replicates
+jena_bio %>%
+  filter(sowndiv == 1) %>%
+  select(-(plotcode:target.biomass) ) %>%
+  apply(., 1, function(x) sum(x > 0) )
+
 mono <- 
   jena_bio %>%
   filter(sowndiv == 1)
@@ -79,7 +85,16 @@ mono <-
   filter(mono_biomass > 0) %>%
   select(species, mono_biomass) %>%
   group_by(species) %>%
-  summarise(mono_biomass = mean(mono_biomass))
+  summarise(mono_biomass = mean(mono_biomass),
+            n = n())
+mono
+length(unique(mono$species))
+
+# count the replicates of each diversity treatment
+jena_bio %>%
+  filter(sowndiv > 1) %>%
+  group_by(sowndiv) %>%
+  summarise(n = n())
 
 mix <- 
   jena_bio %>%
@@ -103,7 +118,7 @@ mix <-
 mono_mix <- 
   full_join(mix, mono) %>%
   filter(!is.na(mono_biomass))
-mono_mix
+View(mono_mix)
 
 # calculate the correlation coefficient
 x.cor <- cor.test(mono_mix$biomass, mono_mix$mono_biomass)

@@ -21,8 +21,12 @@ source(here("functions/function_plotting_theme.R"))
 
 # load the cleaned sea-level data
 sea_dat <- read_csv(file = here("analysis_data/sea_level_data.csv"))
+range(sea_dat$date_time_CET)
+diff(range(sea_dat$date_time_CET))
+2469.997*24*60/nrow(sea_dat)
 head(sea_dat)
 str(sea_dat)
+nrow(sea_dat)
 sea_dat[, 1]
 
 # make a plot for the last five years with the RH2000 depths as hlines
@@ -44,22 +48,20 @@ p1 <-
   scale_colour_viridis_d(option = "C",direction = -1) +
   geom_hline(yintercept = 0, linetype = "dashed", size = 1) +
   theme_meta() +
-  ylab("water level (cm)") +
-  xlab("time") +
+  ylab("Water depth (cm)") +
+  xlab("Date") +
   theme(legend.position = "none",
         axis.text.y = element_text(hjust = 0.5, size = 9),
         axis.text.x = element_text(size = 9),
         axis.title.x = element_text(size = 10.5),
         axis.title.y = element_text(size = 10.5))
 
-ggsave(filename = here("figures/fig_3_time_series.png"), plot = p1, 
-       units = "cm", width = 20, height = 7, dpi = 300)
-
 # choosing viridis colours manually
 # https://www.thinkingondata.com/something-about-viridis-library/
 
 cols <- viridis_pal(option = "C",direction = -1)(4)
 hist_out <- vector("list", length = length(cols))
+labels <- c("F. spiralis", "F. vesiculosus", "A. nodosum", "F. serratus")
 for ( j in seq_along(hist_out) ) {
   
   df <- data.frame(sea_lev = tile_depths$depth_cm[j] - sea_dat$water_level_cm )
@@ -69,21 +71,34 @@ for ( j in seq_along(hist_out) ) {
            mapping = aes(x = sea_lev )) +
     geom_density(fill = cols[j], alpha = 0.75) +
     geom_vline(xintercept = 0, linetype = "dashed") +
-    xlab("water level (cm)") +
+    xlab("Water depth (cm)") +
     scale_x_continuous(limits = c(-165, 125)) +
     ylab("Density") +
+    ggtitle(labels[j]) +
     theme_meta() +
-    theme(axis.text.y = element_blank())
+    theme(axis.text.y = element_blank(),
+          plot.title = element_text(size = 12, hjust = 0.5))
   
 }
 
-library(patchwork)
-p2 <- 
-  hist_out[[1]] + hist_out[[2]] + hist_out[[3]] + hist_out[[4]] +
-  plot_layout(ncol = 4, nrow = 1)
+# combine figures p1 and p2
+library(ggpubr)
 
-ggsave(filename = here("figures/fig_3_hists.png"), plot = p2, 
-       units = "cm", width = 20, height = 7, dpi = 300)
+p2 <- 
+  ggarrange(hist_out[[1]], hist_out[[2]], hist_out[[3]], hist_out[[4]], ncol = 4, nrow = 1,
+            labels = c("b", "c", "d", "e"),
+            font.label = list(size = 11, color = "black", face = "plain") )
+
+p12 <- 
+  ggarrange(p1, p2, 
+            ncol = 1, nrow = 2,
+            labels = c("a", " "),
+            font.label = list(size = 11, color = "black", face = "plain")
+            )
+p12
+
+ggsave(filename = here("figures/fig_S1.png"), plot = p12, 
+       units = "cm", width = 20, height = 12, dpi = 300)
 
 # generate some ecologically meaningful variables from these time-series data
 # given a particular water height

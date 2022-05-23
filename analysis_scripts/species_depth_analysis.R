@@ -23,10 +23,24 @@ levels(all_depth$binomial_code) = c("F. serratus", "A. nodosum", "F. vesiculosus
 all_depth_summary <- 
   all_depth %>%
   group_by(binomial_code) %>%
-  summarise(m_depth_correct = mean(depth_correct), 
-            sd_depth_correct = sd(depth_correct), .groups = "drop") %>%
+  summarise(n = n(), 
+            m_depth_correct = mean(depth_correct), 
+            sd_depth_correct = sd(depth_correct),
+            se = sd_depth_correct/sqrt(n), .groups = "drop") %>%
+  mutate(t_val = qt(p = 0.05, df = n)) %>%
   mutate(upper = (m_depth_correct + sd_depth_correct),
-         lower = (m_depth_correct - sd_depth_correct))
+         lower = (m_depth_correct - sd_depth_correct),
+         upper_ci = (m_depth_correct + se*t_val),
+         lower_ci = (m_depth_correct - se*t_val))
+
+# Table S1
+View(all_depth_summary)
+
+# check these confidence intervals
+all_depth %>%
+  filter(binomial_code == "F. vesiculosus") %>%
+  pull(depth_correct) %>%
+  t.test(x = .)
 
 p1 <- 
   ggplot() +
@@ -62,7 +76,7 @@ if(! dir.exists(here("figures"))){
   dir.create(here("figures"))
 }
 
-ggsave(filename = here("figures/fig_1.png"), p1, units = "cm", dpi = 450,
+ggsave(filename = here("figures/Fig_2d.png"), p1, units = "cm", dpi = 450,
        width = 8, height = 6)
 
 ### END  
