@@ -39,7 +39,7 @@ p1 <-
                  height = 0.1) +
   geom_quasirandom(data = all_depth,
                    mapping = aes(x = depth_correct, y = binomial_code, colour = binomial_code),
-                   groupOnX = FALSE, alpha = 0.2, shape = 16) +
+                   groupOnX = FALSE, alpha = 0.1, shape = 16) +
   geom_point(data = all_depth_summary, 
              mapping = aes(x = m_depth_correct,
                            y = binomial_code, colour = binomial_code), size = 2) +
@@ -52,11 +52,12 @@ p1 <-
   scale_colour_viridis_d(option = "C") +
   theme_meta() +
   ylab(NULL) +
-  xlab("depth (cm)") +
+  xlab("depth [cm]") +
   theme(legend.position = "none",
-        axis.text.y = element_text(hjust = 0.5, size = 9),
+        axis.text.y = element_text(hjust = 0.5, size = 9,face = "italic"),
         axis.text.x = element_text(size = 9),
         axis.title.x = element_text(size = 10.5))
+
 
 # make a folder to export the cleaned data
 if(! dir.exists(here("figures"))){

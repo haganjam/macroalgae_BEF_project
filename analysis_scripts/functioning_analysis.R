@@ -231,13 +231,19 @@ colnames(pca_max) = c("Species", "depth","site","length","epiphytes", "TDMC", "t
 
 pca_plot = autoplot(pca_res, data = pca_max, #shape = 'depth',
                     size=3,,
-         loadings = TRUE, loadings.colour = 'red',
-         loadings.label = TRUE, loadings.label.size = 5,
-         loadings.label.colour="black",colour="Species",legend.position="none") + theme_meta() + scale_color_viridis(discrete=TRUE, option="plasma") +
+         loadings = TRUE, loadings.colour = 'black',
+         loadings.label = TRUE, loadings.label.size = 5,loadings.label.vjust=c(1.2,-.8,-1,2,-.5),loadings.label.hjust=c(1,.6,0,1,.5),
+         loadings.label.colour="black",colour="Species",legend.position="none",alpha=0.5) +
+  theme_meta() + scale_color_viridis(discrete=TRUE, option="plasma") +
   theme(legend.position = "none")
+pca_plot
+
+screeplot(pca_res)
+summary(pca_res)
+
 
 ggsave(filename = here("figures/fig_4_PCA.png"), plot = pca_plot, 
-       units = "cm", width = 15, height = 10, dpi = 300)
+       units = "cm", width = 12, height = 15, dpi = 300)
 
 pca_plot_nodepth = autoplot(pca_res, data = pca_max, size=3,,
                     loadings = TRUE, loadings.colour = 'red',
@@ -247,8 +253,8 @@ pca_plot_nodepth = autoplot(pca_res, data = pca_max, size=3,,
 ggsave(filename = here("figures/fig_4_PCA_nodepth.png"), plot = pca_plot_nodepth, 
        units = "cm", width = 20, height = 16, dpi = 300)
 
-#adonis(as.matrix(pca_max[-c(1,2,3)]) ~ pca_max$depth * pca_max$Species, method = "euclidean",
-#       permutations = 9999)
+adonis2(as.matrix(scale(pca_max[-c(1,2,3)])) ~ pca_max$Species*pca_max$depth, method = "euclidean",
+       permutations = 99999)
 
 #Epiphytes
 ggboxplot(analysis_data,y="epiphyte_wet_weight_g",x="depth_treatment",color = "binomial_code",facet.by = "binomial_code")
@@ -445,6 +451,8 @@ p+labs(title="Emmeans of areal growth in %", x="depth (cm)", y = "% areal growth
   scale_fill_viridis(discrete = TRUE) + theme_bw()
 library(viridis)
 
+#####GAM#####
+
 #GAM does not work because there are only 4 depths....
 gam.alg = mgcv::gam(dry_weight_g_daily_relative_increase ~ s(depth_treatment)+s(Species),data=analysis_data)
 plot(gam.alg)
@@ -477,7 +485,7 @@ p_fuse=ggplot(analysis_data_fu_se, aes(factor(depth_treatment), dry_weight_g_dai
   geom_boxplot(width = .1, outlier.shape = NA,color="#0c1787") +
   #ggdist::stat_dots(side = "left", dotsize = .4, justification = 1.1, binwidth = .1,color=NA)+
   theme_meta()+
-  xlab("depth [cm]")+ylab("dry weight increase in % per day")+geom_hline(yintercept =0)+ylim(ylim=c(-2,3))
+  xlab("depth [cm]")+ylab("   ")+geom_hline(yintercept =0)+ylim(ylim=c(-2,3))
 
 
 analysis_data_fu_ve = analysis_data  %>% filter(Species=="Fucus vesiculosus", !is.na(dry_weight_g_daily_relative_increase))
@@ -495,7 +503,7 @@ p_asno=ggplot(analysis_data_as_no, aes(factor(depth_treatment), dry_weight_g_dai
   geom_boxplot(width = .1, outlier.shape = NA,color="#9c259f") +
   #ggdist::stat_dots(side = "left", dotsize = .4, justification = 1.1, binwidth = .1,color=NA)+
   theme_meta()+
-  xlab("depth [cm]")+ylab("    ")+geom_hline(yintercept =0)+ylim(ylim=c(-2,3))
+  xlab("depth [cm]")+ylab("dry weight increase in % per day")+geom_hline(yintercept =0)+ylim(ylim=c(-2,3))
 
 
 analysis_data_fu_sp = analysis_data  %>% filter(Species=="Fucus spiralis", !is.na(dry_weight_g_daily_relative_increase))
@@ -504,14 +512,18 @@ p_fusp=ggplot(analysis_data_fu_sp, aes(factor(depth_treatment), dry_weight_g_dai
   geom_boxplot(width = .1, outlier.shape = NA,color="#f1f820") +
   #ggdist::stat_dots(side = "left", dotsize = .4, justification = 1.1, binwidth = .1,color=NA)+
   theme_meta()+
-  xlab("depth [cm]")+ylab("    ")+geom_hline(yintercept =0)+ylim(ylim=c(-2,3))
+  xlab("depth [cm]")+ylab("dry weight increase in % per day")+geom_hline(yintercept =0)+ylim(ylim=c(-2,3))
 
 
 
-p_growths = ggarrange(p_fuse,p_asno,p_fuve,p_fusp,ncol = 4,nrow = 1)#,labels = c("A: F. serratus","B: A. nodosum","C: F. vesiculosus","D: F. spiralis"))
+p_growths = ggarrange(p_fusp,p_fuve,p_asno,p_fuse,ncol = 2,nrow = 2,
+                      labels = c(" F. spiralis","F. vesiculosus","A. nodosum"," F. serratus"),
+                      font.label = list(size = 12, color = "black", face = "italic", family = NULL),
+                      label.x = 0.1,label.y = .97)
+p_growths
 
 ggsave(filename = here("figures/fig_5_boxplots.png"), plot = p_growths, 
-       units = "cm", width = 30, height = 10, dpi = 300)
+       units = "cm", width = 16, height = 16, dpi = 300)
 
 ###Epihyte wet weight#####
 ggboxplot(analysis_data,y="epiphyte_wet_weight_g",x="depth_treatment",color = "Species")
@@ -519,29 +531,105 @@ ggboxplot(analysis_data,y="epiphyte_wet_weight_g_per_area",
           x="depth_treatment",color = "Species",xlab="depth", ylab="epiphytes per thallus area [g*cm-2]")+
   color_palette()
 
+ggboxplot(analysis_data,y="epiphyte_wet_weight_g_per_area",
+          x="depth_treatment",color = "Species",xlab="depth", ylab="epiphytes per thallus area [g*cm-2]")
+
+
+
+#Epiphyte wet weight panel
+analysis_data_fu_se = analysis_data  %>% filter(Species=="Fucus serratus", !is.na(dry_weight_g_daily_relative_increase))
+p_fuse_epi=ggplot(analysis_data_fu_se, aes(factor(depth_treatment), epiphyte_wet_weight_g_per_area)) + 
+  geom_boxplot(color="#0c1787") +
+  theme_meta()+
+  xlab("depth [cm]")+ylab("  ")+geom_hline(yintercept =0)+ylim(ylim=c(0,.25))
+p_fuse_epi
+
+analysis_data_fu_ve = analysis_data  %>% filter(Species=="Fucus vesiculosus", !is.na(dry_weight_g_daily_relative_increase))
+p_fuve_epi=ggplot(analysis_data_fu_ve, aes(factor(depth_treatment), epiphyte_wet_weight_g_per_area)) + 
+  geom_boxplot(color="#ec7853") +
+  theme_meta()+
+  xlab("depth [cm]")+ylab("  ")+geom_hline(yintercept =0)+ylim(ylim=c(0,.25))
+p_fuve_epi
+
+analysis_data_as_no = analysis_data  %>% filter(Species=="Ascophyllum nodosum", !is.na(dry_weight_g_daily_relative_increase))
+p_asno_epi=ggplot(analysis_data_as_no, aes(factor(depth_treatment), epiphyte_wet_weight_g_per_area)) + 
+  geom_boxplot(color="#9c259f") +
+  theme_meta()+
+  xlab("depth [cm]")+ylab(expression("epiphytes per thallus area [g * cm"^-2*"]"))+geom_hline(yintercept =0)+ylim(ylim=c(0,.25))
+p_asno_epi
+
+analysis_data_fu_sp = analysis_data  %>% filter(Species=="Fucus spiralis", !is.na(dry_weight_g_daily_relative_increase))
+p_fusp_epi=ggplot(analysis_data_fu_sp, aes(factor(depth_treatment), epiphyte_wet_weight_g_per_area)) + 
+  geom_boxplot(color="#f1f820") +
+  theme_meta()+
+  xlab("depth [cm]")+ylab(expression("epiphytes per thallus area [g * cm"^-2*"]"))+geom_hline(yintercept =0)+ylim(ylim=c(0,.25))
+p_fusp_epi
+
+p_epi = ggarrange(p_fusp_epi,p_fuve_epi,p_asno_epi,p_fuse_epi,ncol = 2,nrow = 2,
+                      labels = c("    F. spiralis","  F. vesiculosus","  A. nodosum","   F. serratus"),
+                      font.label = list(size = 12, color = "black", face = "italic", family = NULL),
+                      label.x = 0.1,label.y = .97)
+p_epi
+
+ggsave(filename = here("figures/fig_6_epi_boxplots.png"), plot = p_epi, 
+       units = "cm", width = 16, height = 16, dpi = 300)
+
+
 mod_epi = lmer(epiphyte_wet_weight_g_per_area ~ Species*factor(depth_treatment)+(1|site_code/tile_id),data=analysis_data)
 summ(mod_epi)
 anova(mod_epi)
 
-
 library(emmeans)
-emmeans(mod_epi, list(pairwise ~ factor(depth_treatment)/Species), adjust = "tukey")
+emmeans(mod_epi, list(pairwise ~ factor(depth_treatment)), adjust = "tukey")
 
-
-mod_epi = lmer(epiphyte_wet_weight_g ~ Species*factor(depth_treatment)+(1|site_code/tile_id),data=analysis_data)
+# Does epiphyte growth restrict fucoid growth?
+mod_epi = lmer(dry_weight_g_daily_relative_increase ~ epiphyte_wet_weight_g+Species*factor(depth_treatment)+(1|site_code/tile_id),data=analysis_data)
 summ(mod_epi)
 anova(mod_epi)
 
-mod_epi = lmer(epiphyte_wet_weight_g ~ factor(depth_treatment)+(1|site_code/tile_id),data=analysis_data)
+mod_epi = lmer(dry_weight_g_daily_relative_increase ~ epiphyte_wet_weight_g_per_area+Species*factor(depth_treatment)+epiphyte_wet_weight_g_per_area:Species+epiphyte_wet_weight_g_per_area:factor(depth_treatment)+(1|site_code/tile_id),data=filter(analysis_data,!is.na(epiphyte_wet_weight_g_per_area)))
 summ(mod_epi)
 anova(mod_epi)
+#no interactions
 
+#model comparison
+mod_epi0 = lmer(dry_weight_g_daily_relative_increase ~ Species*factor(depth_treatment)+(1|site_code/tile_id),data=filter(analysis_data,!is.na(epiphyte_wet_weight_g_per_area)))
+summ(mod_epi0)
+anova(mod_epi0)
 
+mod_epi1 = lmer((dry_weight_g_daily_relative_increase) ~ epiphyte_wet_weight_g_per_area+Species*factor(depth_treatment)+(1|site_code/tile_id),data=filter(analysis_data,!is.na(epiphyte_wet_weight_g_per_area)))
+summ(mod_epi1)
+anova(mod_epi1)
+plot(mod_epi2)
 
+anova(mod_epi1,mod_epi) # no interactions found
 
-library(emmeans)
-emmeans(mod_epi, list(pairwise ~ factor(depth_treatment)/Species), adjust = "tukey")
+anova(mod_epi0,mod_epi1)
 
+#Standardized Beta
+mod_epi2 = lmer(scale(dry_weight_g_daily_relative_increase) ~ scale(epiphyte_wet_weight_g_per_area)+Species*factor(depth_treatment)+(1|site_code/tile_id),data=analysis_data)
+summ(mod_epi2)
+anova(mod_epi2)
+plot(mod_epi2)
+
+ggplot(analysis_data,aes(y=epiphyte_wet_weight_g_per_area, x=dry_weight_g_daily_relative_increase))
+
+p_6_reg=ggplot(analysis_data, aes(x=epiphyte_wet_weight_g_per_area, y=dry_weight_g_daily_relative_increase, color=Species,linetype=factor(depth_treatment))) + 
+  geom_point(size=1,alpha=0.5) +  geom_smooth(method="lm",se = F,size=.6,alpha=0.8)+ theme_meta()+
+  scale_linetype_discrete(name="depth [cm]")+
+  scale_colour_manual(name="",values=c("#0c1787","#9c259f", "#ec7853","#f1f820"))+
+  xlab(expression("epiphytes per thallus area [g * cm"^-2*"]"))+ylab("dry weight increase in % per day")+
+  geom_abline(slope = -2.87, intercept = 0.94,size=1)
+
+ggsave(filename = here("figures/fig_6_regression.png"), plot = p_6_reg, 
+       units = "cm", width = 16, height = 16, dpi = 300)
+
+  ###ADD THE REG LINE AND REDO THE ONE GRAPH FROM BEFR
+
+analysis_data$Species
+
+ggscatter(analysis_data,y = "dry_weight_g_daily_relative_increase",x="epiphyte_wet_weight_g_per_area",facet.by = "depth_treatment",color = "Species",add = "reg.line")
+ggscatter(analysis_data,y = "dry_weight_g_daily_relative_increase",x="epiphyte_wet_weight_g_per_area",add = "reg.line")
 
 ####Trait environment intreraction####
 
