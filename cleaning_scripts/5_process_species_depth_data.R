@@ -5,7 +5,7 @@
 
 # load libraries using groundhog
 library(groundhog)
-groundhog.day <- "2020-06-1"
+groundhog.day <- "2022-01-01"
 pkgs <- c("here", "dplyr", "readr", "ggplot2")
 groundhog.library(pkgs, groundhog.day)
 
@@ -152,7 +152,16 @@ allo_dat <-
   filter(!is.na(depth_cm)) %>%
   filter(!is.na(water_level_cm)) %>%
   mutate(depth_correct = depth_cm + water_level_cm)
-  
+
+nrow(allo_dat)
+head(allo_dat)
+names(allo_dat)
+
+allo_dat %>%
+  group_by(binomial_code) %>%
+  summarise(n = n())
+
+unique(allo_dat$site_code)
 
 # plot out the depth distribution
 allo_dat %>%
@@ -203,8 +212,7 @@ all_depth <-
     
   )
 
-
 # write this into a .csv file into the analysis data
-write_csv(x = all_depth, path = here("analysis_data/species_depth_analysis.csv"))
+write_csv(x = all_depth, file = here("analysis_data/species_depth_data.csv"))
 
 ### END

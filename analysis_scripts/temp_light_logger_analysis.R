@@ -5,7 +5,7 @@
 
 # load libraries using groundhog
 library(groundhog)
-groundhog.day <- "2020-06-1"
+groundhog.day <- "2022-01-01"
 pkgs <- c("here", "dplyr", "tidyr", "readr", "ggplot2", "lubridate",
           "slider", "ggforce", "gghalves", "ggbeeswarm")
 groundhog.library(pkgs, groundhog.day)
@@ -122,8 +122,6 @@ p1 <-
   theme_meta() +
   theme(legend.position = "none")
 
-ggsave(filename = here("figures/fig_SX_temp.png"), p1, width = 10, height = 8, units = "cm",
-       dpi = 300)
 
 # make a light comparison plot
 p2 <- 
@@ -138,7 +136,18 @@ p2 <-
   theme_meta() +
   theme(legend.position = "none")
 
-ggsave(filename = here("figures/fig_SX_light.png"), p2, width = 10, height = 8, units = "cm",
+# load the gggpubr package
+library(ggpubr)
+
+p12 <- 
+  ggarrange(p1, p2, 
+            ncol = 2, nrow = 1,
+            labels = c("a", "b"),
+            font.label = list(size = 11, color = "black", face = "plain")
+  )
+p12
+
+ggsave(filename = here("figures/fig_S2.png"), p12, width = 20, height = 9, units = "cm",
        dpi = 300)
 
 ### END
