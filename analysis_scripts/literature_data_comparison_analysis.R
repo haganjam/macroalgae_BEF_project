@@ -5,7 +5,7 @@
 
 # load libraries using groundhog
 library(groundhog)
-groundhog.day <- "2022-01-01"
+groundhog.day <- "2022-07-17"
 pkgs <- c("here", "dplyr", "readr", "tidyr", "ggplot2", "lubridate", "viridis", "vegan")
 groundhog.library(pkgs, groundhog.day)
 
