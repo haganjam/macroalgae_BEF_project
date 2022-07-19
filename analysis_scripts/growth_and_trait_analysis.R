@@ -261,36 +261,32 @@ analysis_data_fu_se = analysis_data  %>% filter(Species=="Fucus serratus", !is.n
 p_fuse=ggplot(analysis_data_fu_se, aes(factor(depth_treatment), dry_weight_g_daily_relative_increase)) + 
   ggdist::stat_halfeye(adjust = .5, width = .3, .width = 0, justification = -.3, point_colour = "NA",fill="#0c1787") + 
   geom_boxplot(width = .1, outlier.shape = NA,color="#0c1787") +
-  #ggdist::stat_dots(side = "left", dotsize = .4, justification = 1.1, binwidth = .1,color=NA)+
   theme_meta()+
-  xlab("depth [cm]")+ylab("   ")+geom_hline(yintercept =0)+ylim(ylim=c(-2,3))
+  xlab("Depth [cm]")+ylab("   ")+geom_hline(yintercept =0)+ylim(ylim=c(-2,3))
 
 
 analysis_data_fu_ve = analysis_data  %>% filter(Species=="Fucus vesiculosus", !is.na(dry_weight_g_daily_relative_increase))
 p_fuve=ggplot(analysis_data_fu_ve, aes(factor(depth_treatment), dry_weight_g_daily_relative_increase)) + 
   ggdist::stat_halfeye(adjust = .5, width = .3, .width = 0, justification = -.3, point_colour = "NA",fill="#ec7853") + 
   geom_boxplot(width = .1, outlier.shape = NA,color="#ec7853") +
-  #ggdist::stat_dots(side = "left", dotsize = .4, justification = 1.1, binwidth = .1,color=NA)+
   theme_meta()+
-  xlab("depth [cm]")+ylab("    ")+geom_hline(yintercept =0)+ylim(ylim=c(-2,3))
+  xlab("Depth [cm]")+ylab("    ")+geom_hline(yintercept =0)+ylim(ylim=c(-2,3))
 
 
 analysis_data_as_no = analysis_data  %>% filter(Species=="Ascophyllum nodosum", !is.na(dry_weight_g_daily_relative_increase))
 p_asno=ggplot(analysis_data_as_no, aes(factor(depth_treatment), dry_weight_g_daily_relative_increase)) + 
   ggdist::stat_halfeye(adjust = .5, width = .3, .width = 0, justification = -.3, point_colour = "NA",fill="#9c259f") + 
   geom_boxplot(width = .1, outlier.shape = NA,color="#9c259f") +
-  #ggdist::stat_dots(side = "left", dotsize = .4, justification = 1.1, binwidth = .1,color=NA)+
   theme_meta()+
-  xlab("depth [cm]")+ylab("dry weight increase in % per day")+geom_hline(yintercept =0)+ylim(ylim=c(-2,3))
+  xlab("Depth [cm]")+ylab("Dry weight increase in % per day")+geom_hline(yintercept =0)+ylim(ylim=c(-2,3))
 
 
 analysis_data_fu_sp = analysis_data  %>% filter(Species=="Fucus spiralis", !is.na(dry_weight_g_daily_relative_increase))
 p_fusp=ggplot(analysis_data_fu_sp, aes(factor(depth_treatment), dry_weight_g_daily_relative_increase)) + 
   ggdist::stat_halfeye(adjust = .5, width = .3, .width = 0, justification = -.3, point_colour = NA,fill="#fadb25") + 
   geom_boxplot(width = .1, outlier.shape = NA,color="#fadb25") +
-  #ggdist::stat_dots(side = "left", dotsize = .4, justification = 1.1, binwidth = .1,color=NA)+
   theme_meta()+
-  xlab("depth [cm]")+ylab("dry weight increase in % per day")+geom_hline(yintercept =0)+ylim(ylim=c(-2,3))
+  xlab("Depth [cm]")+ylab("Dry weight increase in % per day")+geom_hline(yintercept =0)+ylim(ylim=c(-2,3))
 
 
 
@@ -320,27 +316,27 @@ analysis_data_fu_se = analysis_data  %>% filter(Species=="Fucus serratus", !is.n
 p_fuse_epi=ggplot(analysis_data_fu_se, aes(factor(depth_treatment), epiphyte_wet_weight_g_per_area)) + 
   ggdist::stat_halfeye(adjust = .5, width = .3, .width = 0, justification = -.3, point_colour = NA,fill="#0c1787") + 
   geom_boxplot(width = .1, outlier.shape = NA,color="#0c1787") +  theme_meta()+
-  xlab("depth [cm]")+ylab(expression("epiphytes per thallus area [g * cm"^-2*"]"))+geom_hline(yintercept =0)+ylim(ylim=c(0,.25))
+  xlab("Depth [cm]")+ylab(expression("   "))+geom_hline(yintercept =0)+ylim(ylim=c(0,.25))
 
 analysis_data_fu_ve = analysis_data  %>% filter(Species=="Fucus vesiculosus", !is.na(dry_weight_g_daily_relative_increase))
 p_fuve_epi=ggplot(analysis_data_fu_ve, aes(factor(depth_treatment), epiphyte_wet_weight_g_per_area)) + 
   ggdist::stat_halfeye(adjust = .5, width = .3, .width = 0, justification = -.3, point_colour = NA,fill="#ec7853") + 
   geom_boxplot(width = .1, outlier.shape = NA,color="#ec7853") +  theme_meta()+
-  xlab("depth [cm]")+ylab(expression("epiphytes per thallus area [g * cm"^-2*"]"))+geom_hline(yintercept =0)+ylim(ylim=c(0,.25))
+  xlab("Depth [cm]")+ylab(expression("   "))+geom_hline(yintercept =0)+ylim(ylim=c(0,.25))
 
 
 analysis_data_as_no = analysis_data  %>% filter(Species=="Ascophyllum nodosum", !is.na(dry_weight_g_daily_relative_increase))
 p_asno_epi=ggplot(analysis_data_as_no, aes(factor(depth_treatment), epiphyte_wet_weight_g_per_area)) + 
   ggdist::stat_halfeye(adjust = .5, width = .3, .width = 0, justification = -.3, point_colour = NA,fill="#9c259f") + 
   geom_boxplot(width = .1, outlier.shape = NA,color="#9c259f") +  theme_meta()+
-  xlab("depth [cm]")+ylab(expression("epiphytes per thallus area [g * cm"^-2*"]"))+geom_hline(yintercept =0)+ylim(ylim=c(0,.25))
+  xlab("Depth [cm]")+ylab(expression("Epiphytes per thallus area [g * cm"^-2*"]"))+geom_hline(yintercept =0)+ylim(ylim=c(0,.25))
 
 
 analysis_data_fu_sp = analysis_data  %>% filter(Species=="Fucus spiralis", !is.na(dry_weight_g_daily_relative_increase))
 p_fusp_epi=ggplot(analysis_data_fu_sp, aes(factor(depth_treatment), epiphyte_wet_weight_g_per_area)) + 
   ggdist::stat_halfeye(adjust = .5, width = .3, .width = 0, justification = -.3, point_colour = NA,fill="#fadb25") + 
   geom_boxplot(width = .1, outlier.shape = NA,color="#fadb25") +  theme_meta()+
-  xlab("depth [cm]")+ylab(expression("epiphytes per thallus area [g * cm"^-2*"]"))+geom_hline(yintercept =0)+ylim(ylim=c(0,.25))
+  xlab("Depth [cm]")+ylab(expression("Epiphytes per thallus area [g * cm"^-2*"]"))+geom_hline(yintercept =0)+ylim(ylim=c(0,.25))
 
 p_epi = ggarrange(p_fusp_epi,p_fuve_epi,p_asno_epi,p_fuse_epi,ncol = 2,nrow = 2,
                   labels = c("    F. spiralis","  F. vesiculosus","  A. nodosum","   F. serratus"),
@@ -377,9 +373,9 @@ plot(mod_epi2)
 
 p_5_reg=ggplot(analysis_data, aes(x=epiphyte_wet_weight_g_per_area, y=dry_weight_g_daily_relative_increase, color=Species,linetype=factor(depth_treatment))) + 
   geom_point(size=1,alpha=0.5) +  geom_smooth(method="lm",se = F,size=.6,alpha=0.8)+ theme_meta()+
-  scale_linetype_discrete(name="depth [cm]")+
+  scale_linetype_discrete(name="Depth [cm]")+
   scale_colour_manual(name="",values=c("#0c1787","#9c259f", "#ec7853","#fadb25"))+
-  xlab(expression("epiphytes per thallus area [g * cm"^-2*"]"))+ylab("dry weight increase in % per day")+
+  xlab(expression("Epiphytes per thallus area [g * cm"^-2*"]"))+ylab("Dry weight increase in % per day")+
   geom_abline(slope = -2.87, intercept = 0.94,size=1)+theme(legend.key = element_rect(fill = NA, color = NA))
 
 ggsave(filename = here("figures/fig_5_regression.png"), plot = p_5_reg, 

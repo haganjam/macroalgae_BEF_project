@@ -5,7 +5,7 @@
 
 # load libraries using groundhog
 library(groundhog)
-groundhog.day <- "2022-01-01"
+groundhog.day <- "2022-07-17"
 pkgs <- c("here", "dplyr", "readr", "tidyr", "ggplot2", "lubridate", "viridis", "scales")
 groundhog.library(pkgs, groundhog.day)
 
@@ -45,7 +45,7 @@ p1 <-
   geom_hline(data = tile_depths,
              mapping = aes(yintercept = depth_cm, colour = depth_treatment),
              size = 1) +
-  scale_colour_viridis_d(option = "C",direction = -1) +
+  scale_colour_manual(values = c("#fadb25","#ec7853","#9c259f","#0c1787"))+
   geom_hline(yintercept = 0, linetype = "dashed", size = 1) +
   theme_meta() +
   ylab("Water depth (cm)") +
@@ -56,10 +56,8 @@ p1 <-
         axis.title.x = element_text(size = 10.5),
         axis.title.y = element_text(size = 10.5))
 
-# choosing viridis colours manually
-# https://www.thinkingondata.com/something-about-viridis-library/
 
-cols <- viridis_pal(option = "C",direction = -1)(4)
+cols <- c("#fadb25","#ec7853","#9c259f","#0c1787")
 hist_out <- vector("list", length = length(cols))
 labels <- c("F. spiralis", "F. vesiculosus", "A. nodosum", "F. serratus")
 for ( j in seq_along(hist_out) ) {

@@ -5,7 +5,7 @@
 
 # load libraries using groundhog
 library(groundhog)
-groundhog.day <- "2022-01-01"
+groundhog.day <- "2022-07-17"
 pkgs <- c("here", "dplyr", "readr", "ggplot2", "slider",
           "ggforce", "gghalves", "ggbeeswarm")
 groundhog.library(pkgs, groundhog.day)
@@ -65,7 +65,7 @@ p1 <-
   #scale_colour_viridis_d(option = "C") +
   theme_meta() +
   ylab(NULL) +
-  xlab("depth [cm]") +
+  xlab("Depth [cm]") +
   theme(legend.position = "none",
         axis.text.y = element_text(hjust = 0.5, size = 9,face = "italic"),
         axis.text.x = element_text(size = 9),
@@ -78,7 +78,7 @@ if(! dir.exists(here("figures"))){
   dir.create(here("figures"))
 }
 
-ggsave(filename = here("figures/Fig_2d.png"), p1, units = "cm", dpi = 450,
-       width = 8, height = 6)
+ggsave(filename = here("figures/Fig_2b.png"), p1, units = "cm", dpi = 450,
+       width = 10, height = 8)
 
 ### END  
