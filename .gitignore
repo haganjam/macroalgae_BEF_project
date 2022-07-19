@@ -6,6 +6,7 @@
 *.RData
 *.csv
 *.rds
+*.DS_Store
 
 # User-specific files
 *.Ruserdata
