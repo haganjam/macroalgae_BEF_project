@@ -87,7 +87,6 @@ mono <-
   group_by(species) %>%
   summarise(mono_biomass = mean(mono_biomass),
             n = n())
-mono
 length(unique(mono$species))
 
 # count the replicates of each diversity treatment
@@ -102,7 +101,7 @@ mix <-
 
 mix <- 
   mix %>%
-  pivot_longer(cols = sp_names,
+  pivot_longer(cols = all_of(sp_names),
                names_to = "species",
                values_to = "biomass") %>%
   filter(biomass > 0) %>%
@@ -112,11 +111,11 @@ mix <-
   summarise(biomass = mean(biomass),
             RA_mean = mean(RA),
             RA_sd = sd(RA)/sqrt(n()),
-            n = n())
+            nmix = n())
 
 # join the monoculture and mixture data
 mono_mix <- 
-  full_join(mix, mono) %>%
+  full_join(mix, mono, by = c("species")) %>%
   filter(!is.na(mono_biomass))
 View(mono_mix)
 
