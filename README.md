@@ -51,7 +51,7 @@ This will download a .zip file. Save this .zip file to the same directory that y
 
 ### Run the code to reproduce the analysis
 
-Once the repository and raw data have been downloaded as detailed above, start by running all the scripts in the folder called: "02_cleaning_scripts". Scripts in the "01_functions" folder are called throughout the analysis but do not need to be run individuall. in order as follows:
+Once the repository and raw data have been downloaded as detailed above, start by running all the scripts in the folder called: "02_cleaning_scripts". Scripts in the "01_functions" folder are called throughout the analysis but do not need to be run individually. Scripts from the "02_cleaning_scripts" folder should be run in the following order:
 
 + 01_unzip_raw_data_researchbox.R
 + 02_clean_initial_experiment_data.R
@@ -78,5 +78,4 @@ In this repository, we use the groundhog package in R for package management:
 Groundhog works by versions of packages available at a certain date. Thus, if someone tries to run this code in the future, groundhog will download the versions of packages used in the project that were present at the time the code was written.
 
 There are various reasons why groundhog does not work sometimes. For example, sometimes certain versions of packages are not compatible with different versions of R and this can make it frustrating for someone trying to run the code. If you run into trouble with groundhog, you can simply install the packages normally and it is almost certain that the code will still run.
-
 
