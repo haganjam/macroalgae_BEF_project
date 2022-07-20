@@ -8,7 +8,11 @@
 #' @authors: Benedikt Schrofner-Brunner (bschrobru(at)gmail.com) and James G. Hagan (james_hagan(at)outlook.com)
 #' 
 
-# load libraries using groundhog
+# load relevant libraries
+require(here)
+require(groundhog)
+
+# load the relevant libraries using groundhog for package management
 library(groundhog)
 source(here("01_functions/get_groundhog_date.R"))
 groundhog.day <- get_groundhog_date()

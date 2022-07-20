@@ -1,20 +1,32 @@
+#'
+#' @title: Analyse the depth distribution of the four focal species
+#' 
+#' @description: This scripts generates a graph of the depth distribution of the four
+#' focal species used in the experiment (Fig. 2 in the manuscript).
+#' 
+#' @authors: James G. Hagan (james_hagan(at)outlook.com)
+#' 
 
-# Project: Functional value of macroalgal biodiversity
+# load relevant libraries
+require(here)
+require(groundhog)
 
-# Title: Analyse the depth data from the transects and allometry data collections
-
-# load libraries using groundhog
-library(groundhog)
-groundhog.day <- "2022-07-17"
-pkgs <- c("here", "dplyr", "readr", "ggplot2", "slider",
-          "ggforce", "gghalves", "ggbeeswarm")
+# load the relevant libraries using groundhog for package management
+source(here("01_functions/get_groundhog_date.R"))
+groundhog.day <- get_groundhog_date()
+pkgs <- c("dplyr", "readr", "ggplot2", "ggbeeswarm")
 groundhog.library(pkgs, groundhog.day)
 
+# output the cleaned csv file into the analysis data folder
+if(!dir.exists("analysis_data")){ 
+  print("All cleaning scripts need to be run before this analysis can be run")
+}
+
 # load relevant functions
-source(here("functions/function_plotting_theme.R"))
+source(here("01_functions/function_plotting_theme.R"))
 
 # load in the cleaned species depth data
-all_depth <- read_csv(file = here("analysis_data/species_depth_analysis.csv"))
+all_depth <- read_csv(file = here("analysis_data/species_depth_data.csv"))
 
 # change the order of the binomial codes
 all_depth$binomial_code <- factor(all_depth$binomial_code, levels = c("fu_se", "as_no", "fu_ve", "fu_sp" ))
