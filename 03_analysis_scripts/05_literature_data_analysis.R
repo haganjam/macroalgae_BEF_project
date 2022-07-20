@@ -1,19 +1,40 @@
+#'
+#' @title: Analyse data from the literature
+#' 
+#' @description: This script tests the relationship between monoculture functioning
+#' and species' relative abundance in the Jena data (Weigelt et al. 2016) which is publicly
+#' available via: https://doi.org/10.6084/m9.figshare.c.3301988.v1. It also examines how
+#' specialised species are using a dataset compiled by Gamfeldt et al. (in review) of average
+#' monoculture functioning of monocultures in different environmental conditions. These data
+#' are available at the following figshare link: https://doi.org/10.6084/m9.figshare.12287303.v2
+#' 
+#' @authors: Benedikt Schrofner-Brunner (bschrobru(at)gmail.com) with minor edits from James G. Hagan (james_hagan(at)outlook.com)
+#' 
 
-# Project: Tile experiment
+# load relevant libraries
+require(here)
+require(groundhog)
 
-# Title: Analyse additional data from the literature
-
-# load libraries using groundhog
-library(groundhog)
-groundhog.day <- "2022-07-17"
-pkgs <- c("here", "dplyr", "readr", "tidyr", "ggplot2", "lubridate", "viridis", "vegan")
+# load the relevant libraries using groundhog for package management
+source(here("01_functions/get_groundhog_date.R"))
+groundhog.day <- get_groundhog_date()
+pkgs <- c("dplyr", "readr", "tidyr", "ggplot2")
 groundhog.library(pkgs, groundhog.day)
 
 # load relevant functions
-source(here("functions/function_plotting_theme.R"))
+source(here("01_functions/function_plotting_theme.R"))
 
+# make sure the analysis data folder exists which contains the clean datasets
+if(!dir.exists("analysis_data")){ 
+  print("All cleaning scripts need to be run before this analysis can be run")
+}
 
-## Jena data
+# check if a figure folder exists
+if(! dir.exists(here("figures"))){
+  dir.create(here("figures"))
+}
+
+# Jena data
 
 # load the Jena biomass data
 jena_bio <- read_delim(url("https://ndownloader.figshare.com/files/5608847"), delim = ",")
@@ -133,10 +154,11 @@ p1 <-
   xlab("Monoculture biomass") +
   annotate(geom = "text", label = x.cor, x = 240, y = 0.67) +
   theme_meta()
-p1
+
+plot(p1)
 
 
-## Gamfeldt et al.'s in prep. meta-database
+# Gamfeldt et al.'s in prep. meta-database
 
 # load the raw data
 meta_dat_raw <- read_csv( url("https://ndownloader.figshare.com/files/22647539") )
@@ -211,17 +233,16 @@ p2 <-
   scale_y_continuous(breaks = c(0, 2, 4, 6, 8, 10)) +
   scale_x_continuous(breaks = round(unique(ssi$species.specialisation), 2)) +
   theme_meta()
-p2
 
-# combine figures p1 and p2
-library(ggpubr)
+plot(p2)
 
+# combine figures p1 and p2 to generate Fig. 6
 p12 <- 
   ggarrange(p1, p2, ncol = 2, nrow = 1,
             labels = c("a", "b"),
             font.label = list(size = 11, color = "black", face = "plain"))
 
-
-ggsave(filename = here("figures/fig_6.png"), width = 18, height = 8.5, p12, units = "cm")
+# export Fig. 6
+ggsave(filename = here("figures/fig_6.png"), width = 16, height = 8.5, p12, units = "cm")
 
 ### END

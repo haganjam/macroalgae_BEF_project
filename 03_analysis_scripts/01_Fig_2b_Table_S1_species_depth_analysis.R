@@ -23,6 +23,11 @@ if(!dir.exists("analysis_data")){
   print("All cleaning scripts need to be run before this analysis can be run")
 }
 
+# check if a figure folder exists
+if(! dir.exists(here("figures"))){
+  dir.create(here("figures"))
+}
+
 # load relevant functions
 source(here("01_functions/function_plotting_theme.R"))
 
@@ -84,12 +89,6 @@ p1 <-
         axis.text.x = element_text(size = 9),
         axis.title.x = element_text(size = 10.5))
 plot(p1)
-
-
-# make a folder to export the cleaned data
-if(! dir.exists(here("figures"))){
-  dir.create(here("figures"))
-}
 
 ggsave(filename = here("figures/Fig_2b.png"), p1, units = "cm", dpi = 450,
        width = 10, height = 8)

@@ -19,9 +19,13 @@ pkgs <- c("dplyr", "readr", "ggplot2", "lubridate",
           "ggforce", "gghalves", "ggbeeswarm", "ggpubr")
 groundhog.library(pkgs, groundhog.day)
 
+# output the cleaned csv file into the analysis data folder
+if(!dir.exists("analysis_data")){ 
+  print("All cleaning scripts need to be run before this analysis can be run")
+}
+
 # read in the cleaned logger data
 logvars <- read_rds(here("analysis_data/temp_light_logger_data.rds"))
-
 
 # which variables would we like to generate?
 
