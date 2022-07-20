@@ -1,23 +1,31 @@
+#'
+#' @title: Generate ecologically relevant variables from the sea-level data
+#' 
+#' @description: This scripts generates a set of ecologically meaningful variables from
+#' the SMHI sea-level data and the experimental depths that we used. This is used to
+#' report summary statistics in Methods and materials section and to generate Fig. S1 from
+#' the supplementary material.
+#' 
+#' @authors: James G. Hagan (james_hagan(at)outlook.com)
+#' 
 
-# Project: Tile experiment
+# load relevant libraries
+require(here)
+require(groundhog)
 
-# Title: Generate ecologically relevant variables from the sea-level data
-
-# load libraries using groundhog
-library(groundhog)
-groundhog.day <- "2022-07-17"
-pkgs <- c("here", "dplyr", "readr", "tidyr", "ggplot2", "lubridate", "viridis", "scales")
+# load the relevant libraries using groundhog for package management
+source(here("01_functions/get_groundhog_date.R"))
+groundhog.day <- get_groundhog_date()
+pkgs <- c("dplyr", "readr", "ggplot2", "lubridate")
 groundhog.library(pkgs, groundhog.day)
 
-# check the loaded packages for their correct versions
-sessionInfo()
-
-if(! dir.exists(here("figures"))){
-  print("make a folder called experiment_data in the working directory and save the figures, see README for details")
+# output the cleaned csv file into the analysis data folder
+if(!dir.exists("analysis_data")){ 
+  print("All cleaning scripts need to be run before this analysis can be run")
 }
 
 # load the plotting theme
-source(here("functions/function_plotting_theme.R"))
+source(here("01_functions/function_plotting_theme.R"))
 
 # load the cleaned sea-level data
 sea_dat <- read_csv(file = here("analysis_data/sea_level_data.csv"))
@@ -95,6 +103,11 @@ p12 <-
             )
 p12
 
+# make a folder to export the cleaned data
+if(! dir.exists(here("figures"))){
+  dir.create(here("figures"))
+}
+
 ggsave(filename = here("figures/fig_S1.png"), plot = p12, 
        units = "cm", width = 20, height = 12, dpi = 300)
 
@@ -122,7 +135,7 @@ ggsave(filename = here("figures/fig_S1.png"), plot = p12,
 # 2. the study period specifically
 
 # use the sea level function to calculate these variables for each depth
-source(here("functions/sea_level_function.R"))
+source(here("01_functions/sea_level_function.R"))
 
 # generate the summary variables
 
@@ -175,6 +188,7 @@ for(i in 1:length(output_names)) {
   
 }
 
+# view summary statistics reported in the methods and materials
 View(tile_depths)
 
 ### END

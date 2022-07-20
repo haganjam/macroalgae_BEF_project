@@ -2,7 +2,8 @@
 #' @title: Analyse the depth distribution of the four focal species
 #' 
 #' @description: This scripts generates a graph of the depth distribution of the four
-#' focal species used in the experiment (Fig. 2 in the manuscript).
+#' focal species used in the experiment (Fig. 2 in the manuscript) and a table with summary
+#' statistics regarding the observed depths and experimental depths (Table S1).
 #' 
 #' @authors: James G. Hagan (james_hagan(at)outlook.com)
 #' 
