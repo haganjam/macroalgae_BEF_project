@@ -5,11 +5,11 @@
 
 # load libraries using groundhog
 library(groundhog)
-groundhog.day <- "2022-07-17"
+groundhog.day <- "2022-01-17"
 pkgs <- c("here","readr","vegan","dplyr","lme4","MuMIn","jtools","lmerTest","emmeans")
 groundhog.library(pkgs, groundhog.day)
 
-#other libraries
+# other libraries
 library(ggpubr)
 library(ggfortify)
 library(car)
@@ -24,12 +24,12 @@ if(! dir.exists(here("figures"))){
 }
 
 
-#import cleaned dataset
+# Import cleaned dataset
 analysis_data <- read_csv("analysis_data/analysis_data.csv")[-1]
-analysis_data = analysis_data[-493,] #outlier, probably wrong measurement, see end of script
+analysis_data <- analysis_data[-493,] #outlier, probably wrong measurement, see end of script
 
-#Calculate duration of the growth experiment
-analysis_data$duration = as.numeric(as.Date(analysis_data$date_end.x,"%d_%m_%Y")-as.Date(analysis_data$date_start,"%d-%m-%Y"))
+# Calculate duration of the growth experiment
+analysis_data$duration <- as.numeric(as.Date(analysis_data$date_end.x,"%d_%m_%Y")-as.Date(analysis_data$date_start,"%d-%m-%Y"))
 table(analysis_data$duration)
 summary(analysis_data$duration)
 

@@ -1,30 +1,26 @@
-
-# Project: Tile experiment
-
-# Title: Clean the experiment data from the initial measurements
+#'
+#' @title: Clean the experiment data from the post-experiment measurements
+#' 
+#' @description: Script to clean and output a cleaned version of the post experiment
+#' data. This uses a combination of the direct measurements and the measurements from the
+#' processed images.
+#' 
+#' @authors: Benedikt Schrofner-Brunner (bschrobru(at)gmail.com) and James G. Hagan (james_hagan(at)outlook.com)
+#' 
 
 # load libraries using groundhog
 library(groundhog)
-groundhog.day <- "2020-06-1"
+groundhog.day <- "2022-01-17"
 pkgs <- c("here", "dplyr", "readr", "tidyr", "ggplot2", "lubridate")
 groundhog.library(pkgs, groundhog.day)
 
-
-library(here)
-library(dplyr)
-library(readr)
-library(tidyr)
-library(ggplot2)
-library(lubridate)
-
+# load the date_fixer function
+source(here("functions/date_fixer.R"))
 
 # check that the correct folder is present
 if(! dir.exists(here("experiment_data"))){
   print("make a folder called experiment_data in the working directory and save the initial experiment data, see README for details")
 }
-
-# clear the objects in the environment
-rm(list = ls())
 
 # load the raw initial data
 post_dat <- read_csv(file = here("experiment_data/tile_experiment_post.csv"),
@@ -66,11 +62,12 @@ str(post_dat$epiphyte_wet_weight_g)
 head(post_dat)
 str(post_dat)
 summary(post_dat)
+names(post_dat)
 
 # remove the missing column as this was used as a spacing variable when entering the data
 post_dat <- 
   post_dat %>%
-  select(-X35)
+  select(-...35)
 
 # make separate columns for site, horizontal position and depth treatment from tile_id
 # regular expressions: https://www.journaldev.com/36776/regular-expressions-in-r
@@ -82,7 +79,7 @@ post_dat <-
          depth_treatment = substr(tile_id, 3, 3),
          plant_no = substr(plant_id, 4, 4))
 
-# check if these inputs are correct
+# check if these inputs are correct based on the known number of replicates
 unique(post_dat$tile_id)
 length(unique(post_dat$tile_id)) == (5*4*4)
 
@@ -95,8 +92,7 @@ length(unique(post_dat$hor_pos)) == 4
 unique(post_dat$depth_treatment)
 length(unique(post_dat$depth_treatment)) == 4
 
-# how many data.rows do we have?
-# there is one missing plant
+# how many data.rows do we have? there is one missing plant
 nrow(post_dat)
 
 # how to deal with the missing data
@@ -106,9 +102,6 @@ sum(is.na(post_dat$wet_weight_g))
 
 # check for dates that are missing
 sum(is.na(post_dat$date))
-
-# load the date_fixer function
-source(here("functions/date_fixer.R"))
 
 # run the date_fixer function to fill in the dates
 # the date_fixer function assumes that each tile was measured on a certain date
@@ -184,7 +177,6 @@ final_dat <-
 View(final_dat)
 
 # subset out the trait_data
-# this will also include area measurements!
 names(post_dat)
 
 bt <- 
@@ -217,13 +209,8 @@ trait_dat$bladder_thickness_cv <- apply(blt, 1, sd)/apply(blt, 1, mean)
 trait_dat$midrib_mean <- apply(mdt, 1, mean)
 trait_dat$midrib_cv <- apply(mdt, 1, sd)/apply(mdt, 1, mean)
 
-rm(bt, blt, mdt)
-
-# check the trait data
-#View(trait_dat)
 
 # remove the tray weights from the rest and blade measurements
-
 trait_dat <- 
   trait_dat %>%
   mutate(dry_weight_blade_g = (dry_weight_g_blade_with_tray - tray_weight_blade_g) ) %>%
@@ -231,133 +218,130 @@ trait_dat <-
   select(-contains("tray"))
 
 # set the NAs for dry weight 0 -> for Ascophyllum, dry weight blade is not NA, sometimes no "rest" was measured
-trait_dat$dry_weight_blade_g[is.na(trait_dat$dry_weight_blade_g)]=0
-trait_dat$dry_weight_rest_g[is.na(trait_dat$dry_weight_rest_g)]=0
+trait_dat$dry_weight_blade_g[is.na(trait_dat$dry_weight_blade_g)] <- 0
+trait_dat$dry_weight_rest_g[is.na(trait_dat$dry_weight_rest_g)] <- 0
 
-trait_dat$dry_weight_total_g = trait_dat$dry_weight_rest_g + trait_dat$dry_weight_blade_g
-trait_dat = trait_dat %>% select(-dry_weight_rest_g)
+trait_dat$dry_weight_total_g <- trait_dat$dry_weight_rest_g + trait_dat$dry_weight_blade_g
+trait_dat <- select(trait_dat, -dry_weight_rest_g)
 
-#View(trait_dat)
 
 # load the area data
-library(readr)
-library(stringr)
-image_dat_post <- read_csv("experiment_data/tiles_image_analysis_after.csv")
-View(image_dat_post)
+image_dat_post <- read_csv("experiment_data/tiles_image_analysis_after.csv.csv")
 
 # apply labeling scheme
-image_dat_post$plant_id = image_dat_post$id
-image_dat_post$site_code = str_sub(image_dat_post$plant_id,start = 1,end = 1)
-image_dat_post$hor_pos  = str_sub(image_dat_post$plant_id,start = 2,end = 2)
-image_dat_post$depth_treatment  = str_sub(image_dat_post$plant_id,start = 3,end = 3)
-image_dat_post$tile_id = str_sub(image_dat_post$plant_id,start = 1,end = 3)
+image_dat_post$plant_id <- image_dat_post$id
+image_dat_post$site_code <- str_sub(image_dat_post$plant_id,start = 1,end = 1)
+image_dat_post$hor_pos  <- str_sub(image_dat_post$plant_id,start = 2,end = 2)
+image_dat_post$depth_treatment  <- str_sub(image_dat_post$plant_id,start = 3,end = 3)
+image_dat_post$tile_id <- str_sub(image_dat_post$plant_id,start = 1,end = 3)
 
 # add a column for final area (total)
-final_blade = image_dat_post %>% filter(thallus_blade=="blade")
-final_thallus = image_dat_post %>% filter(thallus_blade=="thallus")
+final_blade <- filter(image_dat_post, thallus_blade == "blade")
+final_thallus <- filter(image_dat_post, thallus_blade == "thallus")
 
-final_thallus$final_area_cm2 = final_thallus$area_cm2
-final_thallus$final_perimeter_cm = final_thallus$perimeter_cm
-final_thallus = final_thallus %>% select(plant_id:final_perimeter_cm)
+final_thallus$final_area_cm2 <- final_thallus$area_cm2
+final_thallus$final_perimeter_cm <- final_thallus$perimeter_cm
+final_thallus <- select(final_thallus, plant_id:final_perimeter_cm)
 
-final_blade$final_blade_area_cm2 = final_blade$area_cm2
-final_blade$final_blade_perimeter_cm = final_blade$perimeter_cm
-final_blade = final_blade %>% select(plant_id:final_blade_perimeter_cm)
-
+final_blade$final_blade_area_cm2 <- final_blade$area_cm2
+final_blade$final_blade_perimeter_cm <- final_blade$perimeter_cm
+final_blade <- select(final_blade, plant_id:final_blade_perimeter_cm)
 
 # add to final table
-final_dat=left_join(final_dat,final_thallus,by= c("plant_id","site_code","hor_pos","depth_treatment","tile_id" ))
-final_dat=left_join(final_dat,final_blade,by= c("plant_id","site_code","hor_pos","depth_treatment","tile_id" ))
-rm(final_blade,final_thallus,image_dat_post)
+final_dat <- left_join(final_dat, final_thallus, by= c("plant_id","site_code","hor_pos","depth_treatment","tile_id" ))
+final_dat <- left_join(final_dat, final_blade, by= c("plant_id","site_code","hor_pos","depth_treatment","tile_id" ))
 
 # import the pre csv file
-library(readr)
-initial_data_clean <- read_csv("experiment_data/initial_data_clean.csv")[-1]
+initial_data_clean <- read_csv("experiment_data/initial_data_clean.csv")
 
-# merge everything up
-initial_data_clean$plant_no = as.character(initial_data_clean$plant_no)
-pre_post = left_join(initial_data_clean,final_dat,
-                          by = c("site_code","hor_pos","depth_treatment",
-                                 "tile_id","plant_id","binomial_code","plant_no")  )
-rm(initial_data_clean,final_dat,post_dat)
+# merge the pre and post measurements
 
-#merge_trait_data
-names(trait_dat)
+# make sure the plant_no column as a character variable
+initial_data_clean$plant_no <- as.character(initial_data_clean$plant_no)
 
-analysis_data = left_join(pre_post,trait_dat,
-                          by = c("site_code","hor_pos","depth_treatment",
-                                  "tile_id","plant_id","binomial_code","plant_no"))
+# merge the initial measurements and the post measurements
+pre_post <- left_join(initial_data_clean,
+                      final_dat,
+                      by = c("site_code","hor_pos","depth_treatment",
+                             "tile_id","plant_id","binomial_code","plant_no")
+                      )
 
+# merge trait data
+analysis_data <-  left_join(pre_post,
+                            trait_dat,
+                            by = c("site_code","hor_pos","depth_treatment",
+                                   "tile_id","plant_id","binomial_code","plant_no")
+                            )
 
-analysis_data = analysis_data %>% filter(!plant_id=="XDE2")
+# remove plant with missing initial data from the data
+analysis_data <- filter(analysis_data, !plant_id=="XDE2")
 
-#create treatment column
-analysis_data$depth_id=analysis_data$depth_treatment
-analysis_data$depth_treatment[analysis_data$depth_id=="E"] = -5
-analysis_data$depth_treatment[analysis_data$depth_id=="F"] = -12
-analysis_data$depth_treatment[analysis_data$depth_id=="G"] = -28
-analysis_data$depth_treatment[analysis_data$depth_id=="H"] = -40
+# create treatment column
+analysis_data$depth_id <- analysis_data$depth_treatment
+analysis_data$depth_treatment[analysis_data$depth_id=="E"] <- -5
+analysis_data$depth_treatment[analysis_data$depth_id=="F"] <- -12
+analysis_data$depth_treatment[analysis_data$depth_id=="G"] <- -28
+analysis_data$depth_treatment[analysis_data$depth_id=="H"] <- -40
 
+# check how many replicates there are per treatment
 table(analysis_data$depth_treatment)
 
-#error correction for wrong construction of WAG and WCH, both ascophyllum
+# error correction for wrong construction of WAG and WCH, both ascophyllum
 # during fieldwork, we noticed that we accidentally placed the tile labelled WAG at depth H
 # likewise, we placed the tile labelled WCH at depth G
-analysis_data$depth_treatment[analysis_data$tile_id=="WAG"] = "-40"
-analysis_data$depth_treatment[analysis_data$tile_id=="WCH"] = "-28"
+analysis_data$depth_treatment[analysis_data$tile_id == "WAG"] <- "-40"
+analysis_data$depth_treatment[analysis_data$tile_id == "WCH"] <- "-28"
 
-
-#VDH1 - impute wet weight
-#create model with area
-fuve_dat= analysis_data %>% filter(binomial_code=="fu_ve")
-lm1=lm(fuve_dat$final_wet_weight_g[fuve_dat$plant_id!="VDH1"] ~ fuve_dat$final_area_cm2[fuve_dat$plant_id!="VDH1"])
+# VDH1 - impute wet weight
+# create model with area
+fuve_dat <- filter(analysis_data, binomial_code=="fu_ve")
+lm1 <- lm(fuve_dat$final_wet_weight_g[fuve_dat$plant_id!="VDH1"] ~ fuve_dat$final_area_cm2[fuve_dat$plant_id!="VDH1"])
 summary(lm1)
-coef(lm1)
-#impute wront data
-analysis_data$final_wet_weight_g[analysis_data$plant_id=="VDH1"]=as.numeric(coef(lm1)[1] + coef(lm1)[2]*analysis_data$final_area_cm2[analysis_data$plant_id=="VDH1"])
-rm(lm1,fuve_dat)
 
-##Fetch missing dates from time stamp data
-timestamps= read_csv("experiment_data/transplant_image_timestamps.csv")
+# impute incorrect data instead of using the incorrect value
+analysis_data$final_wet_weight_g[analysis_data$plant_id=="VDH1"] <- as.numeric(coef(lm1)[1] + coef(lm1)[2]*analysis_data$final_area_cm2[analysis_data$plant_id=="VDH1"])
 
-start_dates = timestamps %>% filter(time=="t0")
-end_dates = timestamps %>% filter(time=="t1")
+# fetch missing dates from time stamp data
+timestamps <- read_csv(here("experiment_data/transplant_image_timestamps.csv"))
+
+start_dates <- filter(timestamps, time == "t0")
+end_dates <- filter(timestamps, time == "t1")
 
 for(i in 1:length(analysis_data$date_start)) {
   
-  #fetch start dates
+  # fetch start dates
   if(is.na(analysis_data$date_start[i])){
     date_id=analysis_data$plant_id[i]
     
-    #paste date as dd-mm-yyyy
+    # paste date as dd-mm-yyyy
     analysis_data$date_start[i]=paste(start_dates$day[start_dates$id==date_id],
                                       "-", start_dates$month[start_dates$id==date_id],"-","2021",sep = "")
     rm(date_id)
   }
-  #fetch end dates
+  
+  # fetch end dates
   if(is.na(analysis_data$date_end.x[i])){
     date_id=analysis_data$plant_id[i]
     
-    #paste date as dd_mm_yyyy
-    #check if not available
+    # paste date as dd_mm_yyyy
+    # check if not available
     if(!is.na(analysis_data$final_wet_weight_g[i])){
     analysis_data$date_end.x[i]=paste(end_dates$day[end_dates$id==date_id],
                                       "_", end_dates$month[end_dates$id==date_id],"_","2021",sep = "")
     rm(date_id)
+    
     }
+    
   }
   
 }
 
 # output the cleaned csv file for the initial and final data
-if(!dir.exists("analysis_data")){dir.create("analysis_data")}
+if(!dir.exists("analysis_data")){ 
+  dir.create("analysis_data") 
+  }
 
-
-
-# output this to (analysis_data)
-write.csv(analysis_data,file = "analysis_data/analysis_data.csv")
-
-
-
+# output this to the analysis_data folder
+write_csv(analysis_data, file = here("analysis_data/experiment_analysis_data.csv"))
 
 ### END

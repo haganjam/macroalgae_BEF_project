@@ -1,16 +1,17 @@
-
-# Project: Tile experiment
-
-# Title: Clean the experiment data from the initial measurements
-
-# Next steps: 
-# - check lab notes to try and figure out the dates for site_code: X
-# - check which tiles were mixed up with Ben and correct them once the image analysis is done
+#'
+#' @title: Clean the experiment data from the initial measurements
+#' 
+#' @description: Script to clean and output a cleaned version of the initial experiment
+#' data. This uses a combination of the direct measurements and the measurements from the
+#' processed images.
+#' 
+#' @authors: James G. Hagan (james_hagan(at)outlook.com) and Benedikt Schrofner-Brunner (bschrobru(at)gmail.com)
+#' 
 
 # load libraries using groundhog
 library(groundhog)
-groundhog.day <- "2020-06-1"
-pkgs <- c("here", "dplyr", "readr", "tidyr", "ggplot2", "lubridate")
+groundhog.day <- "2022-01-17"
+pkgs <- c("here", "dplyr", "readr", "lubridate", "stringr")
 groundhog.library(pkgs, groundhog.day)
 
 # check that the correct folder is present
@@ -58,7 +59,7 @@ init_dat <-
          hor_pos = substr(tile_id, 2, 2),
          depth_treatment = substr(tile_id, 3, 3))
 
-# check if these inputs are correct
+# check if these inputs are correct by matching them with the known replicates from the experiment
 unique(init_dat$tile_id)
 length(unique(init_dat$tile_id)) == (5*4*4)
 
@@ -126,17 +127,14 @@ fix_dates_df <-
 
 fix_dates_df <- bind_rows(fix_dates_df)
 
-# what's wrong with the day variable?
-# 1 must be converted to 01
+# what's wrong with the day variable? 1 must be converted to 01
 unique(fix_dates_df$day)
 fix_dates_df$day <- ifelse(fix_dates_df$day == "1", "01", fix_dates_df$day)
 
-# what's wrong with the month variable?
-# nothing
+# what's wrong with the month variable? nothing
 unique(fix_dates_df$month)
 
-# what's wrong with the year variable?
-# 21 must be converted to 2021
+# what's wrong with the year variable? 21 must be converted to 2021
 unique(fix_dates_df$year)
 fix_dates_df$year <- ifelse(fix_dates_df$year == "21", "2021", fix_dates_df$year)
 
@@ -196,8 +194,7 @@ init_dat %>%
   summarise(plant_count = length(unique(plant_no))) %>%
   filter(plant_count != 9)
 
-# yes, the missing row in tile XDE
-# which plant_no is it?
+# yes, the missing row in tile XDE. Which plant_no is it?
 z <- 
   init_dat %>%
   filter(tile_id == "XDE") %>%
@@ -215,15 +212,8 @@ init_dat %>%
   filter(tile_id %in% c("WAG", "WCH")) %>%
   View()
 
-#init_dat <- 
-#  init_dat %>%
-#  mutate(notes = if_else(tile_id == "WAG", "this tile was placed in the H depth zone", notes)) %>%
-#  mutate(notes = if_else(tile_id == "WCH", "this tile was placed in the G depth zone", notes)) %>%
-#  filter(tile_id %in% c("WAG", "WCH"))
-
 # the raw data is unchanged but we will correct once we have joined the image data
 View(init_dat)
-names(init_dat)
 
 # just use the imputed date for simplicity
 init_dat <- 
@@ -231,28 +221,23 @@ init_dat <-
   select(-date_corrected, -date_corrected2) %>%
   rename(date_start = date_corr_imputed)
 
-names(init_dat)
-
 # read in the image processing data
 
 # load the area data
-library(readr)
-library(stringr)
-image_dat_initial <- read_csv("experiment_data/tiles_image_analysis_before.csv")
+image_dat_initial <- read_csv(here("experiment_data/tiles_image_analysis_before.csv.csv"))
 
 # apply labeling scheme
-image_dat_initial$plant_id = image_dat_initial$id
+image_dat_initial$plant_id <- image_dat_initial$id
 
+# change names of the area and perimeter measurements
+image_dat_initial$initial_area_cm2 <- image_dat_initial$area_cm2
+image_dat_initial$initial_perimeter_cm <- image_dat_initial$perimeter_cm
+image_dat_initial <- select(image_dat_initial, plant_id:initial_perimeter_cm)
 
-image_dat_initial$initial_area_cm2 = image_dat_initial$area_cm2
-image_dat_initial$initial_perimeter_cm = image_dat_initial$perimeter_cm
-image_dat_initial = image_dat_initial %>% select(plant_id:initial_perimeter_cm)
+# join the image data to the other initial data
+init_dat <- left_join(image_dat_initial, init_dat, by= c("plant_id" ))
 
-init_dat=left_join(image_dat_initial,init_dat,by= c("plant_id" ))
-rm(image_dat_initial,fix_dates_df)
+# write this into a .csv file and 
+write_csv(init_dat, here("experiment_data/initial_data_clean.csv"))
 
-write.csv(init_dat,"experiment_data/initial_data_clean.csv")
-rm(list = ls())
-
-
-
+### END

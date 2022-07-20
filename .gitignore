@@ -7,6 +7,7 @@
 *.csv
 *.rds
 *.DS_Store
+*.zip
 
 # User-specific files
 *.Ruserdata
