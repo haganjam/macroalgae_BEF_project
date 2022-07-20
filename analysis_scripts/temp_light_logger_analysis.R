@@ -5,7 +5,7 @@
 
 # load libraries using groundhog
 library(groundhog)
-groundhog.day <- "2022-01-01"
+groundhog.day <- "2022-07-17"
 pkgs <- c("here", "dplyr", "tidyr", "readr", "ggplot2", "lubridate",
           "slider", "ggforce", "gghalves", "ggbeeswarm")
 groundhog.library(pkgs, groundhog.day)
@@ -116,7 +116,7 @@ p1 <-
   geom_quasirandom(groupOnX = TRUE, alpha = 0.3, shape = 16, size = 0.5) +
   geom_boxplot(outlier.shape = NA, width = 0.3, notch = TRUE, 
                position = position_dodge(0.5)) +
-  scale_colour_viridis_d(option = "C",direction = 1) +
+  scale_colour_manual(values = c("#0c1787","#9c259f", "#ec7853","#fadb25"))+
   xlab("Water level treatment") +
   ylab("Temperature (°C)") +
   theme_meta() +
@@ -130,7 +130,7 @@ p2 <-
                      colour = water_level_treat,
                      group = id)) +
   geom_quasirandom(groupOnX = TRUE, alpha = 0.3, shape = 16, size = 0.5) +
-  scale_colour_viridis_d(option = "C",direction = 1) +
+  scale_colour_manual(values = c("#0c1787","#9c259f", "#ec7853","#fadb25"))+
   xlab("Water level treatment") +
   ylab("Light intensity (lux)") +
   theme_meta() +
