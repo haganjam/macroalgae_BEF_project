@@ -16,7 +16,7 @@ require(groundhog)
 # load the relevant libraries using groundhog for package management
 source(here("01_functions/get_groundhog_date.R"))
 groundhog.day <- get_groundhog_date()
-pkgs <- c("dplyr", "readr", "ggplot2", "lubridate")
+pkgs <- c("dplyr", "readr", "ggplot2", "lubridate", "ggpubr")
 groundhog.library(pkgs, groundhog.day)
 
 # output the cleaned csv file into the analysis data folder
@@ -88,8 +88,6 @@ for ( j in seq_along(hist_out) ) {
 }
 
 # combine figures p1 and p2
-library(ggpubr)
-
 p2 <- 
   ggarrange(hist_out[[1]], hist_out[[2]], hist_out[[3]], hist_out[[4]], ncol = 4, nrow = 1,
             labels = c("b", "c", "d", "e"),
@@ -101,7 +99,7 @@ p12 <-
             labels = c("a", " "),
             font.label = list(size = 11, color = "black", face = "plain")
             )
-p12
+plot(p12)
 
 # make a folder to export the cleaned data
 if(! dir.exists(here("figures"))){

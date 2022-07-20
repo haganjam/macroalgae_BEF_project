@@ -1,17 +1,23 @@
+#'
+#' @title: Generate ecologically relevant variables from the sea-level data
+#' 
+#' @description: This scripts generates a set of ecologically meaningful variables from
+#' the temperature and light loggers that we used. This is used to report summary statistics
+#' in the Methods and materials and to generate Fig. S2 from the supplementary material.
+#' 
+#' @authors: James G. Hagan (james_hagan(at)outlook.com)
+#' 
 
-# Project: Tile experiment
+# load relevant libraries
+require(here)
+require(groundhog)
 
-# Title: Generate ecologically relevant variables from the logger data
-
-# load libraries using groundhog
-library(groundhog)
-groundhog.day <- "2022-07-17"
-pkgs <- c("here", "dplyr", "tidyr", "readr", "ggplot2", "lubridate",
-          "slider", "ggforce", "gghalves", "ggbeeswarm")
+# load the relevant libraries using groundhog for package management
+source(here("01_functions/get_groundhog_date.R"))
+groundhog.day <- get_groundhog_date()
+pkgs <- c("dplyr", "readr", "ggplot2", "lubridate", 
+          "ggforce", "gghalves", "ggbeeswarm", "ggpubr")
 groundhog.library(pkgs, groundhog.day)
-
-# check the loaded packages for their correct versions
-sessionInfo()
 
 # read in the cleaned logger data
 logvars <- read_rds(here("analysis_data/temp_light_logger_data.rds"))
@@ -68,18 +74,18 @@ logvars_summary <-
                 range_light_C = diff(range(intensity_lux)),
                 cv_light_C = sd(intensity_lux)/mean(intensity_lux))
     
-    z
+    return(z)
     
   })
 
-# bind this into a data.frame
-# ignore the warning
+# bind this into a data.frame (warning can be ignored)
 logvars_summary <- 
   logvars_summary %>%
   bind_rows(.) %>% 
   rename(depth_treatment = water_level_treat) %>%
   arrange(site_code, depth_treatment)
 
+# view the summarised data
 View(logvars_summary)
 
 # summarise across sites
@@ -106,7 +112,6 @@ logvars_df <-
 logvars_df$water_level_treat <- factor(logvars_df$water_level_treat, levels = c( "H","G","F","E") )
 levels(logvars_df$water_level_treat) <- c("-40 cm","-28 cm","-12 cm","-5 cm")
 
-
 # make a temperature comparison plot
 p1 <- 
   ggplot(data = logvars_df, 
@@ -122,7 +127,6 @@ p1 <-
   theme_meta() +
   theme(legend.position = "none")
 
-
 # make a light comparison plot
 p2 <- 
   ggplot(data = logvars_df, 
@@ -136,16 +140,13 @@ p2 <-
   theme_meta() +
   theme(legend.position = "none")
 
-# load the gggpubr package
-library(ggpubr)
-
 p12 <- 
   ggarrange(p1, p2, 
             ncol = 2, nrow = 1,
             labels = c("a", "b"),
             font.label = list(size = 11, color = "black", face = "plain")
   )
-p12
+plot(p12)
 
 ggsave(filename = here("figures/fig_S2.png"), p12, width = 20, height = 9, units = "cm",
        dpi = 300)

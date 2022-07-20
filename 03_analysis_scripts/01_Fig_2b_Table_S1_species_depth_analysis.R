@@ -83,7 +83,7 @@ p1 <-
         axis.text.y = element_text(hjust = 0.5, size = 9,face = "italic"),
         axis.text.x = element_text(size = 9),
         axis.title.x = element_text(size = 10.5))
-p1
+plot(p1)
 
 
 # make a folder to export the cleaned data
