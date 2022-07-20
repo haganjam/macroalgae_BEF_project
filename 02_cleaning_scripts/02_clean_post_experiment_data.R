@@ -10,20 +10,21 @@
 
 # load libraries using groundhog
 library(groundhog)
-groundhog.day <- "2022-01-17"
-pkgs <- c("here", "dplyr", "readr", "tidyr", "ggplot2", "lubridate")
+source(here("01_functions/get_groundhog_date.R"))
+groundhog.day <- get_groundhog_date()
+pkgs <- c("here", "dplyr", "readr", "lubridate")
 groundhog.library(pkgs, groundhog.day)
 
 # load the date_fixer function
-source(here("functions/date_fixer.R"))
+source(here("01_functions/date_fixer.R"))
 
 # check that the correct folder is present
-if(! dir.exists(here("experiment_data"))){
-  print("make a folder called experiment_data in the working directory and save the initial experiment data, see README for details")
+if(! dir.exists(here("ResearchBox 435"))){
+  print("download the ResearchBox contents and save it in the current directory")
 }
 
 # load the raw initial data
-post_dat <- read_csv(file = here("experiment_data/tile_experiment_post.csv"),
+post_dat <- read_csv(file = here("ResearchBox 435/Data/tile_experiment_post.csv"),
                      col_types = list(date = col_character(),
                                       tile_id = col_character(),
                                       plant_id = col_character(),
@@ -70,8 +71,6 @@ post_dat <-
   select(-...35)
 
 # make separate columns for site, horizontal position and depth treatment from tile_id
-# regular expressions: https://www.journaldev.com/36776/regular-expressions-in-r
-# can also use simply substring
 post_dat <- 
   post_dat %>%
   mutate(site_code = substr(tile_id, 1, 1),
@@ -135,10 +134,8 @@ post_dat <-
 
 sum(is.na(post_dat$date_corrected))
 
-# add Elena's measurement error
 # during the measurements, we noticed the one of the researchers mis-read the length measurement
-# consistently by one cm
-# we correct this by adding one centimeter
+# consistently by one cm. we correct this by adding one centimeter
 
 post_dat <- 
   post_dat %>%
@@ -173,9 +170,6 @@ final_dat <-
          final_observer_measure = person_measure, 
          final_observer_writing = person_writing, final_notes = Obs)
 
-# here, we need to add the area measurements
-View(final_dat)
-
 # subset out the trait_data
 names(post_dat)
 
@@ -209,7 +203,6 @@ trait_dat$bladder_thickness_cv <- apply(blt, 1, sd)/apply(blt, 1, mean)
 trait_dat$midrib_mean <- apply(mdt, 1, mean)
 trait_dat$midrib_cv <- apply(mdt, 1, sd)/apply(mdt, 1, mean)
 
-
 # remove the tray weights from the rest and blade measurements
 trait_dat <- 
   trait_dat %>%
@@ -224,9 +217,8 @@ trait_dat$dry_weight_rest_g[is.na(trait_dat$dry_weight_rest_g)] <- 0
 trait_dat$dry_weight_total_g <- trait_dat$dry_weight_rest_g + trait_dat$dry_weight_blade_g
 trait_dat <- select(trait_dat, -dry_weight_rest_g)
 
-
 # load the area data
-image_dat_post <- read_csv("experiment_data/tiles_image_analysis_after.csv.csv")
+image_dat_post <- read_csv("ResearchBox 435/Data/tiles_image_analysis_after.csv.csv")
 
 # apply labeling scheme
 image_dat_post$plant_id <- image_dat_post$id
@@ -252,7 +244,7 @@ final_dat <- left_join(final_dat, final_thallus, by= c("plant_id","site_code","h
 final_dat <- left_join(final_dat, final_blade, by= c("plant_id","site_code","hor_pos","depth_treatment","tile_id" ))
 
 # import the pre csv file
-initial_data_clean <- read_csv("experiment_data/initial_data_clean.csv")
+initial_data_clean <- read_csv(here("analysis_data/initial_data_clean.csv") )
 
 # merge the pre and post measurements
 
@@ -343,5 +335,8 @@ if(!dir.exists("analysis_data")){
 
 # output this to the analysis_data folder
 write_csv(analysis_data, file = here("analysis_data/experiment_analysis_data.csv"))
+
+# remove the initial clean data from the analysis data as it is now used
+unlink(here("analysis_data/initial_data_clean.csv"))
 
 ### END

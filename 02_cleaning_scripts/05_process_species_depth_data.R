@@ -1,16 +1,33 @@
-
-# Project: Functional value of macroalgal biodiversity
-
-# Title: Clean and process the transect and allometry depth data
+#'
+#' @title: Clean and process the transect and allometry depth data
+#' 
+#' @description: Script to clean the data on the depth distributions of the four focal
+#' species. These data come from two sources: (1) opportunistic collections from data taken
+#' when generating length - dry biomass and (2) direct measurements of the depth distribution
+#' of the different species using transects.
+#' 
+#' @authors: James G. Hagan (james_hagan(at)outlook.com)
+#' 
 
 # load libraries using groundhog
 library(groundhog)
-groundhog.day <- "2022-01-01"
+source(here("01_functions/get_groundhog_date.R"))
+groundhog.day <- get_groundhog_date()
 pkgs <- c("here", "dplyr", "readr", "ggplot2")
 groundhog.library(pkgs, groundhog.day)
 
+# check that the correct folder is present
+if(! dir.exists(here("ResearchBox 435"))){
+  print("download the ResearchBox contents and save it in the current directory")
+}
+
+# make a folder to export the cleaned data if it doesn't exist
+if(! dir.exists(here("analysis_data"))){
+  dir.create(here("analysis_data"))
+}
+
 # import the raw transect data
-tra_dat <- read_csv(file = here("preliminary_supporting_data/transect_data.csv"),
+tra_dat <- read_csv(file = here("ResearchBox 435/Data/transect_data.csv"),
                     col_types = c("ccccccccnnncnncc"),
                     na = c("NA"))
 names(tra_dat)
@@ -22,8 +39,6 @@ depth_data <-
   mutate(depth_correct = (water_level_cm + depth_cm) ) %>%
   select(date, transect_id, position, depth_correct) %>%
   distinct()
-
-# View(depth_data)
 
 # problems with the start of transect 2, remove positions 0 to 4
 # we do not have a starting depth
@@ -97,7 +112,6 @@ for(i in 1:length(depth_list)) {
 
 # bind the list into a data.frame
 depth_out <- bind_rows(depth_out)
-# View(depth_out)
 
 # join this back to the full dataset
 tra_a <- 
@@ -105,7 +119,6 @@ tra_a <-
   select(date, transect_id, site_code, time, position, water_level_cm, 
          depth_cm, depth_correct, depth_interpolated, binomial_code, length_cm, circum_cm, 
          field_observer, notes)
-# View(tra_a)
 
 # check the summary statistics
 summary(tra_a)
@@ -138,11 +151,8 @@ transect_summary <-
   transect_summary %>%
   select(data_id, binomial_code, mean_depth:quant_80)
 
-# View(transect_summary)
-
-
 # load the raw allometric data
-allo_dat <- read_csv(file = here("preliminary_supporting_data/sample_data_biomass_allometry.csv"),
+allo_dat <- read_csv(file = here("ResearchBox 435/Data/sample_data_biomass_allometry.csv"),
                      col_types = c("ccccdcccccdcddddccdddccdccc"),
                      na = c("NA"))
 
@@ -179,10 +189,7 @@ allo_summary <-
             quant_20 = quantile(depth_correct, 0.20, na.rm = TRUE),
             quant_80 = quantile(depth_correct, 0.80, na.rm = TRUE))
 
-# allo_dat %>%
-  # filter(depth_correct > 10) %>%
-  # View()
-
+# add an allometry identifier
 allo_summary$data_id <- "allometry_data"
 
 allo_summary <- 
@@ -190,11 +197,6 @@ allo_summary <-
   select(data_id, binomial_code, mean_depth:quant_80)
 
 # we used these summary statistics to choose our experimental depths
-
-# View(allo_summary)
-
-# bind_rows(transect_summary, allo_summary) %>%
-  # write_csv(x = ., file = "C:/Users/james/OneDrive/PhD_Gothenburg/Chapter_2_Fucus_landscape/datasheets_print/zonation_data.csv")
 
 # plot the depth data for each species
 names(allo_dat)

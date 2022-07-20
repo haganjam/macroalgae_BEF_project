@@ -1,27 +1,33 @@
-
-# Project: Tile experiment
-
-# Title: Clean and process the temperature and light logger data
+#'
+#' @title: Clean and process the temperature and light logger data
+#' 
+#' @description: Script to clean and process the temperature and light logger data
+#' collected for each depth zone at each site from the experiment
+#' 
+#' @authors: James G. Hagan (james_hagan(at)outlook.com)
+#' 
 
 # load libraries using groundhog
 library(groundhog)
-groundhog.day <- "2020-06-1"
-pkgs <- c("here", "dplyr", "tidyr", "readr")
+source(here("01_functions/get_groundhog_date.R"))
+groundhog.day <- get_groundhog_date()
+pkgs <- c("here", "dplyr", "tidyr", "readr", "stringr")
 groundhog.library(pkgs, groundhog.day)
 
-# check the loaded packages for their correct versions
-sessionInfo()
-
-# download the 20 raw logger data from ResearchBox: https://researchbox.org/435&PEER_REVIEW_passcode=ECOTGX
-# save this into a folder called tile_logger_data
-
 # check that the correct folder is present
-if(! dir.exists(here("tile_logger_data"))){
-  print("make a folder called tile_logger_data in the working directory and save the 20 raw data files into this folder see ReadMe for more details")
+if(! dir.exists(here("ResearchBox 435"))){
+  print("download the ResearchBox contents and save it in the current directory")
 }
 
+# make a folder to export the cleaned data if it doesn't exist
+if(! dir.exists(here("analysis_data"))){
+  dir.create(here("analysis_data"))
+}
+
+
 # load the files from the tile_logger_data folder
-logdat_names <- list.files(here("tile_logger_data"), pattern = ".csv")
+files <- list.files(here("ResearchBox 435/Data"))
+logdat_names <- files[grepl(pattern = "LG", x = files, ignore.case = FALSE) & (str_length(files) < 11)]
 
 logdat_list <- vector("list", length = length(logdat_names))
 for(i in 1:length(logdat_list) ) {
@@ -109,11 +115,6 @@ logdat_date_corrected <-
     
   })
 
-# list of logger data with corrected dates
-logdat_date_corrected
-
-# these should be be cross referenced with the direct hobo-logger data at some point
-
 # subset out time periods before and after the measurements were done
 logvars <- 
   lapply(logdat_date_corrected, function(df) {
@@ -128,6 +129,6 @@ logvars <-
 logvars[[1]]$date_corrected %>% range()  
 
 # output this cleaned version of the logger data
-write_rds(x = logvars, path = here("analysis_data/temp_light_logger_data.rds"))
+write_rds(x = logvars, file = here("analysis_data/temp_light_logger_data.rds"))
 
 ### END

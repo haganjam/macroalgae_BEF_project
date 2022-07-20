@@ -10,20 +10,21 @@
 
 # load libraries using groundhog
 library(groundhog)
-groundhog.day <- "2022-01-17"
+source(here("01_functions/get_groundhog_date.R"))
+groundhog.day <- get_groundhog_date()
 pkgs <- c("here", "dplyr", "readr", "lubridate", "stringr")
 groundhog.library(pkgs, groundhog.day)
 
 # check that the correct folder is present
-if(! dir.exists(here("experiment_data"))){
-  print("make a folder called experiment_data in the working directory and save the initial experiment data, see README for details")
+if(! dir.exists(here("ResearchBox 435"))){
+  print("download the ResearchBox contents and save it in the current directory")
 }
 
 # load the date_fixer function
-source(here("functions/date_fixer.R"))
+source(here("01_functions/date_fixer.R"))
 
 # load the raw initial data
-init_dat <- read_csv(file = here("experiment_data/tile_experiment_data_plants_pre.csv"),
+init_dat <- read_csv(file = here("ResearchBox 435/Data/tile_experiment_data_plants_pre.csv"),
                      col_types = list(date = col_character(), 
                                       time = col_character(),
                                       tile_id = col_character(),
@@ -51,8 +52,6 @@ init_dat <-
          sex_fu_ve, initial_wet_weight_g, initial_length_cm, observers, notes)
 
 # make separate columns for site, horizontal position and depth treatment from tile_id
-# regular expressions: https://www.journaldev.com/36776/regular-expressions-in-r
-# can also use simply substring
 init_dat <- 
   init_dat %>%
   mutate(site_code = substr(tile_id, 1, 1),
@@ -146,9 +145,6 @@ fix_dates_df$date_corrected2 <- ifelse(!is.na(fix_dates_df$day),
 # write this new date_corrected2 variable into the init_dat data
 init_dat$date_corrected2 <- fix_dates_df$date_corrected2
 
-# check these data
-View(init_dat)
-
 # this should sum to zero
 sum( is.na(init_dat$date_corrected) != is.na(init_dat$date_corrected2) )
 
@@ -213,7 +209,6 @@ init_dat %>%
   View()
 
 # the raw data is unchanged but we will correct once we have joined the image data
-View(init_dat)
 
 # just use the imputed date for simplicity
 init_dat <- 
@@ -224,7 +219,7 @@ init_dat <-
 # read in the image processing data
 
 # load the area data
-image_dat_initial <- read_csv(here("experiment_data/tiles_image_analysis_before.csv.csv"))
+image_dat_initial <- read_csv(here("ResearchBox 435/Data/tiles_image_analysis_before.csv.csv"))
 
 # apply labeling scheme
 image_dat_initial$plant_id <- image_dat_initial$id
@@ -237,7 +232,12 @@ image_dat_initial <- select(image_dat_initial, plant_id:initial_perimeter_cm)
 # join the image data to the other initial data
 init_dat <- left_join(image_dat_initial, init_dat, by= c("plant_id" ))
 
-# write this into a .csv file and 
-write_csv(init_dat, here("experiment_data/initial_data_clean.csv"))
+# output the cleaned csv file into the analysis data folder
+if(!dir.exists("analysis_data")){ 
+  dir.create("analysis_data") 
+}
+
+# write this into a .csv file
+write_csv(init_dat, here("analysis_data/initial_data_clean.csv"))
 
 ### END

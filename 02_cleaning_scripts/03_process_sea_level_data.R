@@ -9,30 +9,34 @@
 
 # load libraries using groundhog
 library(groundhog)
-groundhog.day <- "2022-01-17"
-pkgs <- c("here", "dplyr", "readr", "tidyr", "ggplot2", "lubridate")
+source(here("01_functions/get_groundhog_date.R"))
+groundhog.day <- get_groundhog_date()
+pkgs <- c("here", "dplyr", "readr", "ggplot2", "lubridate")
 groundhog.library(pkgs, groundhog.day)
 
 # load the plotting theme
-source(here("functions/function_plotting_theme.R"))
+source(here("01_functions/function_plotting_theme.R"))
 
-# make a folder to export the cleaned data
+# check that the correct folder is present
+if(! dir.exists(here("ResearchBox 435"))){
+  print("download the ResearchBox contents and save it in the current directory")
+}
+
+# make a folder to export the cleaned data if it doesn't exist
 if(! dir.exists(here("analysis_data"))){
   dir.create(here("analysis_data"))
 }
 
-# make a folder to export the cleaned data
-if(! dir.exists(here("sea_level_data"))){
-  print("make a folder called sea_level_data in the working directory and save the raw sea level data file into this directory")
-}
-
 # load the raw sea level data
-sea_dat <- read_csv(here("sea_level_data/sea_level_data_raw_2015_2021.csv"))
+
+# we unzip the file and output the zipped file to the Data folder
+unzip(zipfile = here("ResearchBox 435/Data/sea_level_data_raw_2015_2021.csv.zip"),
+      exdir = here("ResearchBox 435/Data"))
+
+# read in the unzipped .csv file with the sea level data
+sea_dat <- read_csv(here("ResearchBox 435/Data/sea_level_data_raw_2015_2021.csv"))
 
 # convert the UTC time into CEST to harmonise with the field measurements
-
-# check the time zone names available
-OlsonNames()
 
 # with_tz() with tzone = "Europe/Berlin" harmonises to CET and CEST
 head(sea_dat)
@@ -54,15 +58,8 @@ sea_dat %>%
 # use the preliminary supporting data to test whether RH2000 water levels taken
 # using the Viva app in the field correspond to the sea_level_data we have
 
-# download two files from from ResearchBox: https://researchbox.org/435&PEER_REVIEW_passcode=ECOTGX
-# these files can be found under the preliminary_supporting_data section:
-# 1. sample_data_biomass_allometry.csv
-# 2. transect_data.csv
-
-# save this into a folder on your computer called: preliminary_supporting_data
-
 # load the biomass allometry data
-allo_dat <- read_csv(file = here("preliminary_supporting_data/sample_data_biomass_allometry.csv"),
+allo_dat <- read_csv(file = here("ResearchBox 435/Data/sample_data_biomass_allometry.csv"),
                      col_types = list(sample_id = col_character()))
 str(allo_dat)
 head(allo_dat)
@@ -79,10 +76,9 @@ allo_dat$data_set <- "allometry"
 allo_sub <- 
   allo_dat %>%
   select(data_set, date, time, water_level_cm)
-# rm(allo_dat)
 
 # load the transect data
-tra_dat <- read_csv(file = here("preliminary_supporting_data/transect_data.csv"))
+tra_dat <- read_csv(file = here("ResearchBox 435/Data/transect_data.csv"))
 str(tra_dat)
 head(tra_dat)
 
@@ -96,7 +92,6 @@ tra_dat$data_set <- "transect"
 tra_sub <- 
   tra_dat %>%
   select(data_set, date, time, water_level_cm)
-# rm(tra_dat)
 
 # bind these data together
 pre_dat <- bind_rows(allo_sub, tra_sub)
@@ -150,8 +145,7 @@ mean(y)
 sd(y)
 hist(y)
 
-# remove the very large outliers which are unlikely to be a problem for
-# the tile experiment (but should be checked for Merle's data)
+# remove the very large outliers which are unlikely to be a problem for this experiment
 lev_sub <- 
   lev_comp %>% 
   filter(water_level_cm_viva < 20)
@@ -183,28 +177,7 @@ range(sea_dat$water_level_cm)
 # we output the .csv file so that we can model it
 
 # write a .csv file out so that we can model this and try to correct it
-write_csv(x = lev_comp, path = here("analysis_data/sea_level_viva_calibration_data.csv"))
-
-
-### explore the sea-level data
-
-# explore the data a bit
-summary(sea_dat)
-
-sea_dat %>%
-  filter(date_time_CET > as.POSIXct("2021-06-23 11:00:00", tz = "CET"),
-         date_time_CET < as.POSIXct("2021-08-23 12:00:00", tz = "CET")) %>%
-  summary()
-  
-sea_dat %>%
-  filter(date_time_CET > as.POSIXct("2021-06-23 11:00:00", tz = "CET"),
-         date_time_CET < as.POSIXct("2021-08-23 12:00:00", tz = "CET")) %>%
-  pull(water_level_cm) %>%
-  hist(.)
-
-View(sea_dat)
-
-sea_dat
+write_csv(x = lev_comp, file = here("analysis_data/sea_level_viva_calibration_data.csv"))
 
 # output a cleaned version of the sea_dat
 write_csv(x = sea_dat, path = here("analysis_data/sea_level_data.csv"))
