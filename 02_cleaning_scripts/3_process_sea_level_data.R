@@ -1,16 +1,17 @@
-
-# Project: Tile experiment
-
-# Title: Clean the sea-level data
+#'
+#' @title: Clean the sea level
+#' 
+#' @description: Script to clean the sea level data from SMHI and data with known depth
+#' for calibration purposes.
+#' 
+#' @authors: James G. Hagan (james_hagan(at)outlook.com)
+#' 
 
 # load libraries using groundhog
 library(groundhog)
-groundhog.day <- "2021-06-1"
+groundhog.day <- "2022-01-17"
 pkgs <- c("here", "dplyr", "readr", "tidyr", "ggplot2", "lubridate")
 groundhog.library(pkgs, groundhog.day)
-
-# check the loaded packages for their correct versions
-sessionInfo()
 
 # load the plotting theme
 source(here("functions/function_plotting_theme.R"))
@@ -19,9 +20,6 @@ source(here("functions/function_plotting_theme.R"))
 if(! dir.exists(here("analysis_data"))){
   dir.create(here("analysis_data"))
 }
-
-# download the raw sea level data from ResearchBox: https://researchbox.org/435&PEER_REVIEW_passcode=ECOTGX
-# save this into a folder called sea_level_data
 
 # make a folder to export the cleaned data
 if(! dir.exists(here("sea_level_data"))){
