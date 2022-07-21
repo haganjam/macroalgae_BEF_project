@@ -80,4 +80,4 @@ Groundhog works by versions of packages available at a certain date. Thus, if so
 The R version the code was written in is 4.2.1, groundhog date is 2022-07-17.
 
 There are various reasons why groundhog does not work sometimes. For example, sometimes certain versions of packages are not compatible with different versions of R and this can make it frustrating for someone trying to run the code. If you run into trouble with groundhog, you can simply install the packages normally and it is almost certain that the code will still run.
-
+ 
