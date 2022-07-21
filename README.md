@@ -47,7 +47,7 @@ Then, click the red button near the bottom of the page called:
 
 ```Download Entire Box```
 
-This will download a .zip file. Save this .zip file to the same directory that your repository is stored in. Make sure that it remains *unzipped*.
+This will download a .zip file. Save this .zip file to repository directory. Make sure that it remains *unzipped*.
 
 ### Run the code to reproduce the analysis
 
@@ -76,6 +76,8 @@ In this repository, we use the groundhog package in R for package management:
 + (https://cran.r-project.org/web/packages/groundhog/groundhog.pdf)
 
 Groundhog works by versions of packages available at a certain date. Thus, if someone tries to run this code in the future, groundhog will download the versions of packages used in the project that were present at the time the code was written.
+
+The R version the code was written in is 4.2.1, groundhog date is 2022-07-17.
 
 There are various reasons why groundhog does not work sometimes. For example, sometimes certain versions of packages are not compatible with different versions of R and this can make it frustrating for someone trying to run the code. If you run into trouble with groundhog, you can simply install the packages normally and it is almost certain that the code will still run.
 
