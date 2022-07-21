@@ -8,7 +8,7 @@
 #' monoculture functioning of monocultures in different environmental conditions. These data
 #' are available at the following figshare link: https://doi.org/10.6084/m9.figshare.12287303.v2
 #' 
-#' @authors: Benedikt Schrofner-Brunner (bschrobru(at)gmail.com) with minor edits from James G. Hagan (james_hagan(at)outlook.com)
+#' @authors: James G. Hagan (james_hagan(at)outlook.com) with minor edits from Benedikt Schrofner-Brunner (bschrobru(at)gmail.com)
 #' 
 
 # load relevant libraries
