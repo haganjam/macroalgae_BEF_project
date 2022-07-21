@@ -221,4 +221,8 @@ all_depth <-
 # write this into a .csv file into the analysis data
 write_csv(x = all_depth, file = here("analysis_data/species_depth_data.csv"))
 
+#Clear R environment
+rm(list = ls())
+
 ### END
+

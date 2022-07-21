@@ -36,7 +36,7 @@ logdat_names <- files[grepl(pattern = "LG", x = files, ignore.case = FALSE) & (s
 logdat_list <- vector("list", length = length(logdat_names))
 for(i in 1:length(logdat_list) ) {
   
-  logdat_list[[i]] <- read_csv(file = paste(here("tile_logger_data"), "/", logdat_names[i], sep = "" ),
+  logdat_list[[i]] <- read_csv(file = paste(here("ResearchBox 435/Data"), "/", logdat_names[i], sep = "" ),
                                col_types = list(site_code = col_character(), 
                                                 water_level_treat = col_character(),
                                                 date = col_date(),
@@ -136,3 +136,4 @@ logvars[[1]]$date_corrected %>% range()
 write_rds(x = logvars, file = here("analysis_data/temp_light_logger_data.rds"))
 
 ### END
+

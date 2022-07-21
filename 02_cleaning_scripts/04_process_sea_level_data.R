@@ -184,6 +184,6 @@ range(sea_dat$water_level_cm)
 write_csv(x = lev_comp, file = here("analysis_data/sea_level_viva_calibration_data.csv"))
 
 # output a cleaned version of the sea_dat
-write_csv(x = sea_dat, path = here("analysis_data/sea_level_data.csv"))
+write_csv(x = sea_dat, file = here("analysis_data/sea_level_data.csv"))
 
 ### END

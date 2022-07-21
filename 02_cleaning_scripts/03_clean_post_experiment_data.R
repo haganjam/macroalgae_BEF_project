@@ -298,7 +298,7 @@ summary(lm1)
 analysis_data$final_wet_weight_g[analysis_data$plant_id=="VDH1"] <- as.numeric(coef(lm1)[1] + coef(lm1)[2]*analysis_data$final_area_cm2[analysis_data$plant_id=="VDH1"])
 
 # fetch missing dates from time stamp data
-timestamps <- read_csv(here("experiment_data/transplant_image_timestamps.csv"))
+timestamps <- read_csv(here("ResearchBox 435/Data/transplant_image_timestamps.csv"))
 
 start_dates <- filter(timestamps, time == "t0")
 end_dates <- filter(timestamps, time == "t1")

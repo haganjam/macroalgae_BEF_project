@@ -15,6 +15,10 @@ require(groundhog)
 # load the relevant libraries using groundhog for package management
 source(here("01_functions/get_groundhog_date.R"))
 groundhog.day <- get_groundhog_date()
+
+#it is possible that groundhog asks for this package
+#require(stringi)
+
 pkgs <- c("here", "dplyr", "readr", "lubridate", "stringr")
 groundhog.library(pkgs, groundhog.day)
 
@@ -244,3 +248,4 @@ if(!dir.exists("analysis_data")){
 write_csv(init_dat, here("analysis_data/initial_data_clean.csv"))
 
 ### END
+
