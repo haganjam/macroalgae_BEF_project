@@ -18,7 +18,7 @@ require(groundhog)
 # load the relevant libraries using groundhog for package management
 source(here("01_functions/get_groundhog_date.R"))
 groundhog.day <- get_groundhog_date()
-pkgs <- c("dplyr", "readr", "tidyr", "ggplot2")
+pkgs <- c("dplyr", "readr", "tidyr", "ggplot2","ggpubr")
 groundhog.library(pkgs, groundhog.day)
 
 # load relevant functions
@@ -243,6 +243,6 @@ p12 <-
             font.label = list(size = 11, color = "black", face = "plain"))
 
 # export Fig. 6
-ggsave(filename = here("figures/fig_6.png"), width = 16, height = 8.5, p12, units = "cm")
+ggsave(filename = here("figures/fig_6.pdf"), width = 16, height = 8.5, p12, units = "cm")
 
 ### END

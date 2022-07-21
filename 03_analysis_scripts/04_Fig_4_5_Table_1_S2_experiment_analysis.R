@@ -398,7 +398,7 @@ pg_pca <- ggarrange(p_growths, pca_plot, ncol = 2, nrow = 1,
                     )
 
 # export Fig. 4
-ggsave(filename = here("figures/fig_4.png"), plot = pg_pca, 
+ggsave(filename = here("figures/fig_4.pdf"), plot = pg_pca, 
        units = "cm", width = 21, height = 14, dpi = 300)
 
 
@@ -546,7 +546,7 @@ p_epi_p5reg <- ggarrange(p_epi, p_5_reg, ncol = 2, nrow = 1,
 plot(p_epi_p5reg)
 
 # export Fig. 5
-ggsave(filename = here("figures/fig_5.png"), plot = p_epi_p5reg, 
+ggsave(filename = here("figures/fig_5.pdf"), plot = p_epi_p5reg, 
        units = "cm", width = 22, height = 15, dpi = 300)
 
 ### END
