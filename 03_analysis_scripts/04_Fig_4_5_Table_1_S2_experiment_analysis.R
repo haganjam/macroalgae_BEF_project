@@ -36,6 +36,38 @@ if(! dir.exists(here("figures"))){
 # import cleaned dataset
 analysis_data <- read_csv("analysis_data/experiment_analysis_data.csv")
 
+# mortality
+table(!is.na(analysis_data$date_end.x), analysis_data$depth_treatment)
+table(!is.na(analysis_data$date_end.x), analysis_data$binomial_code)
+
+#depth had an effect on overall mortality
+chisq.test(table(!is.na(analysis_data$date_end.x), analysis_data$depth_treatment))
+
+#species had generally different mortality
+chisq.test(table(!is.na(analysis_data$date_end.x), analysis_data$binomial_code))
+
+mortality=as.data.frame(table(!is.na(analysis_data$date_end.x), analysis_data$binomial_code, analysis_data$depth_treatment, analysis_data$site_code))
+names(mortality) = c("survived", "binomial_code","depth_treatment","site_code","freq")
+
+#the current table has counts survived and died, filter to only died plants
+mortality = mortality %>% filter(survived == F)
+
+#
+anova(lm(freq ~ site_code,mortality))
+anova(lm(freq ~ depth_treatment,mortality))
+anova(lm(freq ~ binomial_code,mortality))
+
+#see if there is an interaction effect of depth and 
+mod_mortality=(lm(freq ~ binomial_code*depth_treatment+site_code,mortality))
+vif(mod_mortality)
+
+mod_mortality=Anova(mod_mortality,type = 2)
+
+library(effectsize)
+mod_mortality
+eta_squared(mod_mortality,partial = F)
+
+
 # remove outlier as it is almost certainly an incorrect measurement see end of script
 analysis_data <- analysis_data[-493,] 
 
@@ -191,6 +223,10 @@ pca_plot <-
   theme(legend.position = "none")
 
 # plot the PCA
+ggsave(filename = here("figures/fig_S_PCA.pdf"), plot = pca_plot, 
+       units = "cm", width = 15, height = 14, dpi = 300)
+
+
 plot(pca_plot)
 
 # check the screeplot and the summary statistics
@@ -319,7 +355,7 @@ p_fusp <-
   geom_hline(yintercept =0) + 
   ylim(ylim=c(-2,3)) +
   theme(plot.title = element_text(vjust = - 7, hjust = 0.2,
-                                  size = 11)) 
+                                  size = 11,face="italic")) 
 
 plot(p_fusp)
 
@@ -339,7 +375,7 @@ p_fuve <-
   geom_hline(yintercept =0) + 
   ylim(ylim=c(-2,3)) +
   theme(plot.title = element_text(vjust = -  7, hjust = 0.2,
-                                  size = 11))
+                                  size = 11,face="italic"))
 
 plot(p_fuve)
 
@@ -359,7 +395,7 @@ p_asno <-
   geom_hline(yintercept =0) + 
   ylim(ylim=c(-2,3)) +
   theme(plot.title = element_text(vjust = -  7, hjust = 0.2,
-                                  size = 11))
+                                  size = 11,face="italic"))
 
 plot(p_asno)
 
@@ -378,7 +414,7 @@ p_fuse <-
   geom_hline(yintercept =0) + 
   ylim(ylim=c(-2, 3)) +
   theme(plot.title = element_text(vjust = - 7, hjust = 0.2,
-                                  size = 11))
+                                  size = 11,face="italic"))
 
 plot(p_fuse)
 
@@ -390,16 +426,16 @@ p_growths <- ggarrange(p_fusp, p_fuve, p_asno, p_fuse ,ncol = 2,nrow = 2,
 plot(p_growths)
 
 # combine with the pca plot to plot Fig. 4
-pg_pca <- ggarrange(p_growths, pca_plot, ncol = 2, nrow = 1,
-                    labels = c("", "e"),
-                    widths = c(1.2, 1),
-                    font.label = list(size = 11, color = "black", face = "plain"),
-                    label.x = 0.9, label.y = 0.98
-                    )
+# pg_pca <- ggarrange(p_growths, pca_plot, ncol = 2, nrow = 1,
+#                     labels = c("", "e"),
+#                     widths = c(1.2, 1),
+#                     font.label = list(size = 11, color = "black", face = "plain"),
+#                     label.x = 0.9, label.y = 0.98
+#                     )
 
 # export Fig. 4
-ggsave(filename = here("figures/fig_4.pdf"), plot = pg_pca, 
-       units = "cm", width = 21, height = 14, dpi = 300)
+ggsave(filename = here("figures/fig_4.pdf"), plot = p_growths, 
+       units = "cm", width = 20, height = 20, dpi = 300)
 
 
 # Figure 5
@@ -430,7 +466,7 @@ p_fusp_epi <-
   geom_hline(yintercept =0) + 
   ylim(ylim=c(0,.25)) +
   theme(plot.title = element_text(vjust = - 7, hjust = 0.2,
-                                  size = 11))
+                                  size = 11,face="italic"))
 
 # Figure 5b: Fucus vesiculosus
 analysis_data_fu_ve <- 
@@ -448,7 +484,7 @@ p_fuve_epi <-
   geom_hline(yintercept =0) + 
   ylim(ylim=c(0,.25)) +
   theme(plot.title = element_text(vjust = - 7, hjust = 0.2,
-                                  size = 11))
+                                  size = 11,face="italic"))
 
 # Figure 5c: Ascophyllum nodosum
 analysis_data_as_no <- 
@@ -466,7 +502,7 @@ p_asno_epi <-
   geom_hline(yintercept =0)+
   ylim(ylim=c(0,.25)) +
   theme(plot.title = element_text(vjust = - 7, hjust = 0.2,
-                                  size = 11))
+                                  size = 11,face="italic"))
 
 # Figure 5d: Fucus serratus
 analysis_data_fu_se <- 
@@ -484,7 +520,7 @@ p_fuse_epi <-
   geom_hline(yintercept =0) + 
   ylim(ylim=c(0,.25)) +
   theme(plot.title = element_text(vjust = - 7, hjust = 0.2,
-                                  size = 11))
+                                  size = 11,face="italic"))
 
 p_epi <- ggarrange(p_fusp_epi, p_fuve_epi, p_asno_epi, p_fuse_epi, ncol = 2,nrow = 2,
                    labels = c("a", "b", "c", "d"),
@@ -545,8 +581,8 @@ p_epi_p5reg <- ggarrange(p_epi, p_5_reg, ncol = 2, nrow = 1,
 
 plot(p_epi_p5reg)
 
-# export Fig. 5
-ggsave(filename = here("figures/fig_5.pdf"), plot = p_epi_p5reg, 
+# export supplementary Fig. epiphytes
+ggsave(filename = here("figures/fig_S_epiphyteanalysis.pdf"), plot = p_epi_p5reg, 
        units = "cm", width = 22, height = 15, dpi = 300)
 
 ### END

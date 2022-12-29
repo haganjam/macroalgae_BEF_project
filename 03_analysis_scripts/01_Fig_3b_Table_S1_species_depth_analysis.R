@@ -90,7 +90,7 @@ p1 <-
         axis.title.x = element_text(size = 10.5))
 plot(p1)
 
-ggsave(filename = here("figures/Fig_2b.pdf"), p1, units = "cm", dpi = 450,
+ggsave(filename = here("figures/Fig_3b.pdf"), p1, units = "cm", dpi = 450,
        width = 10, height = 8)
 
 ### END  

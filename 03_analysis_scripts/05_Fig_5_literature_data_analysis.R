@@ -157,92 +157,103 @@ p1 <-
 
 plot(p1)
 
+ggsave(filename = here("figures/fig_5.pdf"), width = 10, height = 8, p1, units = "cm")
+
+
+
+
+### END
+
+
+
+
+
 
 # Gamfeldt et al.'s in prep. meta-database
+# 
+# # load the raw data
+# meta_dat_raw <- read_csv( url("https://ndownloader.figshare.com/files/22647539") )
+# 
+# # the raw data file has extra columns in the csv file structure which we remove
+# meta_dat_raw <- 
+#   meta_dat_raw %>% 
+#   select(-contains("...3"))
+# 
+# # based on our selection criteria, we removed certain data points from our original raw file
+# 
+# # remove 'mixture best' data points in Fridley (2003)
+# meta_dat_raw <- filter(meta_dat_raw, Mixture_treatment != "mixture_best")
+# 
+# # remove data from Fox (2002) because it is a pure resource manipulation
+# meta_dat_raw <- filter(meta_dat_raw, Reference != "Fox_2002")
+# 
+# # remove treatment manipulations that relied on disturbance
+# meta_dat_raw <- filter(meta_dat_raw, Env_type_1 != "disturbance")
+# 
+# # clean the raw data
+# 
+# # create a unique identifier for each experiment
+# meta_dat_raw <- mutate(meta_dat_raw, Experiment_ID = paste(Reference, Experiment_number, sep = "_"))
+# 
+# # translate ecosystem function values to positive if low value indicates high ecosystem function
+# meta_dat_raw <- 
+#   meta_dat_raw %>% 
+#   group_by(Experiment_ID) %>% 
+#   mutate(ef_min = min(Ecosystem_function_mean)) %>% 
+#   ungroup() %>%
+#   mutate(ef_min = if_else(ef_min < 0, (-ef_min), 0)) %>% 
+#   mutate(Ecosystem_function_mean = (Ecosystem_function_mean + ef_min)) %>%
+#   select(-ef_min)
+# head(meta_dat_raw)
+# 
+# # check the relationship between mixtures across environments in a few examples
+# exp.list <- unique(meta_dat_raw$Experiment_ID)
+# n <- 1
+# 
+# meta_dat_raw %>%
+#   filter(Mixture_treatment != "mixture") %>%
+#   filter(Experiment_ID == exp.list[n]) %>%
+#   ggplot(data = .,
+#        mapping = aes(x = Environment, y = Ecosystem_function_mean, colour = Mixture_ID)) + 
+#   geom_point() +
+#   geom_smooth(method = "lm", se = FALSE) +
+#   theme_classic()
+# 
+# # calculate the species specialisation index
+# ssi <- 
+#   meta_dat_raw %>%
+#   filter(Mixture_treatment == "monoculture") %>%
+#   group_by(Experiment_ID, Environment) %>%
+#   filter(Ecosystem_function_mean == max(Ecosystem_function_mean)) %>%
+#   ungroup() %>%
+#   group_by(Experiment_ID) %>%
+#   summarise(n.spp = length(unique(Mixture_ID)),
+#             n.env = length(unique(Environment)), .groups = "drop") %>%
+#   mutate(n.spp.prop = (n.spp/n.env) ) %>% 
+#   mutate(species.specialisation = (n.spp.prop - (1/n.env))/(1-(1/n.env)) ) %>%
+#   select(Experiment_ID, species.specialisation)
+# 
+# # plot the distribution of species specialisation indices across the experiments
+# p2 <- 
+#   ggplot(data = ssi,
+#        mapping = aes(x = species.specialisation)) +
+#   geom_histogram(bins = 20, colour = "black", fill = "black") +
+#   theme_classic() +
+#   xlab("Species specialisation index (0-1)") +
+#   ylab("N experiments (n = 26)") +
+#   scale_y_continuous(breaks = c(0, 2, 4, 6, 8, 10)) +
+#   scale_x_continuous(breaks = round(unique(ssi$species.specialisation), 2)) +
+#   theme_meta()
+# 
+# plot(p2)
+# 
+# # combine figures p1 and p2 to generate Fig. 6
+# p12 <- 
+#   ggarrange(p1, p2, ncol = 2, nrow = 1,
+#             labels = c("a", "b"),
+#             font.label = list(size = 11, color = "black", face = "plain"))
 
-# load the raw data
-meta_dat_raw <- read_csv( url("https://ndownloader.figshare.com/files/22647539") )
-
-# the raw data file has extra columns in the csv file structure which we remove
-meta_dat_raw <- 
-  meta_dat_raw %>% 
-  select(-contains("...3"))
-
-# based on our selection criteria, we removed certain data points from our original raw file
-
-# remove 'mixture best' data points in Fridley (2003)
-meta_dat_raw <- filter(meta_dat_raw, Mixture_treatment != "mixture_best")
-
-# remove data from Fox (2002) because it is a pure resource manipulation
-meta_dat_raw <- filter(meta_dat_raw, Reference != "Fox_2002")
-
-# remove treatment manipulations that relied on disturbance
-meta_dat_raw <- filter(meta_dat_raw, Env_type_1 != "disturbance")
-
-# clean the raw data
-
-# create a unique identifier for each experiment
-meta_dat_raw <- mutate(meta_dat_raw, Experiment_ID = paste(Reference, Experiment_number, sep = "_"))
-
-# translate ecosystem function values to positive if low value indicates high ecosystem function
-meta_dat_raw <- 
-  meta_dat_raw %>% 
-  group_by(Experiment_ID) %>% 
-  mutate(ef_min = min(Ecosystem_function_mean)) %>% 
-  ungroup() %>%
-  mutate(ef_min = if_else(ef_min < 0, (-ef_min), 0)) %>% 
-  mutate(Ecosystem_function_mean = (Ecosystem_function_mean + ef_min)) %>%
-  select(-ef_min)
-head(meta_dat_raw)
-
-# check the relationship between mixtures across environments in a few examples
-exp.list <- unique(meta_dat_raw$Experiment_ID)
-n <- 1
-
-meta_dat_raw %>%
-  filter(Mixture_treatment != "mixture") %>%
-  filter(Experiment_ID == exp.list[n]) %>%
-  ggplot(data = .,
-       mapping = aes(x = Environment, y = Ecosystem_function_mean, colour = Mixture_ID)) + 
-  geom_point() +
-  geom_smooth(method = "lm", se = FALSE) +
-  theme_classic()
-
-# calculate the species specialisation index
-ssi <- 
-  meta_dat_raw %>%
-  filter(Mixture_treatment == "monoculture") %>%
-  group_by(Experiment_ID, Environment) %>%
-  filter(Ecosystem_function_mean == max(Ecosystem_function_mean)) %>%
-  ungroup() %>%
-  group_by(Experiment_ID) %>%
-  summarise(n.spp = length(unique(Mixture_ID)),
-            n.env = length(unique(Environment)), .groups = "drop") %>%
-  mutate(n.spp.prop = (n.spp/n.env) ) %>% 
-  mutate(species.specialisation = (n.spp.prop - (1/n.env))/(1-(1/n.env)) ) %>%
-  select(Experiment_ID, species.specialisation)
-
-# plot the distribution of species specialisation indices across the experiments
-p2 <- 
-  ggplot(data = ssi,
-       mapping = aes(x = species.specialisation)) +
-  geom_histogram(bins = 20, colour = "black", fill = "black") +
-  theme_classic() +
-  xlab("Species specialisation index (0-1)") +
-  ylab("N experiments (n = 26)") +
-  scale_y_continuous(breaks = c(0, 2, 4, 6, 8, 10)) +
-  scale_x_continuous(breaks = round(unique(ssi$species.specialisation), 2)) +
-  theme_meta()
-
-plot(p2)
-
-# combine figures p1 and p2 to generate Fig. 6
-p12 <- 
-  ggarrange(p1, p2, ncol = 2, nrow = 1,
-            labels = c("a", "b"),
-            font.label = list(size = 11, color = "black", face = "plain"))
-
-# export Fig. 6
-ggsave(filename = here("figures/fig_6.pdf"), width = 16, height = 8.5, p12, units = "cm")
+## export Fig. 6
+#ggsave(filename = here("figures/fig_6.pdf"), width = 16, height = 8.5, p12, units = "cm")
 
 ### END
