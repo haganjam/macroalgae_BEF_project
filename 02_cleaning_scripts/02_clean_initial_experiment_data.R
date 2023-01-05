@@ -16,8 +16,8 @@ require(groundhog)
 source(here("01_functions/get_groundhog_date.R"))
 groundhog.day <- get_groundhog_date()
 
-#it is possible that groundhog asks for this package
-#require(stringi)
+# it is possible that groundhog asks for this package
+# require(stringi)
 
 pkgs <- c("here", "dplyr", "readr", "lubridate", "stringr")
 groundhog.library(pkgs, groundhog.day)
