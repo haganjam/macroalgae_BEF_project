@@ -40,33 +40,35 @@ analysis_data <- read_csv("analysis_data/experiment_analysis_data.csv")
 table(!is.na(analysis_data$date_end.x), analysis_data$depth_treatment)
 table(!is.na(analysis_data$date_end.x), analysis_data$binomial_code)
 
-#depth had an effect on overall mortality
+# depth had an effect on overall mortality
 chisq.test(table(!is.na(analysis_data$date_end.x), analysis_data$depth_treatment))
 
-#species had generally different mortality
+# species had generally different mortality
 chisq.test(table(!is.na(analysis_data$date_end.x), analysis_data$binomial_code))
 
 mortality=as.data.frame(table(!is.na(analysis_data$date_end.x), analysis_data$binomial_code, analysis_data$depth_treatment, analysis_data$site_code))
 names(mortality) = c("survived", "binomial_code","depth_treatment","site_code","freq")
 
-#the current table has counts survived and died, filter to only died plants
+# the current table has counts survived and died, filter to only died plants
 mortality = mortality %>% filter(survived == F)
 
-#
+# run anova analysis
 anova(lm(freq ~ site_code,mortality))
 anova(lm(freq ~ depth_treatment,mortality))
 anova(lm(freq ~ binomial_code,mortality))
 
-#see if there is an interaction effect of depth and 
+# see if there is an interaction effect of depth and 
 mod_mortality=(lm(freq ~ binomial_code*depth_treatment+site_code,mortality))
 vif(mod_mortality)
 
-mod_mortality=Anova(mod_mortality,type = 2)
+mod_mortality = Anova(mod_mortality, type = 2)
 
+# load the effect size library
 library(effectsize)
+
+# calculate the effect size
 mod_mortality
 eta_squared(mod_mortality,partial = F)
-
 
 # remove outlier as it is almost certainly an incorrect measurement see end of script
 analysis_data <- analysis_data[-493,] 
@@ -225,8 +227,6 @@ pca_plot <-
 # plot the PCA
 ggsave(filename = here("figures/fig_S_PCA.pdf"), plot = pca_plot, 
        units = "cm", width = 15, height = 14, dpi = 300)
-
-
 plot(pca_plot)
 
 # check the screeplot and the summary statistics
@@ -282,8 +282,11 @@ anova(model1)
 # calculate emmeans to compare groups directly
 emm <- emmeans(model1, list(pairwise ~ factor(depth_treatment)/Species), adjust = "tukey")
 
+# make a table of the emmeans output
+emm <- as.data.frame(emm$`emmeans of depth_treatment, Species`)
+
 # Table S2: write this output from emmeans into a .csv file
-write_csv(as.data.frame(emm$`emmeans of depth_treatment, Species`), here("figures/table_S2.csv") )
+write_csv(emm, here("figures/table_S2.csv") )
 
 
 # post-hoc analysis for each species: fit an individual model to each species
@@ -344,18 +347,45 @@ analysis_data_fu_sp <-
   analysis_data  %>% 
   filter(Species == "Fucus spiralis", !is.na(dry_weight_g_daily_relative_increase))
 
+# add a table with the significance letters
+fu_sp_sig <- 
+  analysis_data_fu_sp %>%
+  group_by(depth_treatment) %>%
+  summarise(max_RGR = max(dry_weight_g_daily_relative_increase) + 0.3, .groups = "drop") %>%
+  mutate(depth_treatment = factor(depth_treatment),
+         significance = c("a", "a", "a", "a"))
+
 p_fusp <- 
-  ggplot(analysis_data_fu_sp, aes(factor(depth_treatment), dry_weight_g_daily_relative_increase)) + 
-  ggdist::stat_halfeye(adjust = .5, width = .3, .width = 0, justification = -.3, point_colour = NA,fill="#fadb25") + 
-  geom_boxplot(width = .1, outlier.shape = NA,color="#fadb25") +
+  ggplot(data = analysis_data_fu_sp) + 
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "black") + 
+  ggdist::stat_halfeye(mapping = aes(factor(depth_treatment), dry_weight_g_daily_relative_increase), 
+                       adjust = 0.5, width = 0.3, .width = 0, 
+                       justification = -0.3, point_colour = NA, fill="#fadb25",
+                       alpha = 0.75) + 
+  gghalves::geom_half_point(mapping = aes(factor(depth_treatment), dry_weight_g_daily_relative_increase), 
+                            side = "l", range_scale = 0.4,
+                            fill = "#fadb25", colour = "#fadb25",
+                            alpha = 0.75) +
+  geom_errorbar(data = filter(emm, Species == "Fucus spiralis"),
+                mapping = aes(x = factor(depth_treatment), 
+                              ymin = emmean - SE,
+                              ymax = emmean + SE), 
+                width = 0.05, colour = "red", size = 0.45) +
+  geom_point(data = filter(emm, Species == "Fucus spiralis"),
+             mapping = aes(x = factor(depth_treatment), y = emmean), 
+             shape = 18, colour = "red", size = 2.5) +
+  geom_label(data = fu_sp_sig,
+             mapping = aes(x = depth_treatment, y = max_RGR, label = significance),
+             label.size = NA, size = 3.5) +
+  xlab("") +
+  ylab(expression("Dry weight change"~(g~g^{-1}~"%"~day^{-1}) )) +
+  scale_y_continuous(limits = c(-2,3), breaks = c(-2, -1, 0, 1, 2, 3)) +
   theme_meta() +
-  ggtitle("F. spiralis") +
-  xlab("Depth [cm]") +
-  ylab("Dry weight increase in % per day") +
-  geom_hline(yintercept =0) + 
-  ylim(ylim=c(-2,3)) +
-  theme(plot.title = element_text(vjust = - 7, hjust = 0.2,
-                                  size = 11,face="italic")) 
+  theme(panel.border = element_blank(),
+        axis.line.x = element_line(colour = "black", size = 0.5),
+        axis.line.y = element_line(colour = "black", size = 0.5),
+        axis.ticks.x = element_line(size = 0.5),
+        axis.ticks.y= element_line(size = 0.5))
 
 plot(p_fusp)
 
@@ -364,18 +394,45 @@ analysis_data_fu_ve <-
   analysis_data  %>% 
   filter(Species == "Fucus vesiculosus", !is.na(dry_weight_g_daily_relative_increase))
 
+# add a table with the significance letters
+fu_ve_sig <- 
+  analysis_data_fu_ve %>%
+  group_by(depth_treatment) %>%
+  summarise(max_RGR = max(dry_weight_g_daily_relative_increase) + 0.3, .groups = "drop") %>%
+  mutate(depth_treatment = factor(depth_treatment),
+         significance = c("a", "a", "a", "a"))
+
 p_fuve <- 
-  ggplot(analysis_data_fu_ve, aes(factor(depth_treatment), dry_weight_g_daily_relative_increase)) + 
-  ggdist::stat_halfeye(adjust = .5, width = .3, .width = 0, justification = -.3, point_colour = "NA",fill="#ec7853") + 
-  geom_boxplot(width = .1, outlier.shape = NA,color="#ec7853") +
-  theme_meta()+
-  ggtitle("F. vesiculosus") +
-  xlab("Depth [cm]")+ 
-  ylab("    ")+ 
-  geom_hline(yintercept =0) + 
-  ylim(ylim=c(-2,3)) +
-  theme(plot.title = element_text(vjust = -  7, hjust = 0.2,
-                                  size = 11,face="italic"))
+  ggplot(data = analysis_data_fu_ve) + 
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "black") + 
+  ggdist::stat_halfeye(mapping = aes(factor(depth_treatment), dry_weight_g_daily_relative_increase), 
+                       adjust = 0.5, width = 0.3, .width = 0, 
+                       justification = -0.3, point_colour = NA, fill="#ec7853",
+                       alpha = 0.75) + 
+  gghalves::geom_half_point(mapping = aes(factor(depth_treatment), dry_weight_g_daily_relative_increase), 
+                            side = "l", range_scale = 0.4,
+                            fill = "#ec7853", colour = "#ec7853",
+                            alpha = 0.75) +
+  geom_errorbar(data = filter(emm, Species == "Fucus vesiculosus"),
+                mapping = aes(x = factor(depth_treatment), 
+                              ymin = emmean - SE,
+                              ymax = emmean + SE), 
+                width = 0.05, colour = "red", size = 0.45) +
+  geom_point(data = filter(emm, Species == "Fucus vesiculosus"),
+             mapping = aes(x = factor(depth_treatment), y = emmean), 
+             shape = 18, colour = "red", size = 2.5) +
+  geom_label(data = fu_ve_sig,
+             mapping = aes(x = depth_treatment, y = max_RGR, label = significance),
+             label.size = NA, size = 3.5) +
+  xlab("") +
+  ylab("") +
+  scale_y_continuous(limits = c(-2,3), breaks = c(-2, -1, 0, 1, 2, 3)) +
+  theme_meta() +
+  theme(panel.border = element_blank(),
+        axis.line.x = element_line(colour = "black", size = 0.5),
+        axis.line.y = element_line(colour = "black", size = 0.5),
+        axis.ticks.x = element_line(size = 0.5),
+        axis.ticks.y= element_line(size = 0.5))
 
 plot(p_fuve)
 
@@ -384,18 +441,45 @@ analysis_data_as_no <-
   analysis_data  %>% 
   filter(Species == "Ascophyllum nodosum", !is.na(dry_weight_g_daily_relative_increase))
 
+# add a table with the significance letters
+as_no_sig <- 
+  analysis_data_as_no %>%
+  group_by(depth_treatment) %>%
+  summarise(max_RGR = max(dry_weight_g_daily_relative_increase, na.rm = TRUE) + 0.3, .groups = "drop") %>%
+  mutate(depth_treatment = factor(depth_treatment),
+         significance = c("a", "ab", "a", "ac"))
+
 p_asno <- 
-  ggplot(analysis_data_as_no, aes(factor(depth_treatment), dry_weight_g_daily_relative_increase)) + 
-  ggdist::stat_halfeye(adjust = .5, width = .3, .width = 0, justification = -.3, point_colour = "NA",fill="#9c259f") + 
-  geom_boxplot(width = .1, outlier.shape = NA,color="#9c259f") +
+  ggplot(data = analysis_data_as_no) + 
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "black") + 
+  ggdist::stat_halfeye(mapping = aes(factor(depth_treatment), dry_weight_g_daily_relative_increase), 
+                       adjust = 0.5, width = 0.3, .width = 0, 
+                       justification = -0.3, point_colour = NA, fill="#9c259f",
+                       alpha = 0.75) + 
+  gghalves::geom_half_point(mapping = aes(factor(depth_treatment), dry_weight_g_daily_relative_increase), 
+                            side = "l", range_scale = 0.4,
+                            fill = "#9c259f", colour = "#9c259f",
+                            alpha = 0.75) +
+  geom_errorbar(data = filter(emm, Species == "Ascophyllum nodosum"),
+                mapping = aes(x = factor(depth_treatment), 
+                              ymin = emmean - SE,
+                              ymax = emmean + SE), 
+                width = 0.05, colour = "red", size = 0.45) +
+  geom_point(data = filter(emm, Species == "Ascophyllum nodosum"),
+             mapping = aes(x = factor(depth_treatment), y = emmean), 
+             shape = 18, colour = "red", size = 2.5) +
+  geom_label(data = as_no_sig,
+             mapping = aes(x = depth_treatment, y = max_RGR, label = significance),
+             label.size = NA, size = 3.5) +
+  xlab("Depth treatment (cm)") +
+  ylab(expression("Dry weight change"~(g~g^{-1}~"%"~day^{-1}) )) +
+  scale_y_continuous(limits = c(-2,3.7), breaks = c(-2, -1, 0, 1, 2, 3)) +
   theme_meta() +
-  ggtitle("A. nodosum") +
-  xlab("Depth [cm]") +
-  ylab("Dry weight increase in % per day") + 
-  geom_hline(yintercept =0) + 
-  ylim(ylim=c(-2,3)) +
-  theme(plot.title = element_text(vjust = -  7, hjust = 0.2,
-                                  size = 11,face="italic"))
+  theme(panel.border = element_blank(),
+        axis.line.x = element_line(colour = "black", size = 0.5),
+        axis.line.y = element_line(colour = "black", size = 0.5),
+        axis.ticks.x = element_line(size = 0.5),
+        axis.ticks.y= element_line(size = 0.5))
 
 plot(p_asno)
 
@@ -404,38 +488,57 @@ analysis_data_fu_se <-
   analysis_data  %>% 
   filter(Species == "Fucus serratus", !is.na(dry_weight_g_daily_relative_increase))
 
+# add a table with the significance letters
+fu_se_sig <- 
+  analysis_data_fu_se %>%
+  group_by(depth_treatment) %>%
+  summarise(max_RGR = max(dry_weight_g_daily_relative_increase) + 0.3, .groups = "drop") %>%
+  mutate(depth_treatment = factor(depth_treatment),
+         significance = c("a", "a", "b", "b"))
+
 p_fuse <- 
-  ggplot(analysis_data_fu_se, aes(factor(depth_treatment), dry_weight_g_daily_relative_increase)) + 
-  ggdist::stat_halfeye(adjust = .5, width = .3, .width = 0, justification = -.3, point_colour = "NA", fill="#0c1787") + 
-  geom_boxplot(width = .1, outlier.shape = NA,color="#0c1787") +
+  ggplot(data = analysis_data_fu_se) + 
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "black") + 
+  ggdist::stat_halfeye(mapping = aes(factor(depth_treatment), dry_weight_g_daily_relative_increase), 
+                       adjust = 0.5, width = 0.3, .width = 0, 
+                       justification = -0.3, point_colour = NA, fill="#0c1787",
+                       alpha = 0.75) + 
+  gghalves::geom_half_point(mapping = aes(factor(depth_treatment), dry_weight_g_daily_relative_increase), 
+                            side = "l", range_scale = 0.4,
+                            fill = "#0c1787", colour = "#0c1787",
+                            alpha = 0.75) +
+  geom_errorbar(data = filter(emm, Species == "Fucus serratus"),
+                mapping = aes(x = factor(depth_treatment), 
+                              ymin = emmean - SE,
+                              ymax = emmean + SE), 
+                width = 0.05, colour = "red", size = 0.45) +
+  geom_point(data = filter(emm, Species == "Fucus serratus"),
+             mapping = aes(x = factor(depth_treatment), y = emmean), 
+             shape = 18, colour = "red", size = 2.5) +
+  geom_label(data = fu_se_sig,
+             mapping = aes(x = depth_treatment, y = max_RGR, label = significance),
+             label.size = NA, size = 3.5) +
+  xlab("Depth treatment (cm)") +
+  ylab("") +
+  scale_y_continuous(limits = c(-2,3), breaks = c(-2, -1, 0, 1, 2, 3)) +
   theme_meta() +
-  ggtitle("F. serratus") +
-  xlab("Depth [cm]")+ylab("   ") + 
-  geom_hline(yintercept =0) + 
-  ylim(ylim=c(-2, 3)) +
-  theme(plot.title = element_text(vjust = - 7, hjust = 0.2,
-                                  size = 11,face="italic"))
+  theme(panel.border = element_blank(),
+        axis.line.x = element_line(colour = "black", size = 0.5),
+        axis.line.y = element_line(colour = "black", size = 0.5),
+        axis.ticks.x = element_line(size = 0.5),
+        axis.ticks.y= element_line(size = 0.5))
 
 plot(p_fuse)
 
 # arrange these plots into a single figure
 p_growths <- ggarrange(p_fusp, p_fuve, p_asno, p_fuse ,ncol = 2,nrow = 2,
                        labels = c("a", "b", "c", "d"),
-                       font.label = list(size = 11, color = "black", face = "plain"),
-                       label.x = 0.85, label.y = 0.90)
+                       font.label = list(size = 11, color = "black", face = "plain"))
 plot(p_growths)
-
-# combine with the pca plot to plot Fig. 4
-# pg_pca <- ggarrange(p_growths, pca_plot, ncol = 2, nrow = 1,
-#                     labels = c("", "e"),
-#                     widths = c(1.2, 1),
-#                     font.label = list(size = 11, color = "black", face = "plain"),
-#                     label.x = 0.9, label.y = 0.98
-#                     )
 
 # export Fig. 4
 ggsave(filename = here("figures/fig_4.pdf"), plot = p_growths, 
-       units = "cm", width = 20, height = 20, dpi = 300)
+       units = "cm", width = 16.5, height = 17, dpi = 300)
 
 
 # Figure 5
