@@ -9,7 +9,7 @@
 #' @param date - date string in the format: "YYYY-MM-DD"
 #' 
 
-get_groundhog_date <- function(date = "2022-07-17") {
+get_groundhog_date <- function(date = "2022-04-20") {
   return(date)
 }
 

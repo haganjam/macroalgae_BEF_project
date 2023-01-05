@@ -1,5 +1,5 @@
 #'
-#' @title: Generate ecologically relevant variables from the sea-level data
+#' @title: Analyse the relative growth rate data for species and depths
 #' 
 #' @description: This scripts analyses the effect of our treatments on growth and traits of
 #' using data from the experiment. The script also produces Fig. 4, Fig. 5 and the
@@ -17,7 +17,7 @@ source(here("01_functions/get_groundhog_date.R"))
 groundhog.day <- get_groundhog_date()
 pkgs <- c("here","readr","vegan","dplyr","lme4",
           "MuMIn","jtools","lmerTest","emmeans",
-          "ggpubr", "ggfortify", "car", "ggdist")
+          "ggpubr", "ggfortify", "car", "ggdist", "ggbeeswarm")
 groundhog.library(pkgs, groundhog.day)
 
 # load relevant functions
