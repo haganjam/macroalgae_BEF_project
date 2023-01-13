@@ -16,7 +16,7 @@ require(groundhog)
 source(here("01_functions/get_groundhog_date.R"))
 groundhog.day <- get_groundhog_date()
 pkgs <- c("dplyr", "readr", "ggplot2", "ggbeeswarm")
-groundhog.library(pkgs, groundhog.day)
+groundhog.library(pkgs, groundhog.day,,tolerate.R.version='4.2.2')
 
 # output the cleaned csv file into the analysis data folder
 if(!dir.exists("analysis_data")){ 
@@ -75,22 +75,21 @@ p1 <-
                            y = binomial_code, colour = binomial_code), size = 2) +
   geom_point(mapping = aes(x = sort(c(-5, -12, -28, -40)), y = rep(0.1, 4),
                            colour = all_depth_summary$binomial_code),
-             shape = 73, size = 9) +
-  scale_x_continuous(limits = c(-55, 18), 
-                     breaks = seq(-55, 18, 10)) +
+             shape = 15, size = 10) +
+  scale_x_continuous(limits = c(-55, 10), 
+                     breaks = seq(-50, 18, 10)) +
   scale_y_discrete() +
   scale_colour_manual(values = c("#0c1787","#9c259f", "#ec7853","#fadb25"))+
-  #scale_colour_viridis_d(option = "C") +
   theme_meta() +
   ylab(NULL) +
-  xlab("Depth [cm]") +
+  xlab("Depth (cm)") +
   theme(legend.position = "none",
-        axis.text.y = element_text(hjust = 0.5, size = 9,face = "italic"),
-        axis.text.x = element_text(size = 9),
-        axis.title.x = element_text(size = 10.5))
+        axis.text.x = element_text(hjust = 0.5, size = 9,face = "italic",angle = 0),
+        axis.text.y = element_text(size = 9),
+        axis.title.y = element_text(size = 10.5))+coord_flip()
 plot(p1)
 
-ggsave(filename = here("figures/Fig_3b.pdf"), p1, units = "cm", dpi = 450,
-       width = 10, height = 8)
+ggsave(filename = here("figures/Fig_2b.pdf"), p1, units = "cm", dpi = 350,
+       width = 12, height = 12)
 
 ### END  

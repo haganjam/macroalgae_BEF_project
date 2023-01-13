@@ -609,8 +609,8 @@ p_fusp_epi <-
   geom_boxplot(width = .2, outlier.shape = NA,color="#fadb25") +  
   theme_meta() +
   ggtitle("F. spiralis") +
-  xlab("Depth [cm]") + 
-  ylab(expression("Epiphytes per thallus area [g * cm"^-2*"]")) + 
+  xlab("Depth (cm)") + 
+  ylab(expression("Epiphytes per thallus area (g * cm"^-2*")")) + 
   geom_hline(yintercept =0) + 
   ylim(ylim=c(0,.25)) +
   theme(plot.title = element_text(vjust = - 7, hjust = 0.2,
@@ -627,7 +627,7 @@ p_fuve_epi <-
   geom_boxplot(width = .2, outlier.shape = NA,color="#ec7853") + 
   theme_meta() +
   ggtitle("F. vesiculosus") +
-  xlab("Depth [cm]") + 
+  xlab("Depth (cm)") + 
   ylab(" ") + 
   geom_hline(yintercept =0) + 
   ylim(ylim=c(0,.25)) +
@@ -645,8 +645,8 @@ p_asno_epi <-
   geom_boxplot(width = .2, outlier.shape = NA, color="#9c259f") + 
   theme_meta() +
   ggtitle("A. nodosum") +
-  xlab("Depth [cm]") +
-  ylab(expression("Epiphytes per thallus area [g * cm"^-2*"]")) + 
+  xlab("Depth (cm)") +
+  ylab(expression("Epiphytes per thallus area (g * cm"^-2*")")) + 
   geom_hline(yintercept =0)+
   ylim(ylim=c(0,.25)) +
   theme(plot.title = element_text(vjust = - 7, hjust = 0.2,
@@ -663,7 +663,7 @@ p_fuse_epi <-
   geom_boxplot(width = .2, outlier.shape = NA,color="#0c1787") +  
   theme_meta() +
   ggtitle("F. serratus") +
-  xlab("Depth [cm]") + 
+  xlab("Depth (cm)") + 
   ylab(" ")+
   geom_hline(yintercept =0) + 
   ylim(ylim=c(0,.25)) +
@@ -713,7 +713,7 @@ p_5_reg <-
   theme_meta()+
   scale_linetype_discrete(name="Depth [cm]") +
   scale_colour_manual(name="",values=c("#0c1787","#9c259f", "#ec7853","#fadb25")) +
-  xlab(expression("Epiphytes per thallus area [g * cm"^-2*"]")) + 
+  xlab(expression("Epiphytes per thallus area (g * cm"^-2*")")) + 
   ylab("Dry weight increase in % per day") +
   geom_abline(slope = -2.87, intercept = 0.94,size=1)+theme(legend.key = element_rect(fill = NA, color = NA))
 
