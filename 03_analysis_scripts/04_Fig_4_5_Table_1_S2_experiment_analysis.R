@@ -59,7 +59,6 @@ anova(lm(freq ~ binomial_code,mortality))
 
 # see if there is an interaction effect of depth and 
 mod_mortality=(glm(freq ~ binomial_code*depth_treatment+site_code,mortality,family=poisson))
-vif(mod_mortality,type = "predictor")
 
 #plot(mod_mortality)
 
@@ -71,6 +70,22 @@ library(effectsize)
 
 # calculate the effect size
 mod_mortality
+
+
+mortality %>% group_by(binomial_code,depth_treatment) %>% summarise(mean=mean(freq))
+
+
+#How many full tiles were lost?
+
+mortality[mortality$freq==9,]
+
+mortality[mortality$freq==8,]
+
+
+table(mortality$freq)
+hist(mortality$freq)
+
+
 
 # remove outlier as it is almost certainly an incorrect measurement see end of script
 analysis_data <- analysis_data[-493,] 
@@ -175,10 +190,10 @@ p_S_dry_weight_prediction <- ggplot(dw_pred_data, aes(x = dry_weight_g, y = pred
   geom_point(size=1,alpha=0.5) +  
   geom_smooth(method="lm",se = F,size=.6,alpha=0.8,col = "black")+ 
   theme_meta()+
-  xlab(expression("dry weight (g)")) + 
-  ylab("predicted dry weight (g)")+
+  xlab(expression("Dry weight (g)")) + 
+  ylab("Predicted dry weight (g)")+
   xlim(c(0,15))+ylim(c(0,15))+
-  annotate("text", x=1.2, y=14.5, label= expression(~R^{2}~"= .98"))
+  annotate("text", x=1.2, y=14.5, label= expression(~r^{2}~"= .98"))
 
 ggsave(filename = here("figures/fig_S_dry_weight_prediction.pdf"), plot = p_S_dry_weight_prediction, 
        units = "cm", width = 10, height = 10, dpi = 300)
@@ -207,17 +222,20 @@ table(is.na(analysis_data$dry_weight_g_daily_relative_increase))
 # epiphyte wet weight per area
 analysis_data$epiphyte_wet_weight_g_per_area <- analysis_data$epiphyte_wet_weight_g / analysis_data$final_area_cm2
 
-
 ######Summary Stats Growth######
-analysis_data %>% group_by(Species) %>% summarise(mean=mean(growth_wet_weight_g,na.rm=T),
-                             sd=sd(growth_wet_weight_g,na.rm=T),
-                             percent = mean(growth_wet_weight_g_percent,na.rm=T))
+analysis_data %>% group_by(Species) %>% summarise(mean=mean(dry_weight_total_g_increase,na.rm=T),
+                                                  sd=sd(dry_weight_total_g_increase,na.rm=T),
+                                                  percent = mean(dry_weight_total_g_relative_increase_total,na.rm=T))
 
-analysis_data %>% group_by(Species,depth_treatment) %>% summarise(mean=mean(growth_wet_weight_g,na.rm=T),
-                                                  sd=sd(growth_wet_weight_g,na.rm=T),
-                                                  percent = mean(growth_wet_weight_g_percent,na.rm=T))
+analysis_data %>% group_by(Species,depth_treatment) %>% summarise(mean=mean(dry_weight_total_g_increase,na.rm=T),
+                                                                  sd=sd(dry_weight_total_g_increase,na.rm=T),
+                                                                  percent = mean(dry_weight_total_g_relative_increase_total,na.rm=T))
 
 
+analysis_data %>% group_by(Species) %>% summarise(dry_mean=mean(dry_weight_total_g_before_predicted,na.rm=T),
+                                                  dry_sd=sd(dry_weight_total_g_before_predicted,na.rm=T),
+                                                  length_cm = mean(initial_length_cm,na.rm=T),
+                                                  length_sd = sd(initial_length_cm,na.rm=T))
 
 
 
@@ -605,14 +623,13 @@ analysis_data_fu_sp <-
 
 p_fusp_epi <- 
   ggplot(analysis_data_fu_sp, aes(factor(depth_treatment), epiphyte_wet_weight_g_per_area)) + 
-  ggdist::stat_halfeye(adjust = .5, width = .4, .width = 0, justification = -.3, point_colour = NA,fill="#fadb25") + 
-  geom_boxplot(width = .2, outlier.shape = NA,color="#fadb25") +  
+  geom_boxplot(width = .5, outlier.shape = NA,color="#fadb25") +  
   theme_meta() +
   ggtitle("F. spiralis") +
   xlab("Depth (cm)") + 
-  ylab(expression("Epiphytes per thallus area (g * cm"^-2*")")) + 
+  ylab(expression("Epiphyte wet weight per fucoid thallus area (g cm"^-2*")")) + 
   geom_hline(yintercept =0) + 
-  ylim(ylim=c(0,.25)) +
+  ylim(ylim=c(0,.16)) +
   theme(plot.title = element_text(vjust = - 7, hjust = 0.2,
                                   size = 11,face="italic"))
 
@@ -623,14 +640,13 @@ analysis_data_fu_ve <-
 
 p_fuve_epi <- 
   ggplot(analysis_data_fu_ve, aes(factor(depth_treatment), epiphyte_wet_weight_g_per_area)) + 
-  ggdist::stat_halfeye(adjust = .5, width = .4, .width = 0, justification = -.3, point_colour = NA,fill="#ec7853") + 
-  geom_boxplot(width = .2, outlier.shape = NA,color="#ec7853") + 
+  geom_boxplot(width = .5, outlier.shape = NA,color="#ec7853") + 
   theme_meta() +
   ggtitle("F. vesiculosus") +
   xlab("Depth (cm)") + 
   ylab(" ") + 
   geom_hline(yintercept =0) + 
-  ylim(ylim=c(0,.25)) +
+  ylim(ylim=c(0,.16)) +
   theme(plot.title = element_text(vjust = - 7, hjust = 0.2,
                                   size = 11,face="italic"))
 
@@ -641,14 +657,13 @@ analysis_data_as_no <-
 
 p_asno_epi <- 
   ggplot(analysis_data_as_no, aes(factor(depth_treatment), epiphyte_wet_weight_g_per_area)) + 
-  ggdist::stat_halfeye(adjust = .5, width = .4, .width = 0, justification = -.3, point_colour = NA,fill="#9c259f") + 
-  geom_boxplot(width = .2, outlier.shape = NA, color="#9c259f") + 
+  geom_boxplot(width = .5, outlier.shape = NA, color="#9c259f") + 
   theme_meta() +
   ggtitle("A. nodosum") +
   xlab("Depth (cm)") +
-  ylab(expression("Epiphytes per thallus area (g * cm"^-2*")")) + 
+  ylab(expression("Epiphyte wet weight per fucoid thallus area (g cm"^-2*")")) + 
   geom_hline(yintercept =0)+
-  ylim(ylim=c(0,.25)) +
+  ylim(ylim=c(0,.16)) +
   theme(plot.title = element_text(vjust = - 7, hjust = 0.2,
                                   size = 11,face="italic"))
 
@@ -659,21 +674,19 @@ analysis_data_fu_se <-
 
 p_fuse_epi <- 
   ggplot(analysis_data_fu_se, aes(factor(depth_treatment), epiphyte_wet_weight_g_per_area)) + 
-  ggdist::stat_halfeye(adjust = .5, width = .4, .width = 0, justification = -.3, point_colour = NA, fill="#0c1787") + 
-  geom_boxplot(width = .2, outlier.shape = NA,color="#0c1787") +  
+  geom_boxplot(width = .5, outlier.shape = NA,color="#0c1787") +  
   theme_meta() +
   ggtitle("F. serratus") +
   xlab("Depth (cm)") + 
   ylab(" ")+
   geom_hline(yintercept =0) + 
-  ylim(ylim=c(0,.25)) +
+  ylim(ylim=c(0,.16)) +
   theme(plot.title = element_text(vjust = - 7, hjust = 0.2,
                                   size = 11,face="italic"))
 
 p_epi <- ggarrange(p_fusp_epi, p_fuve_epi, p_asno_epi, p_fuse_epi, ncol = 2,nrow = 2,
                    labels = c("a", "b", "c", "d"),
-                   font.label = list(size = 11, color = "black", face = "plain"),
-                   label.x = 0.85, label.y = 0.905)
+                   font.label = list(size = 11, color = "black", face = "plain"))
 plot(p_epi)
 
 # Does epiphyte growth restrict fucoid growth?
@@ -709,28 +722,27 @@ levels(analysis_data2$Species) <- c("F. serratus", "A. nodosum", "F. vesiculosus
 p_5_reg <- 
   ggplot(analysis_data2, aes(x = epiphyte_wet_weight_g_per_area, y = dry_weight_g_daily_relative_increase, color=Species,linetype=factor(depth_treatment))) + 
   geom_point(size=1,alpha=0.5) +  
-  geom_smooth(method="lm",se = F,size=.6,alpha=0.8)+ 
+  geom_smooth(method="lm",se = F,size=.6,alpha=0.8)+
   theme_meta()+
-  scale_linetype_discrete(name="Depth [cm]") +
+  scale_linetype_discrete(name="Depth (cm)") +
   scale_colour_manual(name="",values=c("#0c1787","#9c259f", "#ec7853","#fadb25")) +
-  xlab(expression("Epiphytes per thallus area (g * cm"^-2*")")) + 
-  ylab("Dry weight increase in % per day") +
-  geom_abline(slope = -2.87, intercept = 0.94,size=1)+theme(legend.key = element_rect(fill = NA, color = NA))
+  xlab(expression("Epiphyte wet weight per fucoid thallus area (g cm"^-2*")")) + 
+  ylab(expression("Dry weight change"~(g~g^{-1}~"%"~day^{-1}) )) +
+  geom_abline(slope = -2.87, intercept = 0.94,size=1)+theme(legend.key = element_rect(fill = NA, color = NA))+ggtitle("")
 
 plot(p_5_reg)
 
 # combine with the four panel epiphyte plot to plot Fig. 5
 p_epi_p5reg <- ggarrange(p_epi, p_5_reg, ncol = 2, nrow = 1,
                     labels = c("", "e"),
-                    widths = c(1, 1),
-                    font.label = list(size = 11, color = "black", face = "plain"),
-                    label.x = 0.575, label.y = 0.98
+                    widths = c(1, 1.25),
+                    font.label = list(size = 11, color = "black", face = "plain")
 )
 
 plot(p_epi_p5reg)
 
 # export supplementary Fig. epiphytes
 ggsave(filename = here("figures/fig_S_epiphyteanalysis.pdf"), plot = p_epi_p5reg, 
-       units = "cm", width = 22, height = 15, dpi = 300)
+       units = "cm", width = 26, height = 22.5, dpi = 300)
 
 ### END
