@@ -16,7 +16,7 @@ require(groundhog)
 source(here("01_functions/get_groundhog_date.R"))
 groundhog.day <- get_groundhog_date()
 pkgs <- c("dplyr", "readr", "ggplot2", "ggbeeswarm")
-groundhog.library(pkgs, groundhog.day,,tolerate.R.version='4.2.2')
+groundhog.library(pkgs, groundhog.day, tolerate.R.version='4.2.2')
 
 # output the cleaned csv file into the analysis data folder
 if(!dir.exists("analysis_data")){ 
