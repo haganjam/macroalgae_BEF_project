@@ -18,7 +18,7 @@ groundhog.day <- get_groundhog_date()
 pkgs <- c("here","readr","vegan","dplyr","lme4",
           "MuMIn","jtools","lmerTest","emmeans",
           "ggpubr", "ggfortify", "car", "ggdist", "ggbeeswarm","readr")
-groundhog.library(pkgs, groundhog.day,tolerate.R.version='4.2.2')
+groundhog.library(pkgs, groundhog.day,tolerate.R.version='4.1.2')
 
 # load relevant functions
 source(here("01_functions/function_plotting_theme.R"))
@@ -215,6 +215,15 @@ analysis_data$dry_weight_total_g_relative_increase_total <- 100 * analysis_data$
 
 # growth in percent per day - there were slightly differing durations
 analysis_data$dry_weight_g_daily_relative_increase <- analysis_data$dry_weight_total_g_relative_increase_total/analysis_data$duration
+
+# export a cleaned version of these data
+analysis_data %>%
+  select(plant_id, site_code, hor_pos, depth_treatment, tile_id, plant_no,
+         binomial_code,
+         trait_tdmc, trait_thickness, trait_STA, trait_SBA, trait_SAP, trait_float,
+         dry_weight_g_daily_relative_increase) %>%
+  rename(dry_weight_g_daily_change = dry_weight_g_daily_relative_increase) %>%
+  write_csv("analysis_data/compensation_data.csv")
 
 # calculate a summary table
 table(is.na(analysis_data$dry_weight_g_daily_relative_increase))
