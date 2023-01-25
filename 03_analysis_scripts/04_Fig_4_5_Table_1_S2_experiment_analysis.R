@@ -18,7 +18,9 @@ groundhog.day <- get_groundhog_date()
 pkgs <- c("here","readr","vegan","dplyr","lme4",
           "MuMIn","jtools","lmerTest","emmeans",
           "ggpubr", "ggfortify", "car", "ggdist", "ggbeeswarm","readr")
-groundhog.library(pkgs, groundhog.day,tolerate.R.version='4.2.2')
+groundhog.library(pkgs, groundhog.day)
+
+#lapply(pkgs, require, character.only = TRUE) #if gorundhog does not work
 
 # load relevant functions
 source(here("01_functions/function_plotting_theme.R"))
@@ -238,7 +240,92 @@ analysis_data %>% group_by(Species) %>% summarise(dry_mean=mean(dry_weight_total
                                                   length_sd = sd(initial_length_cm,na.rm=T))
 
 
+# summary table with initial values and growth per day
 
+summary.data = data.frame(species = analysis_data$Species,
+                          depth_treatment = analysis_data$depth_treatment,
+                          initial_dryweight_predicted_g = analysis_data$dry_weight_total_g_before_predicted, #initial dry weight
+                          dryweight_growth_g_per_day = (analysis_data$dry_weight_total_g - analysis_data$dry_weight_total_g_before_predicted)/analysis_data$duration,
+                          initial_wetweight_g = analysis_data$initial_wet_weight_g, #wet weight
+                          wetweight_g_per_day = analysis_data$growth_wet_weight_g/analysis_data$duration,
+                          initial_area_cm2 = analysis_data$initial_area_cm2,
+                          area_cm2_per_day = analysis_data$growth_area_cm2 / analysis_data$duration,
+                          initial_max_length_cm = analysis_data$initial_length_cm,
+                          max_length_cm_per_day = analysis_data$growth_length_cm / analysis_data$duration)
+
+summary.data = na.omit(summary.data)
+
+#create summary table by species and depth
+summary.table_species_depth = summary.data %>%
+  group_by(species, depth_treatment) %>%
+  summarize(mean_initial_dryweight = mean(initial_dryweight_predicted_g),
+            sd_initial_dryweight = sd(initial_dryweight_predicted_g),
+            mean_dryweight_growth = mean(dryweight_growth_g_per_day),
+            sd_dryweight_growth = sd(dryweight_growth_g_per_day),
+            mean_initial_wetweight = mean(initial_wetweight_g),
+            sd_initial_wetweight = sd(initial_wetweight_g),
+            mean_wetweight_growth = mean(wetweight_g_per_day),
+            sd_wetweight_growth = sd(wetweight_g_per_day),
+            mean_initial_area = mean(initial_area_cm2),
+            sd_initial_area = sd(initial_area_cm2),
+            mean_area_growth = mean(area_cm2_per_day),
+            sd_area_growth = sd(area_cm2_per_day),
+            mean_initial_max_length = mean(initial_max_length_cm),
+            sd_initial_max_length = sd(initial_max_length_cm),
+            mean_max_length_growth = mean(max_length_cm_per_day),
+            sd_max_length_growth = sd(max_length_cm_per_day))
+
+#create summary table by 
+
+summary.table_species = summary.data %>%
+  group_by(species) %>%
+  summarize(mean_initial_dryweight = mean(initial_dryweight_predicted_g),
+            sd_initial_dryweight = sd(initial_dryweight_predicted_g),
+            mean_dryweight_growth = mean(dryweight_growth_g_per_day),
+            sd_dryweight_growth = sd(dryweight_growth_g_per_day),
+            mean_initial_wetweight = mean(initial_wetweight_g),
+            sd_initial_wetweight = sd(initial_wetweight_g),
+            mean_wetweight_growth = mean(wetweight_g_per_day),
+            sd_wetweight_growth = sd(wetweight_g_per_day),
+            mean_initial_area = mean(initial_area_cm2),
+            sd_initial_area = sd(initial_area_cm2),
+            mean_area_growth = mean(area_cm2_per_day),
+            sd_area_growth = sd(area_cm2_per_day),
+            mean_initial_max_length = mean(initial_max_length_cm),
+            sd_initial_max_length = sd(initial_max_length_cm),
+            mean_max_length_growth = mean(max_length_cm_per_day),
+            sd_max_length_growth = sd(max_length_cm_per_day))
+
+
+summary.table <- bind_rows(summary.table_species, summary.table_species_depth)
+summary.table$depth_treatment[is.na(summary.table$depth_treatment)] = "Total"
+
+summary.table <- summary.table %>%
+  arrange(factor(species, levels = c("Fucus spiralis", "Fucus vesiculosus", "Ascophyllum nodosum", "Fucus serratus")),
+          factor(depth_treatment, levels = c("-5","-12","-28","-40","Total"))) %>%
+  select(species,depth_treatment, everything()) %>%
+  mutate_at(vars(contains("initial_")), round, 1) %>%
+  mutate_at(vars(ends_with("_growth")), round, 3)
+
+summary.table = summary.table %>% 
+mutate(initial_dryweight = paste(as.character(format(mean_initial_dryweight,nsmall=1))," ± ", as.character(format(sd_initial_dryweight,nsmall=1))),
+       dryweight_growth = paste(as.character(format(mean_dryweight_growth, nsmall = 3)), " ± ", as.character(format(sd_dryweight_growth, nsmall = 3))),
+       initial_wetweight = paste(as.character(format(mean_initial_wetweight, nsmall = 1)), " ± ", as.character(format(sd_initial_wetweight, nsmall = 1))),
+       wetweight_growth = paste(as.character(format(mean_wetweight_growth, nsmall = 3)), " ± ", as.character(format(sd_wetweight_growth, nsmall = 3))),
+       initial_area = paste(as.character(format(mean_initial_area, nsmall = 1)), " ± ", as.character(format(sd_initial_area, nsmall = 1))),
+       area_growth = paste(as.character(format(mean_area_growth, nsmall = 3)), " ± ", as.character(format(sd_area_growth, nsmall = 3))),
+       initial_max_length = paste(as.character(format(mean_initial_max_length, nsmall = 1)), " ± ", as.character(format(sd_initial_max_length, nsmall = 1))),
+       max_length_growth = paste(as.character(format(mean_max_length_growth, nsmall = 3)), " ± ", as.character(format(sd_max_length_growth, nsmall = 3))))
+
+summary.table <- summary.table %>%
+  select(-starts_with("mean"), -starts_with("sd"))
+
+colnames(summary.table) <- c("Species","Depth treatment (cm)","Initial dryweight ± SD (g)","Dryweight growth ± SD (g day-1)", "Initial wetweight ± SD (g)",  
+                             "Wetweight growth ± SD (g day-1)", "Initial area ± SD (cm²)", "Area growth ± SD (cm² day-1)",
+                             "Initial maximum length ± SD (cm)", "Maximum length growth ± SD (cm day-1)")
+
+
+write.csv(summary.table, here("figures/table_S5.csv"))
 # PCA traits
 
 # run a PCA on the traits of the different species

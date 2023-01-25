@@ -17,6 +17,8 @@ source(here("01_functions/get_groundhog_date.R"))
 groundhog.day <- get_groundhog_date()
 pkgs <- c("dplyr", "readr", "ggplot2", "ggbeeswarm")
 groundhog.library(pkgs, groundhog.day,,tolerate.R.version='4.2.2')
+lapply(pkgs, require, character.only = TRUE) #if gorundhog does not work
+
 
 # output the cleaned csv file into the analysis data folder
 if(!dir.exists("analysis_data")){ 
@@ -69,13 +71,13 @@ p1 <-
                  height = 0.1) +
   geom_quasirandom(data = all_depth,
                    mapping = aes(x = depth_correct, y = binomial_code, colour = binomial_code),
-                   groupOnX = FALSE, alpha = 0.1, shape = 16) +
+                   groupOnX = FALSE, alpha = 0.3, shape = 16) +
   geom_point(data = all_depth_summary, 
              mapping = aes(x = m_depth_correct,
                            y = binomial_code, colour = binomial_code), size = 2) +
-  geom_point(mapping = aes(x = sort(c(-5, -12, -28, -40)), y = rep(0.1, 4),
+  geom_point(mapping = aes(x = sort(c(-5, -12, -28, -40)), y = rep(0.45, 4),
                            colour = all_depth_summary$binomial_code),
-             shape = 15, size = 10) +
+             shape = 15, size = 3) +
   scale_x_continuous(limits = c(-55, 10), 
                      breaks = seq(-50, 18, 10)) +
   scale_y_discrete() +
@@ -84,12 +86,12 @@ p1 <-
   ylab(NULL) +
   xlab("Depth (cm)") +
   theme(legend.position = "none",
-        axis.text.x = element_text(hjust = 0.5, size = 9,face = "italic",angle = 0),
+        axis.text.x = element_text(hjust = .8, size = 9,face = "italic",angle = 30),
         axis.text.y = element_text(size = 9),
-        axis.title.y = element_text(size = 10.5))+coord_flip()
+        axis.title.y = element_text(size = 9))+coord_flip()
 plot(p1)
 
 ggsave(filename = here("figures/Fig_2b.pdf"), p1, units = "cm", dpi = 350,
-       width = 12, height = 12)
+       width = 9, height = 9)
 
 ### END  
