@@ -16,13 +16,8 @@ require(groundhog)
 source(here("01_functions/get_groundhog_date.R"))
 groundhog.day <- get_groundhog_date()
 pkgs <- c("dplyr", "readr", "ggplot2", "ggbeeswarm")
-<<<<<<< HEAD
-groundhog.library(pkgs, groundhog.day,,tolerate.R.version='4.2.2')
-lapply(pkgs, require, character.only = TRUE) #if gorundhog does not work
-
-=======
-groundhog.library(pkgs, groundhog.day, tolerate.R.version='4.2.2')
->>>>>>> b8128dca830cde8f51bbdc380eda1fe142a11281
+groundhog.library(pkgs, groundhog.day,tolerate.R.version='4.2.2')
+lapply(pkgs, require, character.only = TRUE) #if groundhog does not work
 
 # output the cleaned csv file into the analysis data folder
 if(!dir.exists("analysis_data")){ 
@@ -66,36 +61,46 @@ all_depth %>%
   pull(depth_correct) %>%
   t.test(x = .)
 
+# check the min and max variables
+summary(all_depth)
+
+# make the depth segments
+segments <- data.frame(xstart = rep(0, 4),
+                       xend = rep(0.20, 4),
+                       depth = sort(c(-5, -12, -28, -40)),
+                       binomial_code = all_depth_summary$binomial_code)
+
 p1 <- 
   ggplot() +
-  geom_errorbarh(data = all_depth_summary,
-                 mapping = aes(xmin = lower,
-                               xmax = upper,
-                               y = binomial_code, colour = binomial_code),
-                 height = 0.1) +
+  geom_errorbar(data = all_depth_summary,
+                 mapping = aes(x = binomial_code, colour = binomial_code, 
+                               ymin = lower,
+                               ymax = upper),
+                 width = 0.025) +
   geom_quasirandom(data = all_depth,
-                   mapping = aes(x = depth_correct, y = binomial_code, colour = binomial_code),
-                   groupOnX = FALSE, alpha = 0.3, shape = 16) +
+                   mapping = aes(x = binomial_code, y = depth_correct, colour = binomial_code),
+                   alpha = 0.2, shape = 16, width = 0.2) +
   geom_point(data = all_depth_summary, 
-             mapping = aes(x = m_depth_correct,
-                           y = binomial_code, colour = binomial_code), size = 2) +
-  geom_point(mapping = aes(x = sort(c(-5, -12, -28, -40)), y = rep(0.45, 4),
-                           colour = all_depth_summary$binomial_code),
-             shape = 15, size = 3) +
-  scale_x_continuous(limits = c(-55, 10), 
+             mapping = aes(x = binomial_code,
+                           y = m_depth_correct, colour = binomial_code), size = 2) +
+  geom_segment(data = segments,
+               mapping = aes(x = xstart, xend = xend,
+                             y = depth, yend = depth, colour = binomial_code),
+               size = 1.7) +
+  scale_y_continuous(limits = c(-55, 18), 
                      breaks = seq(-50, 18, 10)) +
-  scale_y_discrete() +
+  scale_x_discrete() +
   scale_colour_manual(values = c("#0c1787","#9c259f", "#ec7853","#fadb25"))+
   theme_meta() +
-  ylab(NULL) +
-  xlab("Depth (cm)") +
+  xlab(NULL) +
+  ylab("Depth (cm)") +
   theme(legend.position = "none",
         axis.text.x = element_text(hjust = .8, size = 9,face = "italic",angle = 30),
         axis.text.y = element_text(size = 9),
-        axis.title.y = element_text(size = 9))+coord_flip()
+        axis.title.y = element_text(size = 9))
 plot(p1)
 
-ggsave(filename = here("figures/Fig_2b.pdf"), p1, units = "cm", dpi = 350,
+ggsave(filename = here("figures/Fig_2b.pdf"), p1, units = "cm", dpi = 400,
        width = 9, height = 9)
 
 ### END  
