@@ -18,13 +18,10 @@ groundhog.day <- get_groundhog_date()
 pkgs <- c("here","readr","vegan","dplyr","lme4",
           "MuMIn","jtools","lmerTest","emmeans",
           "ggpubr", "ggfortify", "car", "ggdist", "ggbeeswarm","readr")
-<<<<<<< HEAD
 groundhog.library(pkgs, groundhog.day)
 
 #lapply(pkgs, require, character.only = TRUE) #if gorundhog does not work
-=======
-groundhog.library(pkgs, groundhog.day,tolerate.R.version='4.1.2')
->>>>>>> b8128dca830cde8f51bbdc380eda1fe142a11281
+
 
 # load relevant functions
 source(here("01_functions/function_plotting_theme.R"))
@@ -58,10 +55,16 @@ names(mortality) = c("survived", "binomial_code","depth_treatment","site_code","
 # the current table has counts survived and died, filter to only died plants
 mortality = mortality %>% filter(survived == F)
 
-# run anova analysis
-anova(lm(freq ~ site_code,mortality))
-anova(lm(freq ~ depth_treatment,mortality))
-anova(lm(freq ~ binomial_code,mortality))
+# run anova analysis for each factor
+Anova(glm(freq ~ site_code,mortality,family=poisson))
+Anova(glm(freq ~ depth_treatment,mortality,family=poisson))
+Anova(glm(freq ~ binomial_code,mortality,family=poisson))
+
+ggboxplot(y="freq",facet.by="binomial_code",x = "depth_treatment",jitter=T,data=mortality,add="jitter",shape=3)
+
+#Anova without fucus serratus
+Anova(glm(freq ~ binomial_code,mortality[mortality$binomial_code!="fu_se",],family=poisson))
+
 
 # see if there is an interaction effect of depth and 
 mod_mortality=(glm(freq ~ binomial_code*depth_treatment+site_code,mortality,family=poisson))
@@ -184,6 +187,33 @@ analysis_data$growth_wet_weight_g_percent <- analysis_data$growth_wet_weight_g /
 # predict dry-weight before the experiment using a linear model
 
 # fit a model of the dry weight in the final measurements using wet weight, area and species
+
+#Create multiple models to predict dryweight
+candidate_models_dw <- list(
+  model1 = lm(dry_weight_total_g ~ final_area_cm2, data = analysis_data),
+  model2 = lm(dry_weight_total_g ~ final_area_cm2 + Species, data = analysis_data),
+  model3 = lm(dry_weight_total_g ~ final_area_cm2 * Species, data = analysis_data),
+  model4 = lm(dry_weight_total_g ~ final_area_cm2 + final_wet_weight_g, data = analysis_data),
+  model5 = lm(dry_weight_total_g ~ final_area_cm2 + final_wet_weight_g * Species, data = analysis_data),
+  model6 = lm(dry_weight_total_g ~ final_wet_weight_g, data = analysis_data),
+  model7 = lm(dry_weight_total_g ~ final_wet_weight_g + Species, data = analysis_data),
+  model8 = lm(dry_weight_total_g ~ final_wet_weight_g * Species, data = analysis_data),
+  model9 = lm(dry_weight_total_g ~ final_area_cm2 * Species + final_wet_weight_g * Species,data=analysis_data))
+
+#Compare multiple models to predict dryweight
+
+rbind(broom::glance(candidate_models_dw$model1),
+      broom::glance(candidate_models_dw$model2),
+      broom::glance(candidate_models_dw$model3),
+      broom::glance(candidate_models_dw$model4),
+      broom::glance(candidate_models_dw$model5),
+      broom::glance(candidate_models_dw$model6),
+      broom::glance(candidate_models_dw$model7),
+      broom::glance(candidate_models_dw$model8),
+      broom::glance(candidate_models_dw$model9))
+
+#Best Model (no 9) is used to predict dryweight
+
 mod_dw <- lm(dry_weight_total_g ~ final_area_cm2 * Species + final_wet_weight_g * Species,data=analysis_data)
 summary(mod_dw)
 
@@ -524,8 +554,8 @@ p_fusp <-
                             alpha = 0.75) +
   geom_errorbar(data = filter(emm, Species == "Fucus spiralis"),
                 mapping = aes(x = factor(depth_treatment), 
-                              ymin = emmean - SE,
-                              ymax = emmean + SE), 
+                              ymin = lower.CL,
+                              ymax = upper.CL), 
                 width = 0.05, colour = "red", size = 0.45) +
   geom_point(data = filter(emm, Species == "Fucus spiralis"),
              mapping = aes(x = factor(depth_treatment), y = emmean), 
@@ -571,8 +601,8 @@ p_fuve <-
                             alpha = 0.75) +
   geom_errorbar(data = filter(emm, Species == "Fucus vesiculosus"),
                 mapping = aes(x = factor(depth_treatment), 
-                              ymin = emmean - SE,
-                              ymax = emmean + SE), 
+                              ymin = lower.CL,
+                              ymax = upper.CL), 
                 width = 0.05, colour = "red", size = 0.45) +
   geom_point(data = filter(emm, Species == "Fucus vesiculosus"),
              mapping = aes(x = factor(depth_treatment), y = emmean), 
@@ -618,8 +648,8 @@ p_asno <-
                             alpha = 0.75) +
   geom_errorbar(data = filter(emm, Species == "Ascophyllum nodosum"),
                 mapping = aes(x = factor(depth_treatment), 
-                              ymin = emmean - SE,
-                              ymax = emmean + SE), 
+                              ymin = lower.CL,
+                              ymax = upper.CL), 
                 width = 0.05, colour = "red", size = 0.45) +
   geom_point(data = filter(emm, Species == "Ascophyllum nodosum"),
              mapping = aes(x = factor(depth_treatment), y = emmean), 
@@ -665,8 +695,8 @@ p_fuse <-
                             alpha = 0.75) +
   geom_errorbar(data = filter(emm, Species == "Fucus serratus"),
                 mapping = aes(x = factor(depth_treatment), 
-                              ymin = emmean - SE,
-                              ymax = emmean + SE), 
+                              ymin = lower.CL,
+                              ymax = upper.CL), 
                 width = 0.05, colour = "red", size = 0.45) +
   geom_point(data = filter(emm, Species == "Fucus serratus"),
              mapping = aes(x = factor(depth_treatment), y = emmean), 
@@ -676,7 +706,7 @@ p_fuse <-
              label.size = NA, size = 3.5) +
   xlab("Depth treatment (cm)") +
   ylab("") +
-  scale_y_continuous(limits = c(-2,3), breaks = c(-2, -1, 0, 1, 2, 3)) +
+  scale_y_continuous(limits = c(-2.01,3), breaks = c(-2, -1, 0, 1, 2, 3)) +
   theme_meta() +
   theme(panel.border = element_blank(),
         axis.line.x = element_line(colour = "black", size = 0.5),
