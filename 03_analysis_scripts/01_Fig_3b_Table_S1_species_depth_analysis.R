@@ -103,4 +103,36 @@ plot(p1)
 ggsave(filename = here("figures/Fig_2b.pdf"), p1, units = "cm", dpi = 400,
        width = 9, height = 9)
 
+
+###Plot for poster####
+ggplot() +
+  geom_errorbar(data = all_depth_summary,
+                mapping = aes(x = binomial_code, colour = binomial_code, 
+                              ymin = lower,
+                              ymax = upper),
+                width = 0,size=2) +
+  geom_quasirandom(data = all_depth,
+                   mapping = aes(x = binomial_code, y = depth_correct, colour = binomial_code),
+                   alpha = 0.5, shape = 16, width = 0.5,size=2.5) +
+  geom_point(data = all_depth_summary, 
+             mapping = aes(x = binomial_code,
+                           y = m_depth_correct, colour = binomial_code), size = 4) +
+  geom_segment(data = segments,
+               mapping = aes(x = xstart, xend = xend,
+                             y = depth, yend = depth, colour = binomial_code),
+               size = 1.7) +
+  scale_y_continuous(limits = c(-55, 18), 
+                     breaks = seq(-50, 18, 10)) +
+  scale_x_discrete() +
+  scale_colour_manual(values = c("#0c1787","#9c259f", "#ec7853","#fadb25"))+
+  theme_meta() +
+  xlab(NULL) +
+  ylab("Depth (cm)") +
+  theme(legend.position = "none",
+        axis.text.x = element_text(vjust=0.9,hjust = .8, size = 18,face = "italic",angle = 30),
+        axis.text.y = element_text(size = 18),
+        axis.title.y = element_text(size = 20))
+
+
+
 ### END  
