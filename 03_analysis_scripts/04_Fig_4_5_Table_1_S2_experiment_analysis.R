@@ -900,17 +900,29 @@ ggsave(filename = here("figures/fig_S_epiphyteanalysis.pdf"), plot = p_epi_p5reg
 
 ###Sensitivity analysis####
 
-i=1
-list
+sensitivity_runs = list()
 
-for(i in 1:100)
-{
-temp_mod=analysis_data %>% filter(!is.na(dry_weight_g_daily_relative_increase)) %>% group_by(tile_id) %>% sample_n(1)
-model.growth.all.species <- lmer(dry_weight_g_daily_relative_increase ~ Species*factor(depth_treatment) + (1|origin_site_code)+(1|site_code),data = test)
+for(i in 1:100) {
+temp_mod = 
+  analysis_data %>% 
+  filter(!is.na(dry_weight_g_daily_relative_increase)) %>% 
+  group_by(tile_id) %>% 
+  sample_n(1)
+
+model.growth.all.species <- lmer(dry_weight_g_daily_relative_increase ~ Species*factor(depth_treatment) + (1|origin_site_code)+(1|site_code), data = temp_mod)
 
 emm_temp <- emmeans(model.growth.all.species, list(pairwise ~ factor(depth_treatment)/Species), adjust = "tukey")
-cbind(data.frame(emm$`emmeans of depth_treatment, Species`, runnr = i))
+sensitivity_runs[[i]] = cbind(data.frame(emm_temp$`emmeans of depth_treatment, Species`, runnr = i))
 }
+
+
+
+df_sensitivity <- do.call("rbind",sensitivity_runs)
+
+df_sensitivity %>% filter(Species == "Fucus spiralis") %>% ggplot(aes(x=depth_treatment, y=emmean,group = runnr)) + 
+  geom_errorbar(aes(ymin=lower.CL, ymax=upper.CL), width=.02, size=0.05, position = position_dodge(.5)) +
+  geom_line(position = position_dodge(.5),size=0.05) +
+  geom_point(position = position_dodge(.5),size=0.05)
 
 
 ### END
