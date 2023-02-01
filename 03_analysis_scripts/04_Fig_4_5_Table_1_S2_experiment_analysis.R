@@ -198,7 +198,8 @@ candidate_models_dw <- list(
   model6 = lm(dry_weight_total_g ~ final_wet_weight_g, data = analysis_data),
   model7 = lm(dry_weight_total_g ~ final_wet_weight_g + Species, data = analysis_data),
   model8 = lm(dry_weight_total_g ~ final_wet_weight_g * Species, data = analysis_data),
-  model9 = lm(dry_weight_total_g ~ final_area_cm2 * Species + final_wet_weight_g * Species,data=analysis_data))
+  model9 = lm(dry_weight_total_g ~ final_area_cm2 * Species + final_wet_weight_g * Species,data=analysis_data),
+  model10 = lm(dry_weight_total_g ~ final_area_cm2 * Species * final_wet_weight_g,data=analysis_data))
 
 #Compare multiple models to predict dryweight
 
@@ -210,11 +211,12 @@ rbind(broom::glance(candidate_models_dw$model1),
       broom::glance(candidate_models_dw$model6),
       broom::glance(candidate_models_dw$model7),
       broom::glance(candidate_models_dw$model8),
-      broom::glance(candidate_models_dw$model9))
+      broom::glance(candidate_models_dw$model9),
+      broom::glance(candidate_models_dw$model10))
 
 #Best Model (no 9) is used to predict dryweight
 
-mod_dw <- lm(dry_weight_total_g ~ final_area_cm2 * Species + final_wet_weight_g * Species,data=analysis_data)
+mod_dw <- lm(dry_weight_total_g ~ final_area_cm2 * Species * final_wet_weight_g,data=analysis_data)
 summary(mod_dw)
 
 # plot the model fit
@@ -229,7 +231,7 @@ p_S_dry_weight_prediction <- ggplot(dw_pred_data, aes(x = dry_weight_g, y = pred
   xlab(expression("Dry weight (g)")) + 
   ylab("Predicted dry weight (g)")+
   xlim(c(0,15))+ylim(c(0,15))+
-  annotate("text", x=1.2, y=14.5, label= expression(~r^{2}~"= .98"))
+  annotate("text", x=1.2, y=14.5, label= expression(~r^{2}~"= 0.98"))
 
 ggsave(filename = here("figures/fig_S_dry_weight_prediction.pdf"), plot = p_S_dry_weight_prediction, 
        units = "cm", width = 10, height = 10, dpi = 300)
