@@ -20,8 +20,8 @@ pkgs <- c("here","readr","vegan","dplyr","lme4",
           "ggpubr", "ggfortify", "car", "ggdist", "ggbeeswarm","readr")
 groundhog.library(pkgs, groundhog.day)
 
+groundhog.library(pkgs, groundhog.day,tolerate.R.version='4.1.2')
 #lapply(pkgs, require, character.only = TRUE) #if gorundhog does not work
-
 
 # load relevant functions
 source(here("01_functions/function_plotting_theme.R"))
@@ -69,11 +69,12 @@ Anova(glm(freq ~ binomial_code,mortality[mortality$binomial_code!="fu_se",],fami
 # see if there is an interaction effect of depth and 
 mod_mortality=(glm(freq ~ binomial_code*depth_treatment+site_code,mortality,family=poisson))
 
-#plot(mod_mortality)
+# plot(mod_mortality)
 
 summary(mod_mortality)
 
 mod_mortality = Anova(mod_mortality, type = 3)
+
 # load the effect size library
 library(effectsize)
 
@@ -84,7 +85,7 @@ mod_mortality
 mortality %>% group_by(binomial_code,depth_treatment) %>% summarise(mean=mean(freq))
 
 
-#How many full tiles were lost?
+# How many full tiles were lost?
 
 mortality[mortality$freq==9,]
 
@@ -135,10 +136,6 @@ analysis_data$Species <- factor(analysis_data$Species,ordered = TRUE,
                                         "Fucus vesiculosus",
                                         "Fucus spiralis"
                                ))
-
-
-
-
 
 
 
@@ -539,9 +536,9 @@ analysis_data_fu_sp <-
 fu_sp_sig <- 
   analysis_data_fu_sp %>%
   group_by(depth_treatment) %>%
-  summarise(max_RGR = max(dry_weight_g_daily_relative_increase) + 0.3, .groups = "drop") %>%
+  summarise(DW_pos = -2.1, .groups = "drop") %>%
   mutate(depth_treatment = factor(depth_treatment),
-         significance = c("a", "a", "a", "a"))
+         significance = c("A", "A", "A", "A"))
 
 p_fusp <- 
   ggplot(data = analysis_data_fu_sp) + 
@@ -561,13 +558,13 @@ p_fusp <-
                 width = 0.05, colour = "red", size = 0.45) +
   geom_point(data = filter(emm, Species == "Fucus spiralis"),
              mapping = aes(x = factor(depth_treatment), y = emmean), 
-             shape = 18, colour = "red", size = 2.5) +
+             shape = 18, colour = "black", size = 2.5) +
   geom_label(data = fu_sp_sig,
-             mapping = aes(x = depth_treatment, y = max_RGR, label = significance),
-             label.size = NA, size = 3.5) +
+             mapping = aes(x = depth_treatment, y = DW_pos, label = significance),
+             label.size = NA, size = 3) +
   xlab("") +
   ylab(expression("Dry weight change"~(g~g^{-1}~"%"~day^{-1}) )) +
-  scale_y_continuous(limits = c(-2,3), breaks = c(-2, -1, 0, 1, 2, 3)) +
+  scale_y_continuous(limits = c(-2.3,3), breaks = c(-2, -1, 0, 1, 2, 3)) +
   theme_meta() +
   theme(panel.border = element_blank(),
         axis.line.x = element_line(colour = "black", size = 0.5),
