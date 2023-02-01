@@ -195,11 +195,12 @@ candidate_models_dw <- list(
   model6 = lm(dry_weight_total_g ~ final_wet_weight_g, data = analysis_data),
   model7 = lm(dry_weight_total_g ~ final_wet_weight_g + Species, data = analysis_data),
   model8 = lm(dry_weight_total_g ~ final_wet_weight_g * Species, data = analysis_data),
-  model9 = lm(dry_weight_total_g ~ final_area_cm2 * Species + final_wet_weight_g * Species,data=analysis_data))
+  model9 = lm(dry_weight_total_g ~ final_area_cm2 * Species + final_wet_weight_g * Species,data=analysis_data),
+  model10 = lm(dry_weight_total_g ~ final_area_cm2 * Species * final_wet_weight_g,data=analysis_data))
 
 #Compare multiple models to predict dryweight
 
-rbind(broom::glance(candidate_models_dw$model1),
+model.comparison = rbind(broom::glance(candidate_models_dw$model1),
       broom::glance(candidate_models_dw$model2),
       broom::glance(candidate_models_dw$model3),
       broom::glance(candidate_models_dw$model4),
@@ -207,11 +208,27 @@ rbind(broom::glance(candidate_models_dw$model1),
       broom::glance(candidate_models_dw$model6),
       broom::glance(candidate_models_dw$model7),
       broom::glance(candidate_models_dw$model8),
-      broom::glance(candidate_models_dw$model9))
+      broom::glance(candidate_models_dw$model9),
+      broom::glance(candidate_models_dw$model10))
 
-#Best Model (no 9) is used to predict dryweight
+model.comparison = cbind(model=
+  c("dry weight ~ area",
+    "dry weight ~ area + Species",
+    "dry weight ~ area * Species",
+    "dry weight ~ area + wet weight",
+    "dry weight ~ area + wet weight * Species",
+    "dry weight ~ wet weight",
+    "dry weight ~ wet weight + Species",
+    "dry weight ~ wet weight * Species",
+    "dry weight ~ area * Species + wet weight * Species",
+    "dry weight ~ area * Species * wet weight"),
+  model.comparison)
 
-mod_dw <- lm(dry_weight_total_g ~ final_area_cm2 * Species + final_wet_weight_g * Species,data=analysis_data)
+write.csv("model.comparison",here("figures/model.comparison.dw.prediction.csv"))
+
+#Best Model (no 10) is used to predict dryweight
+
+mod_dw <- lm(dry_weight_total_g ~ final_area_cm2 * Species * final_wet_weight_g,data=analysis_data)
 summary(mod_dw)
 
 # plot the model fit
@@ -226,7 +243,7 @@ p_S_dry_weight_prediction <- ggplot(dw_pred_data, aes(x = dry_weight_g, y = pred
   xlab(expression("Dry weight (g)")) + 
   ylab("Predicted dry weight (g)")+
   xlim(c(0,15))+ylim(c(0,15))+
-  annotate("text", x=1.2, y=14.5, label= expression(~r^{2}~"= .98"))
+  annotate("text", x=1.2, y=14.5, label= expression(~r^{2}~"= 0.98"))
 
 ggsave(filename = here("figures/fig_S_dry_weight_prediction.pdf"), plot = p_S_dry_weight_prediction, 
        units = "cm", width = 10, height = 10, dpi = 300)
@@ -446,24 +463,24 @@ ggboxplot(analysis_data,y="trait_SAP",x = "binomial_code")
 # analysis of growth (function) in different depth zones
 
 # linear mixed effects model
-model1 <- lmer(analysis_data$dry_weight_g_daily_relative_increase ~ Species*factor(depth_treatment) + (1|origin_site_code)+(1|site_code/tile_id),data = analysis_data)
+model.growth.all.species <- lmer(analysis_data$dry_weight_g_daily_relative_increase ~ Species*factor(depth_treatment) + (1|origin_site_code)+(1|site_code/tile_id),data = analysis_data)
 
 # combine output into a table
-table_1 <- cbind(anova(model1),
-                 r.squaredGLMM(model1), 
-                 N = length(resid(model1)), 
+table_1 <- cbind(anova(model.growth.all.species),
+                 r.squaredGLMM(model.growth.all.species), 
+                 N = length(resid(model.growth.all.species)), 
                  model="all species"
                 )
 
 # check the density plot
-densityPlot(resid(model1))
+densityPlot(resid(model.growth.all.species))
 
 # examine the model output
-summ(model1)
-anova(model1)
+summ(model.growth.all.species)
+anova(model.growth.all.species)
 
 # calculate emmeans to compare groups directly
-emm <- emmeans(model1, list(pairwise ~ factor(depth_treatment)/Species), adjust = "tukey")
+emm <- emmeans(model.growth.all.species, list(pairwise ~ factor(depth_treatment)/Species), adjust = "tukey")
 
 # make a table of the emmeans output
 emm <- as.data.frame(emm$`emmeans of depth_treatment, Species`)
@@ -495,6 +512,9 @@ anova(model_fu_sp)
 densityPlot(resid(model_fu_sp))
 summ(model_fu_sp)
 
+emm_fusp <- emmeans(model_fu_sp, list(pairwise ~ factor(depth_treatment)), adjust = "tukey")
+
+
 # pull the results into a data.frame
 table_1_fu_sp = cbind(anova(model_fu_sp), r.squaredGLMM(model_fu_sp), 
                       N = length(resid(model_fu_sp)), model = "fu_sp")
@@ -505,6 +525,9 @@ model_as_no <- lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatmen
 anova(model_as_no)
 densityPlot(resid(model_as_no))
 summ(model_as_no)
+
+emm_as_no <- emmeans(model_as_no, list(pairwise ~ factor(depth_treatment)), adjust = "tukey")
+
 
 # pull the results into a data.frame
 table_1_as_no = cbind(anova(model_as_no), r.squaredGLMM(model_as_no),
@@ -773,5 +796,23 @@ plot(p_epi_p5reg)
 # export supplementary Fig. epiphytes
 ggsave(filename = here("figures/fig_S_epiphyteanalysis.pdf"), plot = p_epi_p5reg, 
        units = "cm", width = 26, height = 22.5, dpi = 300)
+
+
+
+
+###Sensitivity analysis####
+
+i=1
+list
+
+for(i in 1:100)
+{
+temp_mod=analysis_data %>% filter(!is.na(dry_weight_g_daily_relative_increase)) %>% group_by(tile_id) %>% sample_n(1)
+model.growth.all.species <- lmer(dry_weight_g_daily_relative_increase ~ Species*factor(depth_treatment) + (1|origin_site_code)+(1|site_code),data = test)
+
+emm_temp <- emmeans(model.growth.all.species, list(pairwise ~ factor(depth_treatment)/Species), adjust = "tukey")
+cbind(data.frame(emm$`emmeans of depth_treatment, Species`, runnr = i))
+}
+
 
 ### END
