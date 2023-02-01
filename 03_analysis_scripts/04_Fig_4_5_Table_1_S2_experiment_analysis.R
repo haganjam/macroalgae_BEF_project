@@ -804,12 +804,12 @@ ggsave(filename = here("figures/fig_S_epiphyteanalysis.pdf"), plot = p_epi_p5reg
 
 sensitivity_runs = list()
 
-for(i in 1:100) {
+for(i in 1:200) {
 temp_mod = 
   analysis_data %>% 
   filter(!is.na(dry_weight_g_daily_relative_increase)) %>% 
   group_by(tile_id) %>% 
-  sample_n(1)
+  sample_n(1,replace = T) # can also be done for more n
 
 model.growth.all.species <- lmer(dry_weight_g_daily_relative_increase ~ Species*factor(depth_treatment) + (1|origin_site_code)+(1|site_code), data = temp_mod)
 
@@ -831,27 +831,24 @@ main.analysis$depth_treatment <- factor(main.analysis$depth_treatment,ordered = 
                                          levels=c("-5","-12","-28","-40"))
 
 
-p=df_sensitivity %>% ggplot(aes(x=depth_treatment, y=emmean,group = runnr)) + 
+df_sensitivity %>% ggplot(aes(x=depth_treatment, y=emmean,group = runnr)) + 
   geom_errorbar(aes(ymin=lower.CL, ymax=upper.CL), width=.01, size=0.05, position = position_dodge(.5)) +
   geom_line(position = position_dodge(.5),size=0.05) +
   geom_point(position = position_dodge(.5),size=0.05) + 
   facet_grid(~ Species) +
+  geom_line(data= main.analysis,size=0.5,color = "red") +
+  geom_point(data= main.analysis,size=2, color = "red", alpha = 0.7) +
+  geom_errorbar(data= main.analysis,aes(ymin=lower.CL, ymax=upper.CL), width=.2, size=0.5,color = "red") +
   theme_meta()+
   theme(
     strip.background = element_rect(
       color="black", fill="white", size=0, linetype="solid")
-  )
-
-main.analysis %>% ggplot(aes(x=depth_treatment, y=emmean,group = runnr)) + 
-  geom_errorbar(aes(ymin=lower.CL, ymax=upper.CL), width=.01, size=1, position = position_dodge(.5)) +
-  geom_line(position = position_dodge(.5),size=0.5) +
-  geom_point(position = position_dodge(.5),size=1) + 
-  facet_grid(~ Species) +
-  theme_meta()+
-  theme(
-    strip.background = element_rect(
-      color="black", fill="white", size=0, linetype="solid")
-  )
+  )+
+  ylim(c(-2.1,2.4))+
+  ylab(expression("Dry weight change"~(g~g^{-1}~"%"~day^{-1}) ))+
+  xlab("Depth (cm)")
+  
 
 
 ### END
+
