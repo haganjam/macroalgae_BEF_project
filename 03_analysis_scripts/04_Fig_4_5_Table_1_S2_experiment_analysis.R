@@ -21,7 +21,7 @@ pkgs <- c("here","readr","vegan","dplyr","lme4",
 groundhog.library(pkgs, groundhog.day)
 
 groundhog.library(pkgs, groundhog.day,tolerate.R.version='4.1.2')
-#lapply(pkgs, require, character.only = TRUE) #if gorundhog does not work
+lapply(pkgs, require, character.only = TRUE) #if gorundhog does not work
 
 # load relevant functions
 source(here("01_functions/function_plotting_theme.R"))
@@ -832,18 +832,20 @@ main.analysis$depth_treatment <- factor(main.analysis$depth_treatment,ordered = 
 
 
 df_sensitivity %>% ggplot(aes(x=depth_treatment, y=emmean,group = runnr)) + 
-  geom_errorbar(aes(ymin=lower.CL, ymax=upper.CL), width=.01, size=0.05, position = position_dodge(.5)) +
-  geom_line(position = position_dodge(.5),size=0.05) +
-  geom_point(position = position_dodge(.5),size=0.05) + 
+  geom_errorbar(aes(ymin=lower.CL, ymax=upper.CL), width=.01, size=0.05, alpha=.9, position = position_dodge(.5)) +
+  geom_line(position = position_dodge(.5),size=0.03) +
+  geom_point(position = position_dodge(.5),size=0.03) + 
   facet_grid(~ Species) +
   geom_line(data= main.analysis,size=0.5,color = "red") +
   geom_point(data= main.analysis,size=2, color = "red", alpha = 0.7) +
   geom_errorbar(data= main.analysis,aes(ymin=lower.CL, ymax=upper.CL), width=.2, size=0.5,color = "red") +
+  
   theme_meta()+
   theme(
     strip.background = element_rect(
       color="black", fill="white", size=0, linetype="solid")
   )+
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "black") + 
   ylim(c(-2.1,2.4))+
   ylab(expression("Dry weight change"~(g~g^{-1}~"%"~day^{-1}) ))+
   xlab("Depth (cm)")
