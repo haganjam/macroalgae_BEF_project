@@ -21,7 +21,8 @@ pkgs <- c("here","readr","vegan","dplyr","lme4",
 groundhog.library(pkgs, groundhog.day)
 
 groundhog.library(pkgs, groundhog.day,tolerate.R.version='4.1.2')
-lapply(pkgs, require, character.only = TRUE) #if gorundhog does not work
+
+# lapply(pkgs, require, character.only = TRUE) #if gorundhog does not work
 
 # load relevant functions
 source(here("01_functions/function_plotting_theme.R"))
@@ -81,16 +82,15 @@ library(effectsize)
 # calculate the effect size
 mod_mortality
 
-
-mortality %>% group_by(binomial_code,depth_treatment) %>% summarise(mean=mean(freq))
-
+mortality %>% 
+  group_by(binomial_code,depth_treatment) %>% 
+  summarise(mean=mean(freq))
 
 # How many full tiles were lost?
 
 mortality[mortality$freq==9,]
 
 mortality[mortality$freq==8,]
-
 
 table(mortality$freq)
 hist(mortality$freq)
@@ -555,7 +555,7 @@ write_csv(rbind(table_1,table_1_fu_sp,table_1_fu_ve,table_1_as_no,table_1_fu_se)
 sp_names <- c("Fucus spiralis", "Fucus vesiculosus", "Ascophyllum nodosum", "Fucus serratus") 
 
 # set the maximum and the minima of each graph
-ymin <- -2.25
+ymin <- -2.35
 ymax <- 3.4
 mid_point <- (ymin + ymax)/2
 h <- (ymax - ymin)
@@ -576,11 +576,11 @@ sp_sig <- list(c("A", "A", "A", "A"),
 xlabs <- c("", "", "", "Depth treatment (cm)")
 
 # set-up the colours
-cols <- c("#CC6600", "#996600", "#666600", "#CC9900")
+cols <- c("#D97E46", "#7A5414", "#AF994D", "#EAB20A")
 
 plot_list <- vector("list", length = length(sp_names))
-# for(i in 1:length(sp_names)) {
-  i <- 1
+for(i in 1:length(sp_names)) {
+
   plot_df <- 
     analysis_data  %>% 
     filter(Species == sp_names[i], !is.na(dry_weight_g_daily_relative_increase)) %>%
@@ -602,51 +602,57 @@ plot_list <- vector("list", length = length(sp_names))
                             width = 0.75, height = DW_height),
               alpha = 0.05) +
     geom_hline(yintercept = 0, linetype = "dashed", colour = "black") + 
-    ggdist::stat_halfeye(data = plot_df, 
-                         mapping = aes(x = depth_treatment, y = dry_weight_g_daily_relative_increase), 
-                         adjust = 0.5, width = 0.3, .width = 0, 
-                         justification = -0.3, point_colour = NA, fill = cols[i],
-                         alpha = 0.75) + 
     gghalves::geom_half_point(data = plot_df, 
                               mapping = aes(factor(depth_treatment), dry_weight_g_daily_relative_increase), 
-                              side = "l", range_scale = 0.4,
-                              fill = cols[i], colour = cols[i],
-                              alpha = 0.75) +
+                              position = position_nudge(-0.3), colour = cols[i],
+                              alpha = 0.6, shape = 1, size = 1,
+                              range_scale = 0.4) +
     geom_errorbar(data = plot_df_ci,
                   mapping = aes(x = depth_treatment, 
                                 ymin = lower.CL,
                                 ymax = upper.CL), 
-                  width = 0, colour = "black", size = 0.45) +
+                  width = 0.05, colour = cols[i], size = 0.45,
+                  position = position_nudge(0.1)) +
     geom_point(data = plot_df_ci,
                mapping = aes(x = depth_treatment, y = emmean), 
-               shape = 18, colour = "black", size = 2.5) +
+               shape = 18, colour = cols[i], size = 2.75,
+               position = position_nudge(0.1)) +
     geom_text(data = plot_df_sig,
-              mapping = aes(x = depth_treatment, y = ymin+0.125, label = significance), size = 3) +
+              mapping = aes(x = depth_treatment, y = ymin+0.25, label = significance), size = 2.5) +
     xlab(xlabs[i]) +
     ylab(expression("Dry weight change"~(g~g^{-1}~"%"~day^{-1}) )) +
-    scale_y_continuous(limits = c(ymin-0.001, ymax+0.001), breaks = c(-2, -1, 0, 1, 2, 3)) +
+    ggtitle("") +
+    scale_y_continuous(expand = c(0, 0),
+                       limits = c(ymin-0.001, ymax+0.001), breaks = c(-2, -1, 0, 1, 2, 3)) +
     theme_meta() +
     theme(panel.border = element_blank(),
           axis.line.x = element_line(colour = "black", size = 0.5),
           axis.line.y = element_line(colour = "black", size = 0.5),
-          axis.ticks.x = element_line(size = 0.5),
-          axis.ticks.y= element_line(size = 0.5))
+          axis.ticks.x = element_blank(),
+          axis.ticks.y= element_line(size = 0.5),
+          axis.text.x = element_text(size = 9.5),
+          axis.text.y = element_text(size = 9.5),
+          axis.title.y = element_text(size = 9.5),
+          axis.title.x = element_text(size = 9.5),
+          plot.title = element_text(size = 8))
   
-  plot(p1)
+  plot_list[[i]] <- p1
   
-  # }
+  }
 
-
+# check one plot
+plot_list[[1]]
 
 # arrange these plots into a single figure
-p_growths <- ggarrange(p_fusp, p_fuve, p_asno, p_fuse ,ncol = 2,nrow = 2,
-                       labels = c("a", "b", "c", "d"),
-                       font.label = list(size = 11, color = "black", face = "plain"))
-plot(p_growths)
+pg <- ggarrange(plot_list[[1]], plot_list[[2]], plot_list[[3]], plot_list[[4]],
+                ncol = 1, nrow = 4,
+                labels = c("a", "b", "c", "d"),
+                font.label = list(size = 11, color = "black", face = "plain"),
+                hjust = -4)
 
 # export Fig. 4
-ggsave(filename = here("figures/fig_4.pdf"), plot = p_growths, 
-       units = "cm", width = 16.5, height = 17, dpi = 300)
+ggsave(filename = here("figures/fig_4.png"), plot = pg, 
+       units = "cm", width = 5.75, height = 24, dpi = 450)
 
 
 # Figure 5 Epiphytes
