@@ -651,7 +651,7 @@ pg <- ggarrange(plot_list[[1]], plot_list[[2]], plot_list[[3]], plot_list[[4]],
 
 # export Fig. 4
 ggsave(filename = here("figures/fig_4.png"), plot = pg, 
-       units = "cm", width = 7, height = 24, dpi = 450)
+       units = "cm", width = 5.75, height = 24, dpi = 450)
 
 
 # Figure 5 Epiphytes
