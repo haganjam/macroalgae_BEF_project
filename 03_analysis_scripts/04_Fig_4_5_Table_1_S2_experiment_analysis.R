@@ -21,7 +21,7 @@ pkgs <- c("here","readr","vegan","dplyr","lme4",
 groundhog.library(pkgs, groundhog.day)
 
 groundhog.library(pkgs, groundhog.day,tolerate.R.version='4.1.2')
-#lapply(pkgs, require, character.only = TRUE) #if gorundhog does not work
+# lapply(pkgs, require, character.only = TRUE) #if gorundhog does not work
 
 # load relevant functions
 source(here("01_functions/function_plotting_theme.R"))
@@ -81,16 +81,15 @@ library(effectsize)
 # calculate the effect size
 mod_mortality
 
-
-mortality %>% group_by(binomial_code,depth_treatment) %>% summarise(mean=mean(freq))
-
+mortality %>% 
+  group_by(binomial_code,depth_treatment) %>% 
+  summarise(mean=mean(freq))
 
 # How many full tiles were lost?
 
 mortality[mortality$freq==9,]
 
 mortality[mortality$freq==8,]
-
 
 table(mortality$freq)
 hist(mortality$freq)
@@ -621,15 +620,16 @@ plot_list <- vector("list", length = length(sp_names))
                mapping = aes(x = depth_treatment, y = emmean), 
                shape = 18, colour = "black", size = 2.5) +
     geom_text(data = plot_df_sig,
-              mapping = aes(x = depth_treatment, y = ymin+0.125, label = significance), size = 3) +
+              mapping = aes(x = depth_treatment, y = ymin+0.25, label = significance), size = 3) +
     xlab(xlabs[i]) +
     ylab(expression("Dry weight change"~(g~g^{-1}~"%"~day^{-1}) )) +
-    scale_y_continuous(limits = c(ymin-0.001, ymax+0.001), breaks = c(-2, -1, 0, 1, 2, 3)) +
+    scale_y_continuous(expand = c(0, 0),
+                       limits = c(ymin-0.001, ymax+0.001), breaks = c(-2, -1, 0, 1, 2, 3)) +
     theme_meta() +
     theme(panel.border = element_blank(),
           axis.line.x = element_line(colour = "black", size = 0.5),
           axis.line.y = element_line(colour = "black", size = 0.5),
-          axis.ticks.x = element_line(size = 0.5),
+          axis.ticks.x = element_blank(),
           axis.ticks.y= element_line(size = 0.5))
   
   plot(p1)
