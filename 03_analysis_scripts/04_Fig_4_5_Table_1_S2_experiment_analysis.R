@@ -837,25 +837,34 @@ main.analysis$depth_treatment <- factor(main.analysis$depth_treatment,ordered = 
                                          levels=c("-5","-12","-28","-40"))
 
 
-df_sensitivity %>% ggplot(aes(x=depth_treatment, y=emmean,group = runnr)) + 
+plot_sensitivity = df_sensitivity %>% ggplot(aes(x=depth_treatment, y=emmean,group = runnr,color=Species)) + 
+  
+  #Sample
   geom_errorbar(aes(ymin=lower.CL, ymax=upper.CL), width=.01, size=0.05, alpha=.9, position = position_dodge(.5)) +
   geom_line(position = position_dodge(.5),size=0.03) +
-  geom_point(position = position_dodge(.5),size=0.03) + 
-  facet_grid(~ Species) +
-  geom_line(data= main.analysis,size=0.5,color = "red") +
-  geom_point(data= main.analysis,size=2, color = "red", alpha = 0.7) +
-  geom_errorbar(data= main.analysis,aes(ymin=lower.CL, ymax=upper.CL), width=.2, size=0.5,color = "red") +
+  geom_point(position = position_dodge(.5),size=0.03,shape = 1) + 
+  facet_wrap(~ Species) +
+  scale_color_manual(values=cols)+
+  
+  #Full analysis
+  geom_line(data= main.analysis,size=0.5,color = "black") +
+  geom_point(data= main.analysis,size=2, color = "black", alpha = 0.7) +
+  geom_errorbar(data= main.analysis,aes(ymin=lower.CL, ymax=upper.CL), width=.2, size=0.5,color = "black") +
   
   theme_meta()+
   theme(
     strip.background = element_rect(
-      color="black", fill="white", size=0, linetype="solid")
+      color="black", fill="white", size=0, linetype="solid"),
+    legend.position = "none"
   )+
   geom_hline(yintercept = 0, linetype = "dashed", colour = "black") + 
   ylim(c(-2.1,2.4))+
   ylab(expression("Dry weight change"~(g~g^{-1}~"%"~day^{-1}) ))+
   xlab("Depth (cm)")
-  
+plot_sensitivity
+
+ggsave(filename = here("figures/Fig_S_sensitivity_analysis.png"), plot = plot_sensitivity, 
+       units = "cm", width = 18, height = 17, dpi = 300)
 
 
 ### END
