@@ -10,14 +10,28 @@
 
 # load relevant libraries
 require(here)
-require(groundhog)
 
-# load the relevant libraries using groundhog for package management
-source(here("01_functions/get_groundhog_date.R"))
-groundhog.day <- get_groundhog_date()
+# list of packages of load
 pkgs <- c("dplyr", "readr", "ggplot2", "lubridate", 
           "ggforce", "gghalves", "ggbeeswarm", "ggpubr")
-groundhog.library(pkgs, groundhog.day)
+
+# use groundhog for package management? TRUE or FALSE
+gh <- FALSE
+
+if(gh) {
+  
+  # load the relevant libraries using groundhog for package management
+  require(groundhog)
+  source(here("01_functions/get_groundhog_date.R"))
+  groundhog.day <- get_groundhog_date()
+  groundhog.library(pkgs, groundhog.day)
+  
+} else {
+  
+  # load the packages manually
+  sapply(pkgs, require, character.only = TRUE)
+  
+}
 
 # output the cleaned csv file into the analysis data folder
 if(!dir.exists("analysis_data")){ 
@@ -113,8 +127,8 @@ logvars_df <-
   mutate(date_time = ymd_hms(paste(date_corrected, time, sep = " ")))
 
 # change the factors for plotting
-logvars_df$water_level_treat <- factor(logvars_df$water_level_treat, levels = c( "H","G","F","E") )
-levels(logvars_df$water_level_treat) <- c("-40 cm","-28 cm","-12 cm","-5 cm")
+logvars_df$water_level_treat <- factor(logvars_df$water_level_treat, levels = c( "E", "F", "G", "H") )
+levels(logvars_df$water_level_treat) <- c("-5","-12","-28","-40")
 
 # make a temperature comparison plot
 p1 <- 
@@ -122,14 +136,16 @@ p1 <-
        mapping = aes(x = water_level_treat, y = temperature_C, 
                      colour = water_level_treat,
                      group = id)) +
-  geom_quasirandom(groupOnX = TRUE, alpha = 0.3, shape = 16, size = 0.5) +
+  geom_quasirandom(groupOnX = TRUE, alpha = 0.2, shape = 1, size = 0.5) +
   geom_boxplot(outlier.shape = NA, width = 0.3, notch = TRUE, 
                position = position_dodge(0.5)) +
-  scale_colour_manual(values = c("#0c1787","#9c259f", "#ec7853","#fadb25"))+
-  xlab("Water level treatment") +
+  scale_colour_manual(values = c("#D97E46", "#7A5414", "#AF994D", "#EAB20A") )+
+  xlab("Depth treatment (cm)") +
   ylab("Temperature (°C)") +
   theme_meta() +
-  theme(legend.position = "none")
+  theme(legend.position = "none",
+        panel.border = element_blank())
+plot(p1)
 
 # make a light comparison plot
 p2 <- 
@@ -137,12 +153,13 @@ p2 <-
        mapping = aes(x = water_level_treat, y = intensity_lux, 
                      colour = water_level_treat,
                      group = id)) +
-  geom_quasirandom(groupOnX = TRUE, alpha = 0.3, shape = 16, size = 0.5) +
-  scale_colour_manual(values = c("#0c1787","#9c259f", "#ec7853","#fadb25"))+
-  xlab("Water level treatment") +
+  geom_quasirandom(groupOnX = TRUE, alpha = 0.2, shape = 1, size = 0.5) +
+  scale_colour_manual(values = c("#D97E46", "#7A5414", "#AF994D", "#EAB20A") )+
+  xlab("Depth treatment (cm)") +
   ylab("Light intensity (lux)") +
   theme_meta() +
-  theme(legend.position = "none")
+  theme(legend.position = "none",
+        panel.border = element_blank())
 
 p12 <- 
   ggarrange(p1, p2, 
@@ -152,7 +169,8 @@ p12 <-
   )
 plot(p12)
 
-ggsave(filename = here("figures/fig_S2.pdf"), p12, width = 20, height = 9, units = "cm",
-       dpi = 300)
+ggsave(filename = here("figures/fig_S2.png"), p12, 
+       width = 18, height = 9, units = "cm",
+       dpi = 450)
 
 ### END

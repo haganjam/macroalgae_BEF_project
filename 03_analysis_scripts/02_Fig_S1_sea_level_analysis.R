@@ -11,13 +11,27 @@
 
 # load relevant libraries
 require(here)
-require(groundhog)
 
-# load the relevant libraries using groundhog for package management
-source(here("01_functions/get_groundhog_date.R"))
-groundhog.day <- get_groundhog_date()
+# list of packages of load
 pkgs <- c("dplyr", "readr", "ggplot2", "lubridate", "ggpubr")
-groundhog.library(pkgs, groundhog.day)
+
+# use groundhog for package management? TRUE or FALSE
+gh <- FALSE
+
+if(gh) {
+  
+  # load the relevant libraries using groundhog for package management
+  require(groundhog)
+  source(here("01_functions/get_groundhog_date.R"))
+  groundhog.day <- get_groundhog_date()
+  groundhog.library(pkgs, groundhog.day)
+  
+} else {
+  
+  # load the packages manually
+  sapply(pkgs, require, character.only = TRUE)
+  
+}
 
 # output the cleaned csv file into the analysis data folder
 if(!dir.exists("analysis_data")){ 
@@ -58,7 +72,7 @@ p1 <-
   geom_hline(data = tile_depths,
              mapping = aes(yintercept = depth_cm, colour = depth_treatment),
              size = 1) +
-  scale_colour_manual(values = c("#fadb25","#ec7853","#9c259f","#0c1787"))+
+  scale_colour_manual(values = c("#D97E46", "#7A5414", "#AF994D", "#EAB20A"))+
   geom_hline(yintercept = 0, linetype = "dashed", size = 1) +
   theme_meta() +
   ylab("Water depth (cm)") +
@@ -68,9 +82,9 @@ p1 <-
         axis.text.x = element_text(size = 9),
         axis.title.x = element_text(size = 10.5),
         axis.title.y = element_text(size = 10.5))
+plot(p1)
 
-
-cols <- c("#fadb25","#ec7853","#9c259f","#0c1787")
+cols <- c("#D97E46", "#7A5414", "#AF994D", "#EAB20A")
 hist_out <- vector("list", length = length(cols))
 labels <- c("F. spiralis", "F. vesiculosus", "A. nodosum", "F. serratus")
 for ( j in seq_along(hist_out) ) {
@@ -88,7 +102,8 @@ for ( j in seq_along(hist_out) ) {
     ggtitle(labels[j]) +
     theme_meta() +
     theme(axis.text.y = element_blank(),
-          plot.title = element_text(size = 12, hjust = 0.5))
+          plot.title = element_text(size = 12, hjust = 0.5),
+          panel.border = element_blank())
   
 }
 
@@ -106,8 +121,8 @@ p12 <-
             )
 plot(p12)
 
-ggsave(filename = here("figures/fig_S1.pdf"), plot = p12, 
-       units = "cm", width = 20, height = 12, dpi = 300)
+ggsave(filename = here("figures/fig_S1.png"), plot = p12, 
+       units = "cm", width = 20, height = 12, dpi = 450)
 
 # generate some ecologically meaningful variables from these time-series data
 # given a particular water height
