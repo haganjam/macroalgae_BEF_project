@@ -606,7 +606,7 @@ ggsave(filename = here("figures/fig_4.png"), plot = pg,
        units = "cm", width = 6, height = 24, dpi = 450)
 
 
-# Figure S4: Epiphyte analysis
+# Figure S5: Epiphyte analysis
 
 # summary Stats
 mean(analysis_data$epiphyte_wet_weight_g, na.rm=T)
@@ -625,7 +625,7 @@ densityPlot(resid(mod_epi))
 # get the emmeans for multiple comparisons
 emmeans(mod_epi, list(pairwise ~ factor(depth_treatment)), adjust = "tukey")
 
-# Figure S4:
+# Figure S5:
 
 # left panel
 
@@ -716,7 +716,7 @@ analysis_data2 <-
 # change the levels
 levels(analysis_data2$Species) <- c("F. serratus", "A. nodosum", "F. vesiculosus", "F. spiralis")
 
-# Figure 5e:
+# right panel:
 p5 <- 
   ggplot(data = analysis_data2, 
          mapping = aes(x = epiphyte_wet_weight_g_per_area, y = dry_weight_g_daily_relative_increase, color=Species,linetype=factor(depth_treatment))) + 
@@ -744,11 +744,11 @@ p12345 <- ggarrange(p1234, p5, ncol = 2, nrow = 1,
 plot(p12345)
 
 # export supplementary Fig. epiphytes
-ggsave(filename = here("figures/fig_S4.png"), plot = p12345, 
+ggsave(filename = here("figures/fig_S5.png"), plot = p12345, 
        units = "cm", width = 26, height = 22.5, dpi = 450)
 
 
-###Sensitivity analysis####
+# fig S4: sensitivity analysis to check for bias in lost individuals
 
 sensitivity_runs = list()
 
@@ -783,14 +783,14 @@ plot_sensitivity <-
   df_sensitivity %>% 
   ggplot(aes(x=depth_treatment, y=emmean,group = runnr,color=Species)) + 
   
-  #Sample
+  # sample sensitivity analysis
   geom_errorbar(aes(ymin=lower.CL, ymax=upper.CL), width=.01, size=0.05, alpha=.9, position = position_dodge(.5)) +
   geom_line(position = position_dodge(.5),size=0.03) +
   geom_point(position = position_dodge(.5),size=0.03,shape = 1) + 
   facet_wrap(~ Species) +
   scale_color_manual(values=cols)+
   
-  #Full analysis
+  # observed analysis
   geom_line(data= main.analysis,size=0.5,color = "black") +
   geom_point(data= main.analysis,size=2, color = "black", alpha = 0.7) +
   geom_errorbar(data = main.analysis, 
@@ -808,7 +808,7 @@ plot_sensitivity <-
   ylab(expression("Dry weight change"~(g~g^{-1}~"%"~day^{-1}) ))+
   xlab("Depth treatment (cm)")
 
-ggsave(filename = here("figures/fig_S3.png"), plot = plot_sensitivity, 
+ggsave(filename = here("figures/fig_S4.png"), plot = plot_sensitivity, 
        units = "cm", width = 18, height = 17, dpi = 450)
 
 ### END
