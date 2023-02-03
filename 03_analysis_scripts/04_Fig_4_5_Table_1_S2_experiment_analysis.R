@@ -384,12 +384,12 @@ summary.table_species =
 
 
 summary.table <- bind_rows(summary.table_species, summary.table_species_depth)
-summary.table$depth_treatment[is.na(summary.table$depth_treatment)] = "Total"
+summary.table$depth_treatment[is.na(summary.table$depth_treatment)] = "All"
 
 summary.table <- 
   summary.table %>%
   arrange(factor(species, levels = c("Fucus spiralis", "Fucus vesiculosus", "Ascophyllum nodosum", "Fucus serratus")),
-          factor(depth_treatment, levels = c("-5","-12","-28","-40","Total"))) %>%
+          factor(depth_treatment, levels = c("-5","-12","-28","-40","All"))) %>%
   select(species,depth_treatment, everything()) %>%
   mutate_at(vars(contains("initial_")), round, 1) %>%
   mutate_at(vars(ends_with("_growth")), round, 3)
@@ -741,7 +741,7 @@ ggsave(filename = here("figures/fig_S5.png"), plot = p12345,
 
 sensitivity_runs = list()
 
-for(i in 1:100) {
+for(i in 1:200) {
   set.seed(i)
 temp_data = 
   analysis_data %>% 
