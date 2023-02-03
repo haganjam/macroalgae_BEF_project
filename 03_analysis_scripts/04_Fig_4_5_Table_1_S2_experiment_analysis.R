@@ -580,12 +580,12 @@ for(i in 1:length(sp_names)) {
           axis.line.x = element_line(colour = "black", size = 0.5),
           axis.line.y = element_line(colour = "black", size = 0.5),
           axis.ticks.x = element_blank(),
-          axis.ticks.y= element_line(size = 0.5),
-          axis.text.x = element_text(size = 9.5),
-          axis.text.y = element_text(size = 9.5),
-          axis.title.y = element_text(size = 9.5),
-          axis.title.x = element_text(size = 9.5),
-          plot.title = element_text(size = 8))
+          axis.ticks.y = element_line(size = 0.5),
+          axis.text.x = element_text(size = 8.5),
+          axis.text.y = element_text(size = 8.5),
+          axis.title.y = element_text(size = 8.5),
+          axis.title.x = element_text(size = 9),
+          plot.title = element_text(size = 1))
   
   plot_list[[i]] <- p1
   
@@ -598,12 +598,13 @@ plot_list[[1]]
 pg <- ggarrange(plot_list[[1]], plot_list[[2]], plot_list[[3]], plot_list[[4]],
                 ncol = 1, nrow = 4,
                 labels = c("a", "b", "c", "d"),
-                font.label = list(size = 11, color = "black", face = "plain"),
-                hjust = -4)
+                font.label = list(size = 10, color = "black", face = "plain"),
+                hjust = -4.5)
+plot(pg)
 
 # export Fig. 4
 ggsave(filename = here("figures/fig_4.png"), plot = pg, 
-       units = "cm", width = 6, height = 24, dpi = 450)
+       units = "cm", width = 6, height = 22, dpi = 450)
 
 
 # Figure S5: Epiphyte analysis
