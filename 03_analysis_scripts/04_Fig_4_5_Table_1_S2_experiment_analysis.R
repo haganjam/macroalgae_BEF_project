@@ -761,7 +761,8 @@ ggsave(filename = here("figures/fig_S_epiphyteanalysis.pdf"), plot = p_epi_p5reg
 
 sensitivity_runs = list()
 
-for(i in 1:200) {
+for(i in 1:100) {
+  set.seed(i)
 temp_mod = 
   analysis_data %>% 
   filter(!is.na(dry_weight_g_daily_relative_increase)) %>% 
