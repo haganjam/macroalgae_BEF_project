@@ -10,19 +10,29 @@
 
 # load relevant libraries
 require(here)
-require(groundhog)
 
-# load the relevant libraries using groundhog for package management
-source(here("01_functions/get_groundhog_date.R"))
-groundhog.day <- get_groundhog_date()
+# list of packages of load
 pkgs <- c("here","readr","vegan","dplyr","lme4",
           "MuMIn","jtools","lmerTest","emmeans",
           "ggpubr", "ggfortify", "car", "ggdist", "ggbeeswarm","readr")
-groundhog.library(pkgs, groundhog.day)
 
-groundhog.library(pkgs, groundhog.day,tolerate.R.version='4.1.2')
+# use groundhog for package management? TRUE or FALSE
+gh <- FALSE
 
-# lapply(pkgs, require, character.only = TRUE) #if gorundhog does not work
+if(gh) {
+  
+  # load the relevant libraries using groundhog for package management
+  require(groundhog)
+  source(here("01_functions/get_groundhog_date.R"))
+  groundhog.day <- get_groundhog_date()
+  groundhog.library(pkgs, groundhog.day)
+  
+} else {
+  
+  # load the packages manually
+  sapply(pkgs, require, character.only = TRUE)
+  
+}
 
 # load relevant functions
 source(here("01_functions/function_plotting_theme.R"))
