@@ -206,7 +206,9 @@ candidate_models_dw <- list(
   model7 = lm(dry_weight_total_g ~ final_wet_weight_g + Species, data = analysis_data),
   model8 = lm(dry_weight_total_g ~ final_wet_weight_g * Species, data = analysis_data),
   model9 = lm(dry_weight_total_g ~ final_area_cm2 * Species + final_wet_weight_g * Species,data=analysis_data),
-  model10 = lm(dry_weight_total_g ~ final_area_cm2 * Species * final_wet_weight_g,data=analysis_data))
+  model10 = lm(dry_weight_total_g ~ final_area_cm2 * Species + final_wet_weight_g * Species + final_area_cm2*final_wet_weight_g,data=analysis_data),
+  
+  model11 = lm(dry_weight_total_g ~ final_area_cm2 * Species * final_wet_weight_g,data=analysis_data))
 
 # compare multiple models to predict dryweight
 model.comparison = rbind(broom::glance(candidate_models_dw$model1),
@@ -218,7 +220,8 @@ model.comparison = rbind(broom::glance(candidate_models_dw$model1),
       broom::glance(candidate_models_dw$model7),
       broom::glance(candidate_models_dw$model8),
       broom::glance(candidate_models_dw$model9),
-      broom::glance(candidate_models_dw$model10))
+      broom::glance(candidate_models_dw$model10),
+      broom::glance(candidate_models_dw$model11))
 
 model.comparison = cbind(model=
   c("dry weight ~ area",
@@ -230,13 +233,18 @@ model.comparison = cbind(model=
     "dry weight ~ wet weight + Species",
     "dry weight ~ wet weight * Species",
     "dry weight ~ area * Species + wet weight * Species",
+    "dry weight ~ area * Species + wet weight * Species + area * wet weight",
     "dry weight ~ area * Species * wet weight"),
   model.comparison)
 
 write.csv("model.comparison",here("figures/model.comparison.dw.prediction.csv"))
 
 # best Model (no 10) is used to predict dryweight
-mod_dw <- lm(dry_weight_total_g ~ final_area_cm2 * Species * final_wet_weight_g,data=analysis_data)
+mod_dw <- lm(dry_weight_total_g ~ 
+               final_area_cm2 * Species +
+               final_wet_weight_g * Species +
+               final_area_cm2 * final_wet_weight_g,
+             data=analysis_data)
 summary(mod_dw)
 
 # plot the model fit
@@ -258,7 +266,7 @@ p_S_dry_weight_prediction <-
   annotate("text", x=1.2, y=14.5, label = expression(~r^{2}~"= 0.98"))
 plot(p_S_dry_weight_prediction)
 
-ggsave(filename = here("figures/fig_S3.png"), plot = p_S_dry_weight_prediction, 
+ggsave(filename = here("figures/fig_S3.pdf"), plot = p_S_dry_weight_prediction, 
        units = "cm", width = 10, height = 10, dpi = 450)
 
 
@@ -413,48 +421,8 @@ write.csv(summary.table, here("figures/table_S5.csv"))
 
 # analysis of growth (function) in different depth zones
 
-# linear mixed effects model
-model.growth.all.species <- lmer(analysis_data$dry_weight_g_daily_relative_increase ~ Species*factor(depth_treatment) + (1|origin_site_code)+(1|site_code/tile_id),data = analysis_data)
 
-# combine output into a table
-table_1 <- cbind(anova(model.growth.all.species),
-                 r.squaredGLMM(model.growth.all.species), 
-                 N = length(resid(model.growth.all.species)), 
-                 model="all species"
-                )
-
-# check the density plot
-densityPlot(resid(model.growth.all.species))
-
-# examine the model output
-summ(model.growth.all.species)
-anova(model.growth.all.species)
-
-# calculate emmeans to compare groups directly
-emm <- emmeans(model.growth.all.species, list(pairwise ~ factor(depth_treatment)/Species), adjust = "tukey")
-
-# make a table of the emmeans output
-emm <- as.data.frame(emm$`emmeans of depth_treatment, Species`)
-
-# convert the depth treatment to a factor
-emm$depth_treatment <- factor(emm$depth_treatment, levels = c(-5, -12, -28, -40))
-
-# Table S2: write this output from emmeans into a .csv file
-write_csv(emm, here("figures/table_S2.csv") )
-
-
-# post-hoc analysis for each species: fit an individual model to each species
-
-# Fucus serratus
-model_fu_se <- lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code/tile_id), 
-                    data = filter(analysis_data, binomial_code == "fu_se"))
-anova(model_fu_se)
-densityPlot(resid(model_fu_se))
-summ(model_fu_se)
-
-# pull the results into a data.frame
-table_1_fu_se <- cbind(anova(model_fu_se), r.squaredGLMM(model_fu_se), 
-                       N = length(resid(model_fu_se)), model = "fu_se")
+# analysis for each species: fit an individual model to each species
 
 # Fucus spiralis
 model_fu_sp <- lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code/tile_id),
@@ -463,12 +431,26 @@ anova(model_fu_sp)
 densityPlot(resid(model_fu_sp))
 summ(model_fu_sp)
 
-emm_fusp <- emmeans(model_fu_sp, list(pairwise ~ factor(depth_treatment)), adjust = "tukey")
+emm_fu_sp <- emmeans(model_fu_sp, list(pairwise ~ factor(depth_treatment)), adjust = "tukey")
 
 
 # pull the results into a data.frame
 table_1_fu_sp = cbind(anova(model_fu_sp), r.squaredGLMM(model_fu_sp), 
                       N = length(resid(model_fu_sp)), model = "fu_sp")
+
+
+# Fucus vesiculosus
+model_fu_ve <- lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code/tile_id),
+                    data = filter(analysis_data, binomial_code == "fu_ve"))
+anova(model_fu_ve)
+densityPlot(resid(model_fu_ve))
+summ(model_fu_ve)
+
+# pull the results into a data.frame
+table_1_fu_ve = cbind(anova(model_fu_ve), r.squaredGLMM(model_fu_ve), 
+                      N = length(resid(model_fu_ve)), model = "fu_ve")
+emm_fu_ve <- emmeans(model_fu_ve, list(pairwise ~ factor(depth_treatment)), adjust = "tukey")
+
 
 # Ascophyllum nodosum
 model_as_no <- lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code/tile_id), 
@@ -484,20 +466,25 @@ emm_as_no <- emmeans(model_as_no, list(pairwise ~ factor(depth_treatment)), adju
 table_1_as_no = cbind(anova(model_as_no), r.squaredGLMM(model_as_no),
                       N = length(resid(model_as_no)), model = "as_no")
 
-
-# Fucus vesiculosus
-model_fu_ve <- lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code/tile_id),
-                    data = filter(analysis_data, binomial_code == "fu_ve"))
-anova(model_fu_ve)
-densityPlot(resid(model_fu_ve))
-summ(model_fu_ve)
+# Fucus serratus
+model_fu_se <- lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code/tile_id), 
+                    data = filter(analysis_data, binomial_code == "fu_se"))
+anova(model_fu_se)
+densityPlot(resid(model_fu_se))
+summ(model_fu_se)
 
 # pull the results into a data.frame
-table_1_fu_ve = cbind(anova(model_fu_ve), r.squaredGLMM(model_fu_ve), 
-                      N = length(resid(model_fu_ve)), model = "fu_ve")
+table_1_fu_se <- cbind(anova(model_fu_se), r.squaredGLMM(model_fu_se), 
+                       N = length(resid(model_fu_se)), model = "fu_se")
+
+emm_fu_se <- emmeans(model_fu_se, list(pairwise ~ factor(depth_treatment)), adjust = "tukey")
+
+
+emm = list(emm_fu_sp,emm_fu_ve,emm_as_no,emm_fu_se)
+
 
 # Table 1: bind the combined model and all individual models into a table and export as a .csv
-write_csv(rbind(table_1,table_1_fu_sp,table_1_fu_ve,table_1_as_no,table_1_fu_se),"figures/table_1.csv")
+write_csv(rbind(table_1_fu_sp,table_1_fu_ve,table_1_as_no,table_1_fu_se),"figures/table_1.csv")
 
 
 # Figure 4a-d
@@ -520,8 +507,8 @@ sp_bar_height <- list(c(h, 0, 0, 0),
 # set-up the significance letters for each species
 sp_sig <- list(c("A", "A", "A", "A"),
                c("A", "A", "A", "A"),
-               c("AB", "A", "AC", "A"),
-               c("B", "B", "A", "A"))
+               c("A", "B", "B", "B"),
+               c("A", "A", "B", "B"))
 
 # set-up the xlabels
 xlabs <- c("", "", "", "Depth treatment (cm)")
@@ -544,7 +531,8 @@ for(i in 1:length(sp_names)) {
            DW_height = sp_bar_height[[i]])
   
   # get a data.frame with the confidence intervals
-  plot_df_ci <- filter(emm, Species == sp_names[i])
+  plot_df_ci <- data.frame(emm[[i]]$`emmeans of depth_treatment`)
+  plot_df_ci$depth_treatment <- factor(plot_df_ci$depth_treatment, levels = c(-5, -12, -28, -40))
   
   p1 <- 
     ggplot() + 
@@ -754,16 +742,37 @@ sensitivity_runs = list()
 
 for(i in 1:100) {
   set.seed(i)
-temp_mod = 
+temp_data = 
   analysis_data %>% 
   filter(!is.na(dry_weight_g_daily_relative_increase)) %>% 
   group_by(tile_id) %>% 
   sample_n(1,replace = T) # can also be done for more n
 
-model.growth.all.species <- lmer(dry_weight_g_daily_relative_increase ~ Species*factor(depth_treatment) + (1|origin_site_code)+(1|site_code), data = temp_mod)
+#A growth comparison is calculated for each species
+model.growth.fu.sp.species <- lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code),
+                                  data = filter(temp_data, binomial_code == "fu_sp"))
+model.growth.fu.ve.species <- lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code),
+                                   data = filter(temp_data, binomial_code == "fu_ve"))
+model.growth.as.no.species <- lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code),
+                                   data = filter(temp_data, binomial_code == "as_no"))
+model.growth.fu.se.species <- lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code),
+                                   data = filter(temp_data, binomial_code == "fu_se"))
 
-emm_temp <- emmeans(model.growth.all.species, list(pairwise ~ factor(depth_treatment)/Species), adjust = "tukey")
-sensitivity_runs[[i]] = cbind(data.frame(emm_temp$`emmeans of depth_treatment, Species`, runnr = i))
+#calculate emmeans for all models
+emm_temp.fu.sp <- emmeans(model.growth.fu.sp.species, list(pairwise ~ factor(depth_treatment)), adjust = "tukey")
+emm_temp.fu.ve <- emmeans(model.growth.fu.ve.species, list(pairwise ~ factor(depth_treatment)), adjust = "tukey")
+emm_temp.as.no <- emmeans(model.growth.as.no.species, list(pairwise ~ factor(depth_treatment)), adjust = "tukey")
+emm_temp.fu.se <- emmeans(model.growth.fu.se.species, list(pairwise ~ factor(depth_treatment)), adjust = "tukey")
+
+#create emmeans for depth
+emm_temp <- rbind(
+  data.frame(emm_temp.fu.sp$`emmeans of depth_treatment`,Species="Fucus spiralis"),
+  data.frame(emm_temp.fu.ve$`emmeans of depth_treatment`,Species="Fucus vesiculosus"),
+  data.frame(emm_temp.as.no$`emmeans of depth_treatment`,Species="Ascophyllum nodosum"),
+  data.frame(emm_temp.fu.se$`emmeans of depth_treatment`,Species="Fucus serratus")
+)
+#save to list
+sensitivity_runs[[i]] = cbind(emm_temp, runnr = i)
 }
 
 df_sensitivity <- do.call("rbind",sensitivity_runs)
@@ -773,7 +782,16 @@ df_sensitivity$Species <- factor(df_sensitivity$Species,ordered = TRUE,
 df_sensitivity$depth_treatment <- factor(df_sensitivity$depth_treatment,ordered = TRUE,
                                  levels=c("-5","-12","-28","-40"))
 
-main.analysis = cbind(data.frame(emm),runnr=0)
+main.analysis = 
+  #add column with runnr
+  cbind(runnr=0,
+        #combine all columns from the emm
+  rbind(
+  data.frame(emm[[1]]$`emmeans of depth_treatment`,Species="Fucus spiralis"),
+  data.frame(emm[[2]]$`emmeans of depth_treatment`,Species="Fucus vesiculosus"),
+  data.frame(emm[[3]]$`emmeans of depth_treatment`,Species="Ascophyllum nodosum"),
+  data.frame(emm[[4]]$`emmeans of depth_treatment`,Species="Fucus serratus")))
+
 main.analysis$Species <- factor(main.analysis$Species,ordered = TRUE,
                                  levels=c("Fucus spiralis","Fucus vesiculosus","Ascophyllum nodosum","Fucus serratus"))
 main.analysis$depth_treatment <- factor(main.analysis$depth_treatment,ordered = TRUE,
