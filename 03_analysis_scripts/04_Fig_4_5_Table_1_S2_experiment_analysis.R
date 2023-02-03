@@ -195,7 +195,7 @@ analysis_data$growth_wet_weight_g_percent <- analysis_data$growth_wet_weight_g /
 
 # fit a model of the dry weight in the final measurements using wet weight, area and species
 
-#Create multiple models to predict dryweight
+# create multiple models to predict dryweight
 candidate_models_dw <- list(
   model1 = lm(dry_weight_total_g ~ final_area_cm2, data = analysis_data),
   model2 = lm(dry_weight_total_g ~ final_area_cm2 + Species, data = analysis_data),
@@ -208,8 +208,7 @@ candidate_models_dw <- list(
   model9 = lm(dry_weight_total_g ~ final_area_cm2 * Species + final_wet_weight_g * Species,data=analysis_data),
   model10 = lm(dry_weight_total_g ~ final_area_cm2 * Species * final_wet_weight_g,data=analysis_data))
 
-#Compare multiple models to predict dryweight
-
+# compare multiple models to predict dryweight
 model.comparison = rbind(broom::glance(candidate_models_dw$model1),
       broom::glance(candidate_models_dw$model2),
       broom::glance(candidate_models_dw$model3),
@@ -236,8 +235,7 @@ model.comparison = cbind(model=
 
 write.csv("model.comparison",here("figures/model.comparison.dw.prediction.csv"))
 
-#Best Model (no 10) is used to predict dryweight
-
+# best Model (no 10) is used to predict dryweight
 mod_dw <- lm(dry_weight_total_g ~ final_area_cm2 * Species * final_wet_weight_g,data=analysis_data)
 summary(mod_dw)
 
@@ -246,17 +244,22 @@ plot(mod_dw$fitted.values, mod_dw$model$dry_weight_total_g)
 
 dw_pred_data = cbind(predicted_dry_weight_g = mod_dw$fitted.values, dry_weight_g = mod_dw$model$dry_weight_total_g)
 
-p_S_dry_weight_prediction <- ggplot(dw_pred_data, aes(x = dry_weight_g, y = predicted_dry_weight_g )) + 
+p_S_dry_weight_prediction <- 
+  ggplot(data = dw_pred_data, 
+         aes(x = dry_weight_g, y = predicted_dry_weight_g )) + 
   geom_point(size=1,alpha=0.5) +  
-  geom_smooth(method="lm",se = F,size=.6,alpha=0.8,col = "black")+ 
+  geom_smooth(method="lm", se = TRUE, size=.6, alpha=0.8, col = "black") + 
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed", colour = "red") +
   theme_meta()+
-  xlab(expression("Dry weight (g)")) + 
-  ylab("Predicted dry weight (g)")+
-  xlim(c(0,15))+ylim(c(0,15))+
-  annotate("text", x=1.2, y=14.5, label= expression(~r^{2}~"= 0.98"))
+  xlab(expression("Measured dry weight (g)")) + 
+  ylab("Predicted dry weight (g)") +
+  xlim(c(0,15)) +
+  ylim(c(0,15)) +
+  annotate("text", x=1.2, y=14.5, label = expression(~r^{2}~"= 0.98"))
+plot(p_S_dry_weight_prediction)
 
-ggsave(filename = here("figures/fig_S_dry_weight_prediction.pdf"), plot = p_S_dry_weight_prediction, 
-       units = "cm", width = 10, height = 10, dpi = 300)
+ggsave(filename = here("figures/fig_S3.png"), plot = p_S_dry_weight_prediction, 
+       units = "cm", width = 10, height = 10, dpi = 450)
 
 
 # use this model to predict the dry weight before
@@ -291,24 +294,31 @@ table(is.na(analysis_data$dry_weight_g_daily_relative_increase))
 # epiphyte wet weight per area
 analysis_data$epiphyte_wet_weight_g_per_area <- analysis_data$epiphyte_wet_weight_g / analysis_data$final_area_cm2
 
-######Summary Stats Growth######
-analysis_data %>% group_by(Species) %>% summarise(mean=mean(dry_weight_total_g_increase,na.rm=T),
-                                                  sd=sd(dry_weight_total_g_increase,na.rm=T),
-                                                  percent = mean(dry_weight_total_g_relative_increase_total,na.rm=T))
+# summarise statistics on growth by species and by treatments
+analysis_data %>% 
+  group_by(Species) %>% 
+  summarise(mean=mean(dry_weight_total_g_increase,na.rm=T),
+            sd=sd(dry_weight_total_g_increase,na.rm=T),
+            percent = mean(dry_weight_total_g_relative_increase_total,na.rm=T)
+            )
 
-analysis_data %>% group_by(Species,depth_treatment) %>% summarise(mean=mean(dry_weight_total_g_increase,na.rm=T),
-                                                                  sd=sd(dry_weight_total_g_increase,na.rm=T),
-                                                                  percent = mean(dry_weight_total_g_relative_increase_total,na.rm=T))
+analysis_data %>% 
+  group_by(Species,depth_treatment) %>% 
+  summarise(mean=mean(dry_weight_total_g_increase,na.rm=T),
+            sd=sd(dry_weight_total_g_increase,na.rm=T),
+            percent = mean(dry_weight_total_g_relative_increase_total,na.rm=T)
+            )
 
-
-analysis_data %>% group_by(Species) %>% summarise(dry_mean=mean(dry_weight_total_g_before_predicted,na.rm=T),
-                                                  dry_sd=sd(dry_weight_total_g_before_predicted,na.rm=T),
-                                                  length_cm = mean(initial_length_cm,na.rm=T),
-                                                  length_sd = sd(initial_length_cm,na.rm=T))
+analysis_data %>% 
+  group_by(Species) %>% 
+  summarise(dry_mean=mean(dry_weight_total_g_before_predicted,na.rm=T),
+            dry_sd=sd(dry_weight_total_g_before_predicted,na.rm=T),
+            length_cm = mean(initial_length_cm,na.rm=T),
+            length_sd = sd(initial_length_cm,na.rm=T)
+            )
 
 
 # summary table with initial values and growth per day
-
 summary.data = data.frame(species = analysis_data$Species,
                           depth_treatment = analysis_data$depth_treatment,
                           initial_dryweight_predicted_g = analysis_data$dry_weight_total_g_before_predicted, #initial dry weight
@@ -320,9 +330,10 @@ summary.data = data.frame(species = analysis_data$Species,
                           initial_max_length_cm = analysis_data$initial_length_cm,
                           max_length_cm_per_day = analysis_data$growth_length_cm / analysis_data$duration)
 
+# check the data without missing values
 summary.data = na.omit(summary.data)
 
-#create summary table by species and depth
+# create summary table by species and depth
 summary.table_species_depth = summary.data %>%
   group_by(species, depth_treatment) %>%
   summarize(mean_initial_dryweight = mean(initial_dryweight_predicted_g),
@@ -342,9 +353,9 @@ summary.table_species_depth = summary.data %>%
             mean_max_length_growth = mean(max_length_cm_per_day),
             sd_max_length_growth = sd(max_length_cm_per_day))
 
-#create summary table by 
-
-summary.table_species = summary.data %>%
+# create summary table by 
+summary.table_species = 
+  summary.data %>%
   group_by(species) %>%
   summarize(mean_initial_dryweight = mean(initial_dryweight_predicted_g),
             sd_initial_dryweight = sd(initial_dryweight_predicted_g),
@@ -367,107 +378,37 @@ summary.table_species = summary.data %>%
 summary.table <- bind_rows(summary.table_species, summary.table_species_depth)
 summary.table$depth_treatment[is.na(summary.table$depth_treatment)] = "Total"
 
-summary.table <- summary.table %>%
+summary.table <- 
+  summary.table %>%
   arrange(factor(species, levels = c("Fucus spiralis", "Fucus vesiculosus", "Ascophyllum nodosum", "Fucus serratus")),
           factor(depth_treatment, levels = c("-5","-12","-28","-40","Total"))) %>%
   select(species,depth_treatment, everything()) %>%
   mutate_at(vars(contains("initial_")), round, 1) %>%
   mutate_at(vars(ends_with("_growth")), round, 3)
 
-summary.table = summary.table %>% 
-mutate(initial_dryweight = paste(as.character(format(mean_initial_dryweight,nsmall=1))," ± ", as.character(format(sd_initial_dryweight,nsmall=1))),
-       dryweight_growth = paste(as.character(format(mean_dryweight_growth, nsmall = 3)), " ± ", as.character(format(sd_dryweight_growth, nsmall = 3))),
-       initial_wetweight = paste(as.character(format(mean_initial_wetweight, nsmall = 1)), " ± ", as.character(format(sd_initial_wetweight, nsmall = 1))),
-       wetweight_growth = paste(as.character(format(mean_wetweight_growth, nsmall = 3)), " ± ", as.character(format(sd_wetweight_growth, nsmall = 3))),
-       initial_area = paste(as.character(format(mean_initial_area, nsmall = 1)), " ± ", as.character(format(sd_initial_area, nsmall = 1))),
-       area_growth = paste(as.character(format(mean_area_growth, nsmall = 3)), " ± ", as.character(format(sd_area_growth, nsmall = 3))),
-       initial_max_length = paste(as.character(format(mean_initial_max_length, nsmall = 1)), " ± ", as.character(format(sd_initial_max_length, nsmall = 1))),
-       max_length_growth = paste(as.character(format(mean_max_length_growth, nsmall = 3)), " ± ", as.character(format(sd_max_length_growth, nsmall = 3))))
+summary.table = 
+  summary.table %>% 
+  mutate(initial_dryweight = paste(as.character(format(mean_initial_dryweight,nsmall=1))," ± ", as.character(format(sd_initial_dryweight,nsmall=1))),
+         dryweight_growth = paste(as.character(format(mean_dryweight_growth, nsmall = 3)), " ± ", as.character(format(sd_dryweight_growth, nsmall = 3))),
+         initial_wetweight = paste(as.character(format(mean_initial_wetweight, nsmall = 1)), " ± ", as.character(format(sd_initial_wetweight, nsmall = 1))),
+         wetweight_growth = paste(as.character(format(mean_wetweight_growth, nsmall = 3)), " ± ", as.character(format(sd_wetweight_growth, nsmall = 3))),
+         initial_area = paste(as.character(format(mean_initial_area, nsmall = 1)), " ± ", as.character(format(sd_initial_area, nsmall = 1))),
+         area_growth = paste(as.character(format(mean_area_growth, nsmall = 3)), " ± ", as.character(format(sd_area_growth, nsmall = 3))),
+         initial_max_length = paste(as.character(format(mean_initial_max_length, nsmall = 1)), " ± ", as.character(format(sd_initial_max_length, nsmall = 1))),
+         max_length_growth = paste(as.character(format(mean_max_length_growth, nsmall = 3)), " ± ", as.character(format(sd_max_length_growth, nsmall = 3))))
 
-summary.table <- summary.table %>%
+# clean up the summary table
+summary.table <- 
+  summary.table %>%
   select(-starts_with("mean"), -starts_with("sd"))
 
+# rename the columns in the summary table
 colnames(summary.table) <- c("Species","Depth treatment (cm)","Initial dryweight ± SD (g)","Dryweight growth ± SD (g day-1)", "Initial wetweight ± SD (g)",  
                              "Wetweight growth ± SD (g day-1)", "Initial area ± SD (cm²)", "Area growth ± SD (cm² day-1)",
                              "Initial maximum length ± SD (cm)", "Maximum length growth ± SD (cm day-1)")
 
-
+# write the summary to a .csv file
 write.csv(summary.table, here("figures/table_S5.csv"))
-# PCA traits
-
-# run a PCA on the traits of the different species
-pca_data <- 
-  analysis_data %>% 
-  select(Species, depth_treatment, site_code, contains("trait"))
-
-# change depth treatment to factor
-pca_data$depth_treatment <- as.factor(pca_data$depth_treatment)
-
-# deselect SBA as this is highly correlated with STA
-pca_data <- select(pca_data, -trait_SBA) 
-
-# rename the columns
-colnames(pca_data) <- c("Species", "depth","site", "TDMC", "thickness",
-                      "STA", "SA:P" , "Pneumatocysts")
-
-# remove any missing values in the data
-pca_data <- na.omit(pca_data)
-
-# plot a histogram of each of the different traits by species
-gghistogram(pca_data,x="TDMC",facet.by = "Species")
-gghistogram(pca_data,x="thickness",facet.by = "Species")
-gghistogram(pca_data,x="STA",facet.by = "Species")
-gghistogram(pca_data,x="SA:P",facet.by = "Species")
-gghistogram(pca_data,x="Pneumatocysts",facet.by = "Species")
-
-# run a PCA on the traits
-pca_res <- prcomp(x = pca_data[-c(1,2,3)], scale = TRUE)
-
-# plot the PCA
-pca_plot <- 
-  autoplot(pca_res, data = pca_data, #shape = 'depth',
-                    size=3,
-                    loadings = TRUE, loadings.colour = 'black',
-                    loadings.label = TRUE, loadings.label.size = 3.5,loadings.label.vjust=c(1.2,-.8,-1,2,-.5),loadings.label.hjust=c(1,.6,0,1,.5),
-                    loadings.label.colour="black",colour="Species",legend.position="none",alpha=0.5) + 
-  theme_meta() + 
-  scale_colour_manual(values = c("#0c1787","#9c259f", "#ec7853","#fadb25")) +
-  theme(legend.position = "none")
-
-# plot the PCA
-ggsave(filename = here("figures/fig_S_PCA.pdf"), plot = pca_plot, 
-       units = "cm", width = 15, height = 14, dpi = 300)
-plot(pca_plot)
-
-# check the screeplot and the summary statistics
-screeplot(pca_res)
-summary(pca_res)
-
-
-# PERMANOVA on the Traits 
-
-# permanova on traits to test the effect of species and depth on traits
-
-# set the seed to make the analysis reproducible
-set.seed(1)
-
-# note that the analysis can take a long time
-# set run_permanova <- TRUE if you want to run it
-run_permanova <- FALSE
-
-if (run_permanova) {
-  
-  adonis2(as.matrix(scale(pca_data[-c(1,2,3)])) ~ pca_data$Species*pca_data$depth, method = "euclidean",
-          permutations = 99999)
-  
-}
-
-# plot comparisons of the traits in a univariate
-ggboxplot(analysis_data,y="trait_tdmc",x = "binomial_code")
-ggboxplot(analysis_data,y="trait_STA",x = "binomial_code")
-ggboxplot(analysis_data,y="trait_float",x = "binomial_code")
-ggboxplot(analysis_data,y="trait_thickness",x = "binomial_code")
-ggboxplot(analysis_data,y="trait_SAP",x = "binomial_code")
 
 
 # analysis of growth (function) in different depth zones
