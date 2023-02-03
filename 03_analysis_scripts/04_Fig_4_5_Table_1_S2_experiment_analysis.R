@@ -603,19 +603,19 @@ pg <- ggarrange(plot_list[[1]], plot_list[[2]], plot_list[[3]], plot_list[[4]],
 
 # export Fig. 4
 ggsave(filename = here("figures/fig_4.png"), plot = pg, 
-       units = "cm", width = 5.75, height = 24, dpi = 450)
+       units = "cm", width = 6, height = 24, dpi = 450)
 
 
-# Figure 5 Epiphytes
+# Figure S4: Epiphyte analysis
 
-#Summary Stats
+# summary Stats
 mean(analysis_data$epiphyte_wet_weight_g, na.rm=T)
 sd(analysis_data$epiphyte_wet_weight_g, na.rm=T)
 
 mean(analysis_data$epiphyte_wet_weight_g_per_area, na.rm=T)
 sd(analysis_data$epiphyte_wet_weight_g_per_area, na.rm=T)
 
-# Epiphytes per area depending on depth and species
+# epiphytes per area depending on depth and species
 mod_epi <- lmer(epiphyte_wet_weight_g_per_area ~ Species*factor(depth_treatment)+(1|site_code/tile_id), 
                 data = analysis_data)
 summ(mod_epi)
@@ -625,80 +625,69 @@ densityPlot(resid(mod_epi))
 # get the emmeans for multiple comparisons
 emmeans(mod_epi, list(pairwise ~ factor(depth_treatment)), adjust = "tukey")
 
-# Figure 5a: Fucus spiralis
-analysis_data_fu_sp <- 
-  analysis_data %>% 
-  filter(Species == "Fucus spiralis", !is.na(dry_weight_g_daily_relative_increase))
+# Figure S4:
 
-p_fusp_epi <- 
-  ggplot(analysis_data_fu_sp, aes(factor(depth_treatment), epiphyte_wet_weight_g_per_area)) + 
-  geom_boxplot(width = .5, outlier.shape = NA,color="#fadb25") +  
-  theme_meta() +
-  ggtitle("F. spiralis") +
-  xlab("Depth (cm)") + 
-  ylab(expression("Epiphyte wet weight per fucoid thallus area (g cm"^-2*")")) + 
-  geom_hline(yintercept =0) + 
-  ylim(ylim=c(0,.16)) +
-  theme(plot.title = element_text(vjust = - 7, hjust = 0.2,
-                                  size = 11,face="italic"))
+# left panel
 
-# Figure 5b: Fucus vesiculosus
-analysis_data_fu_ve <- 
-  analysis_data %>% 
-  filter(Species=="Fucus vesiculosus", !is.na(dry_weight_g_daily_relative_increase))
+# set the species names
+sp_names <- c("Fucus spiralis", "Fucus vesiculosus", "Ascophyllum nodosum", "Fucus serratus") 
 
-p_fuve_epi <- 
-  ggplot(analysis_data_fu_ve, aes(factor(depth_treatment), epiphyte_wet_weight_g_per_area)) + 
-  geom_boxplot(width = .5, outlier.shape = NA,color="#ec7853") + 
-  theme_meta() +
-  ggtitle("F. vesiculosus") +
-  xlab("Depth (cm)") + 
-  ylab(" ") + 
-  geom_hline(yintercept =0) + 
-  ylim(ylim=c(0,.16)) +
-  theme(plot.title = element_text(vjust = - 7, hjust = 0.2,
-                                  size = 11,face="italic"))
+# set-up the axis labels
+xlabs <- c("", "", "Depth treatment (cm)", "Depth treatment (cm)")
+ylabs <- c(expression("Epiphyte wet weight per thallus area (g cm"^-2*")"),
+           "",
+           expression("Epiphyte wet weight per thallus area (g cm"^-2*")"),
+           "")
 
-# Figure 5c: Ascophyllum nodosum
-analysis_data_as_no <- 
-  analysis_data  %>% 
-  filter(Species == "Ascophyllum nodosum", !is.na(dry_weight_g_daily_relative_increase))
+# set-up the colours
+cols <- c("#D97E46", "#7A5414", "#AF994D", "#EAB20A")
 
-p_asno_epi <- 
-  ggplot(analysis_data_as_no, aes(factor(depth_treatment), epiphyte_wet_weight_g_per_area)) + 
-  geom_boxplot(width = .5, outlier.shape = NA, color="#9c259f") + 
-  theme_meta() +
-  ggtitle("A. nodosum") +
-  xlab("Depth (cm)") +
-  ylab(expression("Epiphyte wet weight per fucoid thallus area (g cm"^-2*")")) + 
-  geom_hline(yintercept =0)+
-  ylim(ylim=c(0,.16)) +
-  theme(plot.title = element_text(vjust = - 7, hjust = 0.2,
-                                  size = 11,face="italic"))
+# check the distribution of epiphyte wet-weights
+summary(analysis_data$epiphyte_wet_weight_g_per_area)
 
-# Figure 5d: Fucus serratus
-analysis_data_fu_se <- 
-  analysis_data %>% 
-  filter(Species == "Fucus serratus", !is.na(dry_weight_g_daily_relative_increase))
+plot_list <- vector("list", length = length(sp_names))
+for(i in 1:length(sp_names)) {
+  
+  plot_df <- 
+    analysis_data  %>% 
+    filter(Species == sp_names[i], !is.na(epiphyte_wet_weight_g_per_area)) %>%
+    mutate(depth_treatment = factor(depth_treatment, levels = c(-5, -12, -28, -40)))
+  
+  p1 <- 
+    p_fusp_epi <- 
+    ggplot(data = plot_df, 
+           mapping = aes(factor(depth_treatment), epiphyte_wet_weight_g_per_area)) + 
+    geom_boxplot(width = 0.15, outlier.shape = NA, color = cols[i],
+                 position = position_nudge(0.15)) +  
+    gghalves::geom_half_point(data = plot_df, 
+                              mapping = aes(factor(depth_treatment), epiphyte_wet_weight_g_per_area), 
+                              position = position_nudge(-0.35), colour = cols[i],
+                              alpha = 0.6, shape = 1, size = 1,
+                              range_scale = 0.4) +
+    ggtitle(sp_names[i]) +
+    xlab(xlabs[i]) + 
+    ylab(ylabs[i]) + 
+    ylim(ylim = c(0, 0.73)) +
+    theme_meta() +
+    theme(plot.title = element_text(hjust = 0.5,
+                                    size = 11, face = "italic"),
+          panel.border = element_blank())
+  
+  plot_list[[i]] <- p1
+  
+}
 
-p_fuse_epi <- 
-  ggplot(analysis_data_fu_se, aes(factor(depth_treatment), epiphyte_wet_weight_g_per_area)) + 
-  geom_boxplot(width = .5, outlier.shape = NA,color="#0c1787") +  
-  theme_meta() +
-  ggtitle("F. serratus") +
-  xlab("Depth (cm)") + 
-  ylab(" ")+
-  geom_hline(yintercept =0) + 
-  ylim(ylim=c(0,.16)) +
-  theme(plot.title = element_text(vjust = - 7, hjust = 0.2,
-                                  size = 11,face="italic"))
+# check one plot
+plot_list[[1]]
 
-p_epi <- ggarrange(p_fusp_epi, p_fuve_epi, p_asno_epi, p_fuse_epi, ncol = 2,nrow = 2,
-                   labels = c("a", "b", "c", "d"),
+p1234 <- ggarrange(plot_list[[1]], plot_list[[2]], plot_list[[3]], plot_list[[4]], 
+                   ncol = 2,nrow = 2, labels = c("a", "b", "c", "d"),
+                   hjust = -5, vjust = 2,
                    font.label = list(size = 11, color = "black", face = "plain"))
-plot(p_epi)
 
-# Does epiphyte growth restrict fucoid growth?
+# right panel
+
+# does epiphyte growth restrict fucoid growth?
 
 # fucoid growth ~ total epiphyte ww + Species*depth
 mod_epi_growth <- lmer(dry_weight_g_daily_relative_increase ~ epiphyte_wet_weight_g+Species*factor(depth_treatment)+(1|site_code/tile_id), 
@@ -722,39 +711,41 @@ plot(mod_epi2)
 
 analysis_data2 <- 
   analysis_data %>%
-  mutate(Species = as.factor(Species))
+  mutate(Species = factor(Species))
 
 # change the levels
 levels(analysis_data2$Species) <- c("F. serratus", "A. nodosum", "F. vesiculosus", "F. spiralis")
 
 # Figure 5e:
-p_5_reg <- 
-  ggplot(analysis_data2, aes(x = epiphyte_wet_weight_g_per_area, y = dry_weight_g_daily_relative_increase, color=Species,linetype=factor(depth_treatment))) + 
-  geom_point(size=1,alpha=0.5) +  
+p5 <- 
+  ggplot(data = analysis_data2, 
+         mapping = aes(x = epiphyte_wet_weight_g_per_area, y = dry_weight_g_daily_relative_increase, color=Species,linetype=factor(depth_treatment))) + 
+  geom_point(size = 1, alpha = 0.5) +  
   geom_smooth(method="lm",se = F,size=.6,alpha=0.8)+
   theme_meta()+
   scale_linetype_discrete(name="Depth (cm)") +
-  scale_colour_manual(name="",values=c("#0c1787","#9c259f", "#ec7853","#fadb25")) +
-  xlab(expression("Epiphyte wet weight per fucoid thallus area (g cm"^-2*")")) + 
+  scale_colour_manual(name = "", 
+                      values = c("#EAB20A", "#AF994D", "#7A5414", "#D97E46") ) +
+  xlab(expression("Epiphyte wet weight per thallus area (g cm"^-2*")")) + 
   ylab(expression("Dry weight change"~(g~g^{-1}~"%"~day^{-1}) )) +
-  geom_abline(slope = -2.87, intercept = 0.94,size=1)+theme(legend.key = element_rect(fill = NA, color = NA))+ggtitle("")
+  geom_abline(slope = -2.79, intercept = 0.95, size=1) + # which slope and intercept is this?
+  theme(legend.key = element_rect(fill = NA, color = NA)) + 
+  ggtitle("")
 
-plot(p_5_reg)
+plot(p5)
 
 # combine with the four panel epiphyte plot to plot Fig. 5
-p_epi_p5reg <- ggarrange(p_epi, p_5_reg, ncol = 2, nrow = 1,
+p12345 <- ggarrange(p1234, p5, ncol = 2, nrow = 1,
                     labels = c("", "e"),
                     widths = c(1, 1.25),
+                    hjust = -3.5,
                     font.label = list(size = 11, color = "black", face = "plain")
-)
-
-plot(p_epi_p5reg)
+                    )
+plot(p12345)
 
 # export supplementary Fig. epiphytes
-ggsave(filename = here("figures/fig_S_epiphyteanalysis.pdf"), plot = p_epi_p5reg, 
-       units = "cm", width = 26, height = 22.5, dpi = 300)
-
-
+ggsave(filename = here("figures/fig_S4.png"), plot = p12345, 
+       units = "cm", width = 26, height = 22.5, dpi = 450)
 
 
 ###Sensitivity analysis####
@@ -788,7 +779,9 @@ main.analysis$depth_treatment <- factor(main.analysis$depth_treatment,ordered = 
                                          levels=c("-5","-12","-28","-40"))
 
 
-plot_sensitivity = df_sensitivity %>% ggplot(aes(x=depth_treatment, y=emmean,group = runnr,color=Species)) + 
+plot_sensitivity <-
+  df_sensitivity %>% 
+  ggplot(aes(x=depth_treatment, y=emmean,group = runnr,color=Species)) + 
   
   #Sample
   geom_errorbar(aes(ymin=lower.CL, ymax=upper.CL), width=.01, size=0.05, alpha=.9, position = position_dodge(.5)) +
@@ -800,23 +793,22 @@ plot_sensitivity = df_sensitivity %>% ggplot(aes(x=depth_treatment, y=emmean,gro
   #Full analysis
   geom_line(data= main.analysis,size=0.5,color = "black") +
   geom_point(data= main.analysis,size=2, color = "black", alpha = 0.7) +
-  geom_errorbar(data= main.analysis,aes(ymin=lower.CL, ymax=upper.CL), width=.2, size=0.5,color = "black") +
+  geom_errorbar(data = main.analysis, 
+                mapping = aes(ymin=lower.CL, ymax=upper.CL), 
+                width= 0.05, size = 0.5, color = "black") +
   
   theme_meta()+
   theme(
-    strip.background = element_rect(
-      color="black", fill="white", size=0, linetype="solid"),
-    legend.position = "none"
-  )+
+    strip.background = element_rect(color="black", fill="white", size=0, linetype="solid"),
+    legend.position = "none",
+    strip.text = element_text(size = 11)) +
+  
   geom_hline(yintercept = 0, linetype = "dashed", colour = "black") + 
   ylim(c(-2.1,2.4))+
   ylab(expression("Dry weight change"~(g~g^{-1}~"%"~day^{-1}) ))+
-  xlab("Depth (cm)")
-plot_sensitivity
+  xlab("Depth treatment (cm)")
 
-ggsave(filename = here("figures/Fig_S_sensitivity_analysis.png"), plot = plot_sensitivity, 
-       units = "cm", width = 18, height = 17, dpi = 300)
-
+ggsave(filename = here("figures/fig_S3.png"), plot = plot_sensitivity, 
+       units = "cm", width = 18, height = 17, dpi = 450)
 
 ### END
-
