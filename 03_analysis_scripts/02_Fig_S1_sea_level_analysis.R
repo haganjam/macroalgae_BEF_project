@@ -81,7 +81,8 @@ p1 <-
         axis.text.y = element_text(hjust = 0.5, size = 9),
         axis.text.x = element_text(size = 9),
         axis.title.x = element_text(size = 10.5),
-        axis.title.y = element_text(size = 10.5))
+        axis.title.y = element_text(size = 10.5),
+        panel.border = element_blank())
 plot(p1)
 
 cols <- c("#D97E46", "#7A5414", "#AF994D", "#EAB20A")
