@@ -48,6 +48,7 @@ all_depth_summary <-
   summarise(n = n(), 
             m_depth_correct = mean(depth_correct), 
             sd_depth_correct = sd(depth_correct),
+            median_depth_correct = median(depth_correct), 
             se = sd_depth_correct/sqrt(n), .groups = "drop") %>%
   mutate(t_val = qt(p = 0.05, df = n)) %>%
   mutate(upper = (m_depth_correct + sd_depth_correct),
@@ -56,7 +57,16 @@ all_depth_summary <-
          lower_ci = (m_depth_correct - se*t_val))
 
 # Table S1
-View(all_depth_summary)
+#View(all_depth_summary)
+
+write.csv(select(all_depth_summary,
+                 binomial_code,
+                 n,
+                 m_depth_correct,
+                 sd_depth_correct,
+                 median_depth_correct,
+                 ),
+          here("figures/Table_S1_depth_dist_summary.csv"))
 
 # check these confidence intervals
 all_depth %>%
