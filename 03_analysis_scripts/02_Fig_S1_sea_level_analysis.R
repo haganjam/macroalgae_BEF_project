@@ -122,7 +122,7 @@ p12 <-
             )
 plot(p12)
 
-ggsave(filename = here("figures/fig_S1.png"), plot = p12, 
+ggsave(filename = here("figures/fig_S1.pdf"), plot = p12, 
        units = "cm", width = 20, height = 12, dpi = 450)
 
 # generate some ecologically meaningful variables from these time-series data

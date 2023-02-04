@@ -237,7 +237,7 @@ model.comparison = cbind(model=
     "dry weight ~ area * Species * wet weight"),
   model.comparison)
 
-write.csv("model.comparison",here("figures/model.comparison.dw.prediction.csv"))
+write.csv(model.comparison,here("figures/model.comparison.dw.prediction.csv"))
 
 # best Model (no 10) is used to predict dryweight
 mod_dw <- lm(dry_weight_total_g ~ 
@@ -361,7 +361,7 @@ summary.table_species_depth = summary.data %>%
             mean_max_length_growth = mean(max_length_cm_per_day),
             sd_max_length_growth = sd(max_length_cm_per_day))
 
-# create summary table by 
+# create summary table by species
 summary.table_species = 
   summary.data %>%
   group_by(species) %>%
@@ -562,7 +562,7 @@ for(i in 1:length(sp_names)) {
     ylab(expression("Dry weight change"~(g~g^{-1}~"%"~day^{-1}) )) +
     ggtitle("") +
     scale_y_continuous(expand = c(0, 0),
-                       limits = c(ymin-0.001, ymax+0.001), breaks = c(-2, -1, 0, 1, 2, 3)) +
+                       limits = c(ymin-0.001, ymax+0.051), breaks = c(-2, -1, 0, 1, 2, 3)) +
     theme_meta() +
     theme(panel.border = element_blank(),
           axis.line.x = element_line(colour = "black", size = 0.5),
@@ -591,7 +591,7 @@ pg <- ggarrange(plot_list[[1]], plot_list[[2]], plot_list[[3]], plot_list[[4]],
 plot(pg)
 
 # export Fig. 4
-ggsave(filename = here("figures/fig_4.png"), plot = pg, 
+ggsave(filename = here("figures/fig_4.pdf"), plot = pg, 
        units = "cm", width = 6, height = 22, dpi = 450)
 
 
@@ -733,7 +733,7 @@ p12345 <- ggarrange(p1234, p5, ncol = 2, nrow = 1,
 plot(p12345)
 
 # export supplementary Fig. epiphytes
-ggsave(filename = here("figures/fig_S5.png"), plot = p12345, 
+ggsave(filename = here("figures/fig_S5.pdf"), plot = p12345, 
        units = "cm", width = 26, height = 22.5, dpi = 450)
 
 
@@ -828,7 +828,7 @@ plot_sensitivity <-
   ylab(expression("Dry weight change"~(g~g^{-1}~"%"~day^{-1}) ))+
   xlab("Depth treatment (cm)")
 
-ggsave(filename = here("figures/fig_S4.png"), plot = plot_sensitivity, 
+ggsave(filename = here("figures/fig_S4.pdf"), plot = plot_sensitivity, 
        units = "cm", width = 18, height = 17, dpi = 450)
 
 ### END

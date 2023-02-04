@@ -169,7 +169,7 @@ p12 <-
   )
 plot(p12)
 
-ggsave(filename = here("figures/fig_S2.png"), p12, 
+ggsave(filename = here("figures/fig_S2.pdf"), p12, 
        width = 18, height = 9, units = "cm",
        dpi = 450)
 
