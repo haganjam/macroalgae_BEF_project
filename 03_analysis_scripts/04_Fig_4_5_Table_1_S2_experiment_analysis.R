@@ -66,6 +66,7 @@ names(mortality) = c("survived", "binomial_code","depth_treatment","site_code","
 # the current table has counts survived and died, filter to only died plants
 mortality = mortality %>% filter(survived == F)
 
+
 # run anova analysis for each factor
 Anova(glm(freq ~ site_code,mortality,family=poisson))
 Anova(glm(freq ~ depth_treatment,mortality,family=poisson))
@@ -197,18 +198,18 @@ analysis_data$growth_wet_weight_g_percent <- analysis_data$growth_wet_weight_g /
 
 # create multiple models to predict dryweight
 candidate_models_dw <- list(
-  model1 = lm(dry_weight_total_g ~ final_area_cm2, data = analysis_data),
-  model2 = lm(dry_weight_total_g ~ final_area_cm2 + Species, data = analysis_data),
-  model3 = lm(dry_weight_total_g ~ final_area_cm2 * Species, data = analysis_data),
-  model4 = lm(dry_weight_total_g ~ final_area_cm2 + final_wet_weight_g, data = analysis_data),
-  model5 = lm(dry_weight_total_g ~ final_area_cm2 + final_wet_weight_g * Species, data = analysis_data),
-  model6 = lm(dry_weight_total_g ~ final_wet_weight_g, data = analysis_data),
-  model7 = lm(dry_weight_total_g ~ final_wet_weight_g + Species, data = analysis_data),
-  model8 = lm(dry_weight_total_g ~ final_wet_weight_g * Species, data = analysis_data),
-  model9 = lm(dry_weight_total_g ~ final_area_cm2 * Species + final_wet_weight_g * Species,data=analysis_data),
-  model10 = lm(dry_weight_total_g ~ final_area_cm2 * Species + final_wet_weight_g * Species + final_area_cm2*final_wet_weight_g,data=analysis_data),
+  model1 = lm(dry_weight_total_g ~ final_area_cm2, data = analysis_data[!is.na(analysis_data$final_area_cm2),]),
+  model2 = lm(dry_weight_total_g ~ final_area_cm2 + Species, data = analysis_data[!is.na(analysis_data$final_area_cm2),]),
+  model3 = lm(dry_weight_total_g ~ final_area_cm2 * Species, data = analysis_data[!is.na(analysis_data$final_area_cm2),]),
+  model4 = lm(dry_weight_total_g ~ final_area_cm2 + final_wet_weight_g, data = analysis_data[!is.na(analysis_data$final_area_cm2),]),
+  model5 = lm(dry_weight_total_g ~ final_area_cm2 + final_wet_weight_g * Species, data = analysis_data[!is.na(analysis_data$final_area_cm2),]),
+  model6 = lm(dry_weight_total_g ~ final_wet_weight_g, data = analysis_data[!is.na(analysis_data$final_area_cm2),]),
+  model7 = lm(dry_weight_total_g ~ final_wet_weight_g + Species, data = analysis_data[!is.na(analysis_data$final_area_cm2),]),
+  model8 = lm(dry_weight_total_g ~ final_wet_weight_g * Species, data = analysis_data[!is.na(analysis_data$final_area_cm2),]),
+  model9 = lm(dry_weight_total_g ~ final_area_cm2 * Species + final_wet_weight_g * Species,data=analysis_data[!is.na(analysis_data$final_area_cm2),]),
+  model10 = lm(dry_weight_total_g ~ final_area_cm2 * Species + final_wet_weight_g * Species + final_area_cm2*final_wet_weight_g,data=analysis_data[!is.na(analysis_data$final_area_cm2),]),
   
-  model11 = lm(dry_weight_total_g ~ final_area_cm2 * Species * final_wet_weight_g,data=analysis_data))
+  model11 = lm(dry_weight_total_g ~ final_area_cm2 * Species * final_wet_weight_g,data=analysis_data[!is.na(analysis_data$final_area_cm2),]))
 
 # compare multiple models to predict dryweight
 model.comparison = rbind(broom::glance(candidate_models_dw$model1),
@@ -225,16 +226,16 @@ model.comparison = rbind(broom::glance(candidate_models_dw$model1),
 
 model.comparison = cbind(model=
   c("dry weight ~ area",
-    "dry weight ~ area + Species",
-    "dry weight ~ area * Species",
+    "dry weight ~ area + species",
+    "dry weight ~ area * species",
     "dry weight ~ area + wet weight",
-    "dry weight ~ area + wet weight * Species",
+    "dry weight ~ area + wet weight * species",
     "dry weight ~ wet weight",
-    "dry weight ~ wet weight + Species",
-    "dry weight ~ wet weight * Species",
-    "dry weight ~ area * Species + wet weight * Species",
-    "dry weight ~ area * Species + wet weight * Species + area * wet weight",
-    "dry weight ~ area * Species * wet weight"),
+    "dry weight ~ wet weight + species",
+    "dry weight ~ wet weight * species",
+    "dry weight ~ area * species + wet weight * species",
+    "dry weight ~ area * species + wet weight * species + area * wet weight",
+    "dry weight ~ area * species * wet weight"),
   model.comparison)
 
 write.csv(model.comparison,here("figures/model.comparison.dw.prediction.csv"))
@@ -592,7 +593,7 @@ plot(pg)
 
 # export Fig. 4
 ggsave(filename = here("figures/fig_4.pdf"), plot = pg, 
-       units = "cm", width = 6, height = 22, dpi = 450)
+       units = "cm", width = 6, height = 24, dpi = 450)
 
 
 # Figure S5: Epiphyte analysis
