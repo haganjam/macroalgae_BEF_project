@@ -1,11 +1,12 @@
 #'
 #' @title: Analyse the relative growth rate data for species and depths
 #' 
-#' @description: This scripts analyses the effect of our treatments on growth and traits of
-#' using data from the experiment. The script also produces Fig. 4, Fig. 5 and the
-#' analysis reported in Table 1.
+#' @description: This scripts analyses the effect of our treatments on growth of
+#' using data from the experiment. This script includes an analysis of the mortality and performs a sensitivity analysis.
+#' The script also produces Fig. 4, S3, S4, S5 and the
+#' analysis reported in Table 1, S3, S4, S5, S6, S7.
 #' 
-#' @authors: Benedikt Schrofner-Brunner (bschrobru(at)gmail.com) with minor edits from James G. Hagan (james_hagan(at)outlook.com)
+#' @authors: Benedikt Schrofner-Brunner (bschrobru(at)gmail.com) and James G. Hagan (james_hagan(at)outlook.com)
 #' 
 
 # load relevant libraries
@@ -138,43 +139,6 @@ analysis_data$Species <- factor(analysis_data$Species,ordered = TRUE,
                                         "Fucus spiralis"
                                ))
 
-
-
-
-
-# calculating traits after the experiment after https://seaweedtraits.github.io/traits-db.html
-
-# TDMC - Thallus Dry Matter Content (no units): obtained by dividing dry mass (g) by fresh mass (g)
-analysis_data$trait_tdmc <- analysis_data$dry_weight_total_g/analysis_data$final_wet_weight_g
-hist(analysis_data$trait_tdmc)
-
-# thickness
-analysis_data$trait_thickness <- analysis_data$blade_thickness_mean
-
-# Ascophyllum thickness is represented by midrib thickness
-analysis_data$trait_thickness[analysis_data$binomial_code=="as_no"] <- analysis_data$midrib_mean[analysis_data$binomial_code=="as_no"]
-hist(analysis_data$trait_thickness)
-
-# STA: Specific Thallus Area (mm2 g-1): obtained by dividing the area (mm2) of a sample by its dry mass (g)
-analysis_data$trait_STA <- ( analysis_data$final_area_cm2 * 100 ) / analysis_data$dry_weight_total_g
-hist(analysis_data$trait_STA)
-
-# SBA Specific Blade Area
-analysis_data$trait_SBA <- ( analysis_data$final_blade_area_cm2 * 100 ) / analysis_data$dry_weight_blade_g
-hist(analysis_data$trait_SBA)
-
-# SA:P - Surface Area to Perimeter ratio (no units): obtained by dividing the area (mm2) of a sample by its perimeter (mm)
-analysis_data$trait_SAP <- ( analysis_data$final_area_cm2 * 100 ) / analysis_data$final_perimeter_cm
-hist(analysis_data$trait_SAP)
-
-# other traits:
-
-# lift per DW - bladder volume (obtained by calculating the volume of a sphere from diameter (=thickness)) times bladder count per dry weight
-analysis_data$lift <- (4/3)*pi* (analysis_data$bladder_thickness_mean / 2 ) *analysis_data$number_of_bladders
-analysis_data$trait_float <- analysis_data$lift / analysis_data$dry_weight_total_g
-hist(analysis_data$trait_float)
-analysis_data$trait_float[is.na(analysis_data$trait_float)] <- 0
-
 # growth percentages
 analysis_data$growth_area_cm2_percent <- analysis_data$growth_area_cm2 / analysis_data$initial_area_cm2 *100
 analysis_data$growth_length_cm_percent <- analysis_data$growth_length_cm / analysis_data$initial_length_cm  *100
@@ -279,15 +243,6 @@ analysis_data$dry_weight_total_g_relative_increase_total <- 100 * analysis_data$
 
 # growth in percent per day - there were slightly differing durations
 analysis_data$dry_weight_g_daily_relative_increase <- analysis_data$dry_weight_total_g_relative_increase_total/analysis_data$duration
-
-# export a cleaned version of these data
-analysis_data %>%
-  select(plant_id, site_code, hor_pos, depth_treatment, tile_id, plant_no,
-         binomial_code,
-         trait_tdmc, trait_thickness, trait_STA, trait_SBA, trait_SAP, trait_float,
-         dry_weight_g_daily_relative_increase) %>%
-  rename(dry_weight_g_daily_change = dry_weight_g_daily_relative_increase) %>%
-  write_csv("analysis_data/compensation_data.csv")
 
 # calculate a summary table
 table(is.na(analysis_data$dry_weight_g_daily_relative_increase))
