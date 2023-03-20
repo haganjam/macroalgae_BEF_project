@@ -14,9 +14,8 @@
 require(here)
 
 # list of packages of load
-pkgs <- c("here","readr","vegan","dplyr","lme4",
-          "MuMIn","jtools","lmerTest","emmeans",
-          "ggpubr", "ggfortify", "car", "ggdist", "ggbeeswarm","readr")
+pkgs <- c("here","readr","dplyr","MuMIn","jtools","lme4","lmerTest","emmeans",
+          "ggpubr", "ggfortify", "car", "ggdist", "ggbeeswarm")
 
 # use groundhog for package management? TRUE or FALSE
 gh <- FALSE
@@ -52,7 +51,7 @@ if(! dir.exists(here("figures"))){
 # import cleaned dataset
 analysis_data <- read_csv("analysis_data/experiment_analysis_data.csv")
 
-# mortality # TRUE is that it was recovered, FALSE is that it was lost
+# lost_individuals # TRUE is that it was recovered, FALSE is that it was lost
 table(!is.na(analysis_data$date_end.x), analysis_data$depth_treatment)
 table(!is.na(analysis_data$date_end.x), analysis_data$binomial_code)
 
@@ -65,43 +64,48 @@ chisq.test(table(!is.na(analysis_data$date_end.x), analysis_data$depth_treatment
 # species had generally affected the number of lost individuals
 chisq.test(table(!is.na(analysis_data$date_end.x), analysis_data$binomial_code))
 
-mortality = as.data.frame(table(!is.na(analysis_data$date_end.x), analysis_data$binomial_code, analysis_data$depth_treatment, analysis_data$site_code))
-names(mortality) = c("survived", "binomial_code","depth_treatment","site_code","freq")
+lost_individuals = as.data.frame(table(!is.na(analysis_data$date_end.x), analysis_data$binomial_code, analysis_data$depth_treatment, analysis_data$site_code))
+names(lost_individuals) = c("survived", "binomial_code","depth_treatment","site_code","freq")
 
 # the current table has counts survived and died, filter to only died plants
-mortality = 
-  mortality %>% 
+lost_individuals = 
+  lost_individuals %>% 
   filter(survived == F)
 
 # run anova analysis for each factor
-Anova(glm(freq ~ site_code, mortality, family = poisson))
-Anova(glm(freq ~ depth_treatment, mortality, family = poisson))
-Anova(glm(freq ~ binomial_code, mortality, family = poisson))
+Anova(glm(freq ~ site_code, lost_individuals, family = poisson))
+Anova(glm(freq ~ depth_treatment, lost_individuals, family = poisson))
+Anova(glm(freq ~ binomial_code, lost_individuals, family = poisson))
 
-ggboxplot(y="freq",facet.by="binomial_code",x = "depth_treatment",jitter=T,data=mortality,add="jitter",shape=3)
+ggboxplot(y="freq",facet.by="binomial_code",x = "depth_treatment",jitter=T,data=lost_individuals,add="jitter",shape=3)
 
 # Anova without fucus serratus
-Anova(glm(freq ~ binomial_code,mortality[mortality$binomial_code!="fu_se",],family=poisson))
+Anova(glm(freq ~ binomial_code,lost_individuals[lost_individuals$binomial_code!="fu_se",],family=poisson))
 
 # test if there is an interaction effect of depth and 
-mod_mortality=(glm(freq ~ binomial_code*depth_treatment+site_code,mortality,family=poisson))
+mod_lost_individuals=(glm(freq ~ binomial_code*depth_treatment+site_code,lost_individuals,family=poisson))
 
 # check model assumptions
-plot(mod_mortality)
+#plot(mod_lost_individuals)
 
 # check the results of the model i.e. model coefficients etc.
-summary(mod_mortality)
+summary(mod_lost_individuals)
 
 # perform a type III ANOVA
-mod_mortality = Anova(mod_mortality, type = 3)
+mod_lost_individuals = Anova(mod_lost_individuals, type = 3)
 
 # how many full tiles were lost? i.e. how many tiles were there that we couldn't recover any individuals from?
-mortality[mortality$freq == 9,]
-mortality[mortality$freq == 8,]
+lost_individuals[lost_individuals$freq == 9,]
+lost_individuals[lost_individuals$freq == 8,]
 
 # check the summary and distribution of these lost individuals
-table(mortality$freq)
-hist(mortality$freq)
+table(lost_individuals$freq)
+hist(lost_individuals$freq)
+
+#Summary table S4 for lost individuals
+summary_table_S4 = lost_individuals %>% group_by(binomial_code,depth_treatment) %>% summarise(mean_lost = mean(freq),n=n())
+write.csv(summary_table_S4, here("figures/table_S4.csv"))
+
 
 # remove outlier as it is almost certainly an incorrect measurement see end of script
 analysis_data <- analysis_data[-493,] 
@@ -253,30 +257,9 @@ table(is.na(analysis_data$dry_weight_g_daily_relative_increase))
 # epiphyte wet weight per area
 analysis_data$epiphyte_wet_weight_g_per_area <- analysis_data$epiphyte_wet_weight_g / analysis_data$final_area_cm2
 
-# summarise statistics on growth by species and by treatments
-analysis_data %>% 
-  group_by(Species) %>% 
-  summarise(mean=mean(dry_weight_total_g_increase,na.rm=T),
-            sd=sd(dry_weight_total_g_increase,na.rm=T),
-            percent = mean(dry_weight_total_g_relative_increase_total,na.rm=T)
-            )
+####Generate Table S6: Summary statistics for initial and growth values.####
 
-analysis_data %>% 
-  group_by(Species,depth_treatment) %>% 
-  summarise(mean=mean(dry_weight_total_g_increase,na.rm=T),
-            sd=sd(dry_weight_total_g_increase,na.rm=T),
-            percent = mean(dry_weight_total_g_relative_increase_total,na.rm=T)
-            )
-
-analysis_data %>% 
-  group_by(Species) %>% 
-  summarise(dry_mean=mean(dry_weight_total_g_before_predicted,na.rm=T),
-            dry_sd=sd(dry_weight_total_g_before_predicted,na.rm=T),
-            length_cm = mean(initial_length_cm,na.rm=T),
-            length_sd = sd(initial_length_cm,na.rm=T)
-            )
-
-# summary table with initial values and growth per day
+# prepare data for summary with initial values and growth per day
 summary.data = data.frame(species = analysis_data$Species,
                           depth_treatment = analysis_data$depth_treatment,
                           initial_dryweight_predicted_g = analysis_data$dry_weight_total_g_before_predicted, #initial dry weight
@@ -288,7 +271,7 @@ summary.data = data.frame(species = analysis_data$Species,
                           initial_max_length_cm = analysis_data$initial_length_cm,
                           max_length_cm_per_day = analysis_data$growth_length_cm / analysis_data$duration)
 
-# check the data without missing values
+# Remove missing values
 summary.data = na.omit(summary.data)
 
 # create summary table by species and depth
@@ -370,7 +353,7 @@ colnames(summary.table) <- c("Species","Depth treatment (cm)","Initial dryweight
 # write the summary to a .csv file
 write.csv(summary.table, here("figures/table_S6.csv"))
 
-
+###############
 # analysis of growth (function) in different depth zones
 
 # analysis for each species: fit an individual model to each species
@@ -432,8 +415,15 @@ emm_fu_se <- emmeans(model_fu_se, list(pairwise ~ factor(depth_treatment)), adju
 table_1_fu_se <- cbind(anova(model_fu_se), r.squaredGLMM(model_fu_se), 
                        N = length(resid(model_fu_se)), model = "fu_se")
 
-# bind all the emmeans results into a list
+# bind all the emmeans results into a list 
 emm = list(emm_fu_sp,emm_fu_ve,emm_as_no,emm_fu_se)
+
+#Create table Table S7
+write_csv(rbind(
+data.frame(species="fu_sp",emm[[1]]$`emmeans of depth_treatment`),
+data.frame(species="fu_ve",emm[[2]]$`emmeans of depth_treatment`),
+data.frame(species="as_no",emm[[3]]$`emmeans of depth_treatment`),
+data.frame(species="fu_se",emm[[4]]$`emmeans of depth_treatment`)),"figures/table_S7.csv")
 
 # table 1: bind the combined model and all individual models into a table and export as a .csv
 write_csv(rbind(table_1_fu_sp, 
@@ -697,13 +687,15 @@ sensitivity_runs = list()
 
 for(i in 1:200) {
   set.seed(i)
-temp_data = 
+  
+  #Subset of 1 individual for each tile is drawn
+ temp_data = 
   analysis_data %>% 
   filter(!is.na(dry_weight_g_daily_relative_increase)) %>% 
   group_by(tile_id) %>% 
   sample_n(1,replace = T) # can also be done for more n
 
-# a growth comparison is calculated for each species
+# a growth comparison is calculated for each species with emmean and CI
 model.growth.fu.sp.species <- lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code),
                                   data = filter(temp_data, binomial_code == "fu_sp"))
 model.growth.fu.ve.species <- lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code),
@@ -719,7 +711,7 @@ emm_temp.fu.ve <- emmeans(model.growth.fu.ve.species, list(pairwise ~ factor(dep
 emm_temp.as.no <- emmeans(model.growth.as.no.species, list(pairwise ~ factor(depth_treatment)), adjust = "tukey")
 emm_temp.fu.se <- emmeans(model.growth.fu.se.species, list(pairwise ~ factor(depth_treatment)), adjust = "tukey")
 
-# create emmeans for depth
+# create table with the emmean and ci for each species in each depth zone
 emm_temp <- rbind(
   data.frame(emm_temp.fu.sp$`emmeans of depth_treatment`,Species="Fucus spiralis"),
   data.frame(emm_temp.fu.ve$`emmeans of depth_treatment`,Species="Fucus vesiculosus"),
@@ -730,13 +722,17 @@ emm_temp <- rbind(
 sensitivity_runs[[i]] = cbind(emm_temp, runnr = i)
 }
 
+# bind all sensitivity runs to one large table
 df_sensitivity <- do.call("rbind",sensitivity_runs)
 
+# order factors for plotting
 df_sensitivity$Species <- factor(df_sensitivity$Species,ordered = TRUE,
                                 levels=c("Fucus spiralis","Fucus vesiculosus","Ascophyllum nodosum","Fucus serratus"))
 df_sensitivity$depth_treatment <- factor(df_sensitivity$depth_treatment,ordered = TRUE,
                                  levels=c("-5","-12","-28","-40"))
 
+
+#Analysis as in the manuscript with all usable individuals
 main.analysis = 
   
   #add column with runnr
@@ -766,7 +762,7 @@ plot_sensitivity <-
   facet_wrap(~ Species) +
   scale_color_manual(values=cols)+
   
-  # observed analysis
+  # observed analysis with all individuals
   geom_line(data= main.analysis,size=0.5,color = "black") +
   geom_point(data= main.analysis,size=2, color = "black", alpha = 0.7) +
   geom_errorbar(data = main.analysis, 
