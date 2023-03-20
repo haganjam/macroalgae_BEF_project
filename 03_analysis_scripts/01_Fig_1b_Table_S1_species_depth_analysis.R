@@ -2,7 +2,7 @@
 #' @title: Analyse the depth distribution of the four focal species
 #' 
 #' @description: This scripts generates a graph of the depth distribution of the four
-#' focal species used in the experiment (Fig. 2 in the manuscript) and a table with summary
+#' focal species used in the experiment (Fig. 1b in the manuscript) and a table with summary
 #' statistics regarding the observed depths and experimental depths (Table S1).
 #' 
 #' @authors: James G. Hagan (james_hagan(at)outlook.com)
@@ -32,6 +32,16 @@ if(gh) {
   
 }
 
+# make sure the analysis data folder exists which contains the clean datasets
+if(!dir.exists("analysis_data")){ 
+  print("All cleaning scripts need to be run before this analysis can be run")
+}
+
+# check if a figure folder exists
+if(! dir.exists(here("figures"))){
+  dir.create(here("figures"))
+}
+
 # load relevant functions
 source(here("01_functions/function_plotting_theme.R"))
 
@@ -42,6 +52,7 @@ all_depth <- read_csv(file = here("analysis_data/species_depth_data.csv"))
 all_depth$binomial_code <- factor(all_depth$binomial_code, levels = c("fu_sp","fu_ve", "as_no" , "fu_se" ))
 levels(all_depth$binomial_code) = c( "F. spiralis", "F. vesiculosus","A. nodosum", "F. serratus")
 
+# calculate summary statistics for the different depth zones for each species
 all_depth_summary <- 
   all_depth %>%
   group_by(binomial_code) %>%
@@ -56,9 +67,7 @@ all_depth_summary <-
          upper_ci = (m_depth_correct + se*t_val),
          lower_ci = (m_depth_correct - se*t_val))
 
-# Table S1
-#View(all_depth_summary)
-
+# select relevant columns for table S1 and write to .csv
 write.csv(select(all_depth_summary,
                  binomial_code,
                  n,
@@ -66,7 +75,7 @@ write.csv(select(all_depth_summary,
                  sd_depth_correct,
                  median_depth_correct,
                  ),
-          here("figures/Table_S1_depth_dist_summary.csv"))
+          here("figures/table_S1.csv"))
 
 # check these confidence intervals
 all_depth %>%

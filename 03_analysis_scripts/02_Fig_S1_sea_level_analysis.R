@@ -33,7 +33,7 @@ if(gh) {
   
 }
 
-# output the cleaned csv file into the analysis data folder
+# make sure the analysis data folder exists which contains the clean datasets
 if(!dir.exists("analysis_data")){ 
   print("All cleaning scripts need to be run before this analysis can be run")
 }
@@ -48,9 +48,15 @@ source(here("01_functions/function_plotting_theme.R"))
 
 # load the cleaned sea-level data
 sea_dat <- read_csv(file = here("analysis_data/sea_level_data.csv"))
+
+# check the range of dates that the data cover
 range(sea_dat$date_time_CET)
 diff(range(sea_dat$date_time_CET))
+
+# calculate the average time-span (minutes) between water-level measurements
 2469.997*24*60/nrow(sea_dat)
+
+# check the structure of the data
 head(sea_dat)
 str(sea_dat)
 nrow(sea_dat)

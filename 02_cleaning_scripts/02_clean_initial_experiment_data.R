@@ -248,4 +248,3 @@ if(!dir.exists("analysis_data")){
 write_csv(init_dat, here("analysis_data/initial_data_clean.csv"))
 
 ### END
-
