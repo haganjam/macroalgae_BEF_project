@@ -87,16 +87,6 @@ summary(mod_mortality)
 
 mod_mortality = Anova(mod_mortality, type = 3)
 
-# load the effect size library
-library(effectsize)
-
-# calculate the effect size
-mod_mortality
-
-mortality %>% 
-  group_by(binomial_code,depth_treatment) %>% 
-  summarise(mean=mean(freq))
-
 # How many full tiles were lost?
 
 mortality[mortality$freq==9,]
@@ -207,6 +197,8 @@ candidate_models_dw <- list(
   model7 = lm(dry_weight_total_g ~ final_wet_weight_g + Species, data = analysis_data[!is.na(analysis_data$final_area_cm2),]),
   model8 = lm(dry_weight_total_g ~ final_wet_weight_g * Species, data = analysis_data[!is.na(analysis_data$final_area_cm2),]),
   model9 = lm(dry_weight_total_g ~ final_area_cm2 * Species + final_wet_weight_g * Species,data=analysis_data[!is.na(analysis_data$final_area_cm2),]),
+  
+  #Best Model
   model10 = lm(dry_weight_total_g ~ final_area_cm2 * Species + final_wet_weight_g * Species + final_area_cm2*final_wet_weight_g,data=analysis_data[!is.na(analysis_data$final_area_cm2),]),
   
   model11 = lm(dry_weight_total_g ~ final_area_cm2 * Species * final_wet_weight_g,data=analysis_data[!is.na(analysis_data$final_area_cm2),]))
@@ -421,7 +413,6 @@ write.csv(summary.table, here("figures/table_S5.csv"))
 
 
 # analysis of growth (function) in different depth zones
-
 
 # analysis for each species: fit an individual model to each species
 
@@ -675,7 +666,6 @@ p1234 <- ggarrange(plot_list[[1]], plot_list[[2]], plot_list[[3]], plot_list[[4]
                    hjust = -5, vjust = 2,
                    font.label = list(size = 11, color = "black", face = "plain"))
 
-# right panel
 
 # does epiphyte growth restrict fucoid growth?
 
