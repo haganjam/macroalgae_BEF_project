@@ -15,7 +15,7 @@ require(here)
 
 # list of packages of load
 pkgs <- c("here","readr","dplyr","MuMIn","lme4","lmerTest","emmeans",
-          "ggpubr", "ggfortify", "car", "ggdist", "ggbeeswarm")
+          "ggpubr", "ggfortify","car", "ggdist", "ggbeeswarm")
 
 # use groundhog for package management? TRUE or FALSE
 gh <- FALSE
