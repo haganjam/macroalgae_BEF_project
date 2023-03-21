@@ -17,8 +17,24 @@ library(groundhog)
 source(here("01_functions/get_groundhog_date.R"))
 groundhog.day <- get_groundhog_date()
 pkgs <- c("here", "dplyr", "readr", "lubridate")
-groundhog.library(pkgs, groundhog.day)
 
+# use groundhog for package management? TRUE or FALSE
+gh <- FALSE
+
+if(gh) {
+  
+  # load the relevant libraries using groundhog for package management
+  require(groundhog)
+  source(here("01_functions/get_groundhog_date.R"))
+  groundhog.day <- get_groundhog_date()
+  groundhog.library(pkgs, groundhog.day)
+  
+} else {
+  
+  # load the packages manually
+  sapply(pkgs, require, character.only = TRUE)
+  
+}
 # load the date_fixer function
 source(here("01_functions/date_fixer.R"))
 

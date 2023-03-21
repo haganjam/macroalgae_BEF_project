@@ -4,12 +4,26 @@
 # Title: Clean the logger data from the tile experiment
 
 # load relevant libraries
-library(dplyr)
-library(tidyr)
-library(readr)
-library(ggplot2)
-library(here)
-library(stringr)
+
+pkgs <- c("dplyr", "tidyr", "readr","ggplot2","here","stringr")
+
+# use groundhog for package management? TRUE or FALSE
+gh <- FALSE
+
+if(gh) {
+  
+  # load the relevant libraries using groundhog for package management
+  require(groundhog)
+  source(here("01_functions/get_groundhog_date.R"))
+  groundhog.day <- get_groundhog_date()
+  groundhog.library(pkgs, groundhog.day)
+  
+} else {
+  
+  # load the packages manually
+  sapply(pkgs, require, character.only = TRUE)
+  
+}
 
 # get a list of files in the tile_logger_data
 log_files <- list.files(path = here("tile_logger_data/raw_data"))

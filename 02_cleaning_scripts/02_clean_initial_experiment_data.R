@@ -20,7 +20,25 @@ groundhog.day <- get_groundhog_date()
 # require(stringi)
 
 pkgs <- c("here", "dplyr", "readr", "lubridate", "stringr")
-groundhog.library(pkgs, groundhog.day)
+
+# use groundhog for package management? TRUE or FALSE
+gh <- FALSE
+
+if(gh) {
+  
+  # load the relevant libraries using groundhog for package management
+  require(groundhog)
+  source(here("01_functions/get_groundhog_date.R"))
+  groundhog.day <- get_groundhog_date()
+  groundhog.library(pkgs, groundhog.day)
+  
+} else {
+  
+  # load the packages manually
+  sapply(pkgs, require, character.only = TRUE)
+  
+}
+
 
 # check that the correct folder is present
 if(! dir.exists(here("ResearchBox 435"))){

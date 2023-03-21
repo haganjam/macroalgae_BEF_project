@@ -7,8 +7,24 @@
 library(groundhog)
 groundhog.day <- "2020-06-1"
 pkgs <- c("here", "dplyr", "readr")
-groundhog.library(pkgs, groundhog.day)
 
+# use groundhog for package management? TRUE or FALSE
+gh <- FALSE
+
+if(gh) {
+  
+  # load the relevant libraries using groundhog for package management
+  require(groundhog)
+  source(here("01_functions/get_groundhog_date.R"))
+  groundhog.day <- get_groundhog_date()
+  groundhog.library(pkgs, groundhog.day)
+  
+} else {
+  
+  # load the packages manually
+  sapply(pkgs, require, character.only = TRUE)
+  
+}
 # load and clean the sea-level data
 
 # Havsvattenstånd RH2000, minutvärde (https://www.smhi.se/data/oceanografi/ladda-ner-oceanografiska-observationer#param=sealevelMinutes,stations=all,stationid=2130)
