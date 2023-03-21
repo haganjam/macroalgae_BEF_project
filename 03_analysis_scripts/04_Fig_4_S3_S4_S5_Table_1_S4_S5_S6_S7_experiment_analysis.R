@@ -14,7 +14,7 @@
 require(here)
 
 # list of packages of load
-pkgs <- c("here","readr","dplyr","MuMIn","jtools","lme4","lmerTest","emmeans",
+pkgs <- c("here","readr","dplyr","MuMIn","lme4","lmerTest","emmeans",
           "ggpubr", "ggfortify", "car", "ggdist", "ggbeeswarm")
 
 # use groundhog for package management? TRUE or FALSE
@@ -363,7 +363,6 @@ model_fu_sp <- lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatmen
                     data = filter(analysis_data, binomial_code == "fu_sp"))
 anova(model_fu_sp)
 densityPlot(resid(model_fu_sp))
-summ(model_fu_sp)
 
 # use emmeans to perform Tukey post-hoc tests
 emm_fu_sp <- emmeans(model_fu_sp, list(pairwise ~ factor(depth_treatment)), adjust = "tukey")
@@ -378,7 +377,6 @@ model_fu_ve <- lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatmen
                     data = filter(analysis_data, binomial_code == "fu_ve"))
 anova(model_fu_ve)
 densityPlot(resid(model_fu_ve))
-summ(model_fu_ve)
 
 # use emmeans to perform Tukey post-hoc tests
 emm_fu_ve <- emmeans(model_fu_ve, list(pairwise ~ factor(depth_treatment)), adjust = "tukey")
@@ -392,7 +390,6 @@ model_as_no <- lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatmen
                     data = filter(analysis_data, binomial_code == "as_no"))
 anova(model_as_no)
 densityPlot(resid(model_as_no))
-summ(model_as_no)
 
 # emmeans to perform tukey post-hoc tests
 emm_as_no <- emmeans(model_as_no, list(pairwise ~ factor(depth_treatment)), adjust = "tukey")
@@ -406,7 +403,6 @@ model_fu_se <- lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatmen
                     data = filter(analysis_data, binomial_code == "fu_se"))
 anova(model_fu_se)
 densityPlot(resid(model_fu_se))
-summ(model_fu_se)
 
 # use emmeans to perform tukey post-hoc tests
 emm_fu_se <- emmeans(model_fu_se, list(pairwise ~ factor(depth_treatment)), adjust = "tukey")
@@ -551,7 +547,6 @@ sd(analysis_data$epiphyte_wet_weight_g_per_area, na.rm=T)
 # epiphytes per area depending on depth and species
 mod_epi <- lmer(epiphyte_wet_weight_g_per_area ~ Species*factor(depth_treatment)+(1|site_code/tile_id), 
                 data = analysis_data)
-summ(mod_epi)
 anova(mod_epi)
 densityPlot(resid(mod_epi))
 
@@ -625,20 +620,17 @@ p1234 <- ggarrange(plot_list[[1]], plot_list[[2]], plot_list[[3]], plot_list[[4]
 # fucoid growth ~ total epiphyte ww + Species*depth
 mod_epi_growth <- lmer(dry_weight_g_daily_relative_increase ~ epiphyte_wet_weight_g+Species*factor(depth_treatment)+(1|site_code/tile_id), 
                        data = analysis_data)
-summ(mod_epi_growth)
 anova(mod_epi_growth)
 densityPlot(resid(mod_epi_growth))
 
 # fucoid growth ~ epiphyte ww per area + Species*depth
 mod_epi <- lmer(dry_weight_g_daily_relative_increase ~ epiphyte_wet_weight_g_per_area+Species*factor(depth_treatment)+(1|site_code/tile_id),
                 data = filter(analysis_data, !is.na(epiphyte_wet_weight_g_per_area)))
-summ(mod_epi)
 anova(mod_epi)
 
 # fucoid growth ~ epiphyte ww per area + Species*depth: standardized beta
 mod_epi2 <- lmer(scale(dry_weight_g_daily_relative_increase) ~ scale(epiphyte_wet_weight_g_per_area)+Species*factor(depth_treatment)+(1|site_code/tile_id), 
                  data = analysis_data)
-summ(mod_epi2)
 anova(mod_epi2)
 plot(mod_epi2)
 

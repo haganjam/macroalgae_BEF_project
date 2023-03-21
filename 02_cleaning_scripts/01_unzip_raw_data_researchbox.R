@@ -10,6 +10,13 @@
 #' 
 #' @authors: James G. Hagan (james_hagan(at)outlook.com)
 #' 
+#' 
+#' 
+
+#In the following scripts these packages will be used, here is a list of all of them.
+#install.packages(c("dplyr", "readr", "ggplot2", "ggbeeswarm", "lubridate", "ggpubr", "ggforce", "gghalves", "MuMIn", "lme4", "lmerTest", "emmeans", "ggfortify", "car", "ggdist", "tidyr", "stringr", "here"))
+
+
 
 # load relevant libraries
 require(here)
