@@ -7,7 +7,7 @@ Repository for the macroalgae transplant experiment and field surveys conducted 
 
 All raw data along with codebooks are hosted on RESEARCHBOX and can be found at this link:
 
-+ https://researchbox.org/435&PEER_REVIEW_passcode=ECOTGX
++ https://researchbox.org/435
 
 ## Reproduce the reported analyses
 
@@ -42,7 +42,7 @@ In R-Studio go to File > New Project... > Existing Directory > Choose the extrac
 
 Once you have downloaded the repository to your computer, the next step is to download the raw data from the ResearchBox repository where it is stored. To do this, go to the following link:
 
-+ https://researchbox.org/435&PEER_REVIEW_passcode=ECOTGX
++ https://researchbox.org/435
 
 Then, click the red button near the bottom of the page called: 
 
