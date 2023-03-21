@@ -86,7 +86,7 @@ Anova(glm(freq ~ binomial_code,lost_individuals[lost_individuals$binomial_code!=
 mod_lost_individuals=(glm(freq ~ binomial_code*depth_treatment+site_code,lost_individuals,family=poisson))
 
 # check model assumptions
-#plot(mod_lost_individuals)
+# plot(mod_lost_individuals)
 
 # check the results of the model i.e. model coefficients etc.
 summary(mod_lost_individuals)
@@ -102,12 +102,17 @@ lost_individuals[lost_individuals$freq == 8,]
 table(lost_individuals$freq)
 hist(lost_individuals$freq)
 
-#Summary table S4 for lost individuals
-summary_table_S4 = lost_individuals %>% group_by(binomial_code,depth_treatment) %>% summarise(mean_lost = mean(freq),n=n())
+# summary table S4 for lost individuals
+summary_table_S4 <- 
+  lost_individuals %>% 
+  group_by(binomial_code,depth_treatment) %>% 
+  summarise(mean_lost = mean(freq),n=n())
+
+# write the summary table to S4
 write.csv(summary_table_S4, here("figures/table_S4.csv"))
 
 
-# remove outlier as it is almost certainly an incorrect measurement see end of script
+# remove outlier as it is almost certainly an incorrect measurement (see end of script)
 analysis_data <- analysis_data[-493,] 
 
 # calculate duration of the growth experiment
@@ -126,7 +131,6 @@ hist(analysis_data$growth_length_cm)
 hist(analysis_data$growth_area_cm2)
 hist(analysis_data$growth_wet_weight_g)
 hist(analysis_data$growth_perimeter_cm)
-
 
 # examine the correlation between different measures of growth
 cor(na.omit(analysis_data %>% select(contains("growth"))))
@@ -173,31 +177,35 @@ candidate_models_dw <- list(
   model11 = lm(dry_weight_total_g ~ final_area_cm2 * Species * final_wet_weight_g,data=analysis_data[!is.na(analysis_data$final_area_cm2),]))
 
 # compare multiple models to predict dryweight
-model.comparison = rbind(broom::glance(candidate_models_dw$model1),
-      broom::glance(candidate_models_dw$model2),
-      broom::glance(candidate_models_dw$model3),
-      broom::glance(candidate_models_dw$model4),
-      broom::glance(candidate_models_dw$model5),
-      broom::glance(candidate_models_dw$model6),
-      broom::glance(candidate_models_dw$model7),
-      broom::glance(candidate_models_dw$model8),
-      broom::glance(candidate_models_dw$model9),
-      broom::glance(candidate_models_dw$model10),
-      broom::glance(candidate_models_dw$model11))
+model.comparison <- 
+  rbind(broom::glance(candidate_models_dw$model1),
+        broom::glance(candidate_models_dw$model2),
+        broom::glance(candidate_models_dw$model3),
+        broom::glance(candidate_models_dw$model4),
+        broom::glance(candidate_models_dw$model5),
+        broom::glance(candidate_models_dw$model6),
+        broom::glance(candidate_models_dw$model7),
+        broom::glance(candidate_models_dw$model8),
+        broom::glance(candidate_models_dw$model9),
+        broom::glance(candidate_models_dw$model10),
+        broom::glance(candidate_models_dw$model11)
+        )
 
-model.comparison = cbind(model=
-  c("dry weight ~ area",
-    "dry weight ~ area + species",
-    "dry weight ~ area * species",
-    "dry weight ~ area + wet weight",
-    "dry weight ~ area + wet weight * species",
-    "dry weight ~ wet weight",
-    "dry weight ~ wet weight + species",
-    "dry weight ~ wet weight * species",
-    "dry weight ~ area * species + wet weight * species",
-    "dry weight ~ area * species + wet weight * species + area * wet weight",
-    "dry weight ~ area * species * wet weight"),
-  model.comparison)
+model.comparison <- 
+  cbind(model = 
+          c("dry weight ~ area",
+            "dry weight ~ area + species",
+            "dry weight ~ area * species",
+            "dry weight ~ area + wet weight",
+            "dry weight ~ area + wet weight * species",
+            "dry weight ~ wet weight",
+            "dry weight ~ wet weight + species",
+            "dry weight ~ wet weight * species",
+            "dry weight ~ area * species + wet weight * species",
+            "dry weight ~ area * species + wet weight * species + area * wet weight",
+            "dry weight ~ area * species * wet weight"),
+        model.comparison
+        )
 
 # table S5: model comparison table
 write.csv(model.comparison, here("figures/table_S5.csv"))
@@ -214,7 +222,7 @@ summary(mod_dw)
 plot(mod_dw$fitted.values, mod_dw$model$dry_weight_total_g)
 
 # make a data.frame of the observed and predicted data for plotting
-dw_pred_data = cbind(predicted_dry_weight_g = mod_dw$fitted.values, dry_weight_g = mod_dw$model$dry_weight_total_g)
+dw_pred_data <- cbind(predicted_dry_weight_g = mod_dw$fitted.values, dry_weight_g = mod_dw$model$dry_weight_total_g)
 
 # plot the observed versus predicted data
 p_S_dry_weight_prediction <- 
@@ -236,7 +244,7 @@ ggsave(filename = here("figures/fig_S3.pdf"), plot = p_S_dry_weight_prediction,
 
 # use this model to predict the dry weight before
 pred_dw <- select(analysis_data, initial_area_cm2, initial_wet_weight_g, Species)
-colnames(pred_dw) = c("final_area_cm2","final_wet_weight_g","Species")
+colnames(pred_dw) <- c("final_area_cm2","final_wet_weight_g","Species")
 predict(mod_dw, newdata=pred_dw)
 
 # add the predicted values to the data.frame
@@ -257,10 +265,11 @@ table(is.na(analysis_data$dry_weight_g_daily_relative_increase))
 # epiphyte wet weight per area
 analysis_data$epiphyte_wet_weight_g_per_area <- analysis_data$epiphyte_wet_weight_g / analysis_data$final_area_cm2
 
-####Generate Table S6: Summary statistics for initial and growth values.####
+
+# generate table S6: summary statistics for initial and growth values
 
 # prepare data for summary with initial values and growth per day
-summary.data = data.frame(species = analysis_data$Species,
+summary.data <- data.frame(species = analysis_data$Species,
                           depth_treatment = analysis_data$depth_treatment,
                           initial_dryweight_predicted_g = analysis_data$dry_weight_total_g_before_predicted, #initial dry weight
                           dryweight_growth_g_per_day = (analysis_data$dry_weight_total_g - analysis_data$dry_weight_total_g_before_predicted)/analysis_data$duration,
@@ -272,10 +281,11 @@ summary.data = data.frame(species = analysis_data$Species,
                           max_length_cm_per_day = analysis_data$growth_length_cm / analysis_data$duration)
 
 # Remove missing values
-summary.data = na.omit(summary.data)
+summary.data <- na.omit(summary.data)
 
 # create summary table by species and depth
-summary.table_species_depth = summary.data %>%
+summary.table_species_depth <- 
+  summary.data %>%
   group_by(species, depth_treatment) %>%
   summarize(mean_initial_dryweight = mean(initial_dryweight_predicted_g),
             sd_initial_dryweight = sd(initial_dryweight_predicted_g),
@@ -295,7 +305,7 @@ summary.table_species_depth = summary.data %>%
             sd_max_length_growth = sd(max_length_cm_per_day))
 
 # create summary table by species
-summary.table_species = 
+summary.table_species <- 
   summary.data %>%
   group_by(species) %>%
   summarize(mean_initial_dryweight = mean(initial_dryweight_predicted_g),
@@ -317,7 +327,7 @@ summary.table_species =
 
 # bind the summary tables together and remove NAs
 summary.table <- bind_rows(summary.table_species, summary.table_species_depth)
-summary.table$depth_treatment[is.na(summary.table$depth_treatment)] = "All"
+summary.table$depth_treatment[is.na(summary.table$depth_treatment)] <- "All"
 
 # modify summary tables
 summary.table <- 
@@ -350,10 +360,10 @@ colnames(summary.table) <- c("Species","Depth treatment (cm)","Initial dryweight
                              "Wetweight growth ± SD (g day-1)", "Initial area ± SD (cm²)", "Area growth ± SD (cm² day-1)",
                              "Initial maximum length ± SD (cm)", "Maximum length growth ± SD (cm day-1)")
 
-# write the summary to a .csv file
+# write the summary table to a .csv file
 write.csv(summary.table, here("figures/table_S6.csv"))
 
-###############
+
 # analysis of growth (function) in different depth zones
 
 # analysis for each species: fit an individual model to each species
@@ -385,6 +395,7 @@ emm_fu_ve <- emmeans(model_fu_ve, list(pairwise ~ factor(depth_treatment)), adju
 table_1_fu_ve = cbind(anova(model_fu_ve), r.squaredGLMM(model_fu_ve), 
                       N = length(resid(model_fu_ve)), model = "fu_ve")
 
+
 # Ascophyllum nodosum
 model_as_no <- lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code/tile_id), 
                     data = filter(analysis_data, binomial_code == "as_no"))
@@ -397,6 +408,7 @@ emm_as_no <- emmeans(model_as_no, list(pairwise ~ factor(depth_treatment)), adju
 # pull the results into a data.frame
 table_1_as_no = cbind(anova(model_as_no), r.squaredGLMM(model_as_no),
                       N = length(resid(model_as_no)), model = "as_no")
+
 
 # Fucus serratus
 model_fu_se <- lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code/tile_id), 
@@ -411,15 +423,16 @@ emm_fu_se <- emmeans(model_fu_se, list(pairwise ~ factor(depth_treatment)), adju
 table_1_fu_se <- cbind(anova(model_fu_se), r.squaredGLMM(model_fu_se), 
                        N = length(resid(model_fu_se)), model = "fu_se")
 
+
 # bind all the emmeans results into a list 
 emm = list(emm_fu_sp,emm_fu_ve,emm_as_no,emm_fu_se)
 
-#Create table Table S7
-write_csv(rbind(
-data.frame(species="fu_sp",emm[[1]]$`emmeans of depth_treatment`),
-data.frame(species="fu_ve",emm[[2]]$`emmeans of depth_treatment`),
-data.frame(species="as_no",emm[[3]]$`emmeans of depth_treatment`),
-data.frame(species="fu_se",emm[[4]]$`emmeans of depth_treatment`)),"figures/table_S7.csv")
+# export table S7 as a .csv file
+write_csv(rbind(data.frame(species="fu_sp",emm[[1]]$`emmeans of depth_treatment`),
+                data.frame(species="fu_ve",emm[[2]]$`emmeans of depth_treatment`),
+                data.frame(species="as_no",emm[[3]]$`emmeans of depth_treatment`),
+                data.frame(species="fu_se",emm[[4]]$`emmeans of depth_treatment`)), 
+          "figures/table_S7.csv")
 
 # table 1: bind the combined model and all individual models into a table and export as a .csv
 write_csv(rbind(table_1_fu_sp, 
@@ -535,7 +548,7 @@ ggsave(filename = here("figures/fig_4.pdf"), plot = pg,
        units = "cm", width = 6, height = 24, dpi = 450)
 
 
-# Figure S5: Epiphyte analysis
+# figure S5: Epiphyte analysis
 
 # summary Stats
 mean(analysis_data$epiphyte_wet_weight_g, na.rm=T)
@@ -554,7 +567,7 @@ densityPlot(resid(mod_epi))
 emmeans(mod_epi, list(pairwise ~ factor(depth_treatment)), adjust = "tukey")
 
 
-# Figure S5:
+# figure S5:
 
 # left panel
 
@@ -675,73 +688,89 @@ ggsave(filename = here("figures/fig_S5.pdf"), plot = p12345,
 
 # fig S4: sensitivity analysis to check for bias in lost individuals
 
+# set-up an empty list to add the sensitivity analysis results
 sensitivity_runs = list()
 
+# set the seed so that the results are fully reproducible
+set.seed(343875)
+
+# run the analysis 200 times
 for(i in 1:200) {
-  set.seed(i)
   
-  #Subset of 1 individual for each tile is drawn
- temp_data = 
-  analysis_data %>% 
-  filter(!is.na(dry_weight_g_daily_relative_increase)) %>% 
-  group_by(tile_id) %>% 
-  sample_n(1,replace = T) # can also be done for more n
+  # subset of 1 individual for each tile is drawn
+  temp_data = 
+    analysis_data %>% 
+    filter(!is.na(dry_weight_g_daily_relative_increase)) %>% 
+    group_by(tile_id) %>% 
+    sample_n(1, replace = T) # can also be done for more n
+  
+  # a growth comparison is calculated for each species with emmean and CI
+  model.growth.fu.sp.species <- lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code),
+                                     data = filter(temp_data, binomial_code == "fu_sp"))
+  model.growth.fu.ve.species <- lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code),
+                                     data = filter(temp_data, binomial_code == "fu_ve"))
+  model.growth.as.no.species <- lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code),
+                                     data = filter(temp_data, binomial_code == "as_no"))
+  model.growth.fu.se.species <- lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code),
+                                     data = filter(temp_data, binomial_code == "fu_se"))
+  
+  # calculate emmeans for all models
+  emm_temp.fu.sp <- emmeans(model.growth.fu.sp.species, list(pairwise ~ factor(depth_treatment)), adjust = "tukey")
+  emm_temp.fu.ve <- emmeans(model.growth.fu.ve.species, list(pairwise ~ factor(depth_treatment)), adjust = "tukey")
+  emm_temp.as.no <- emmeans(model.growth.as.no.species, list(pairwise ~ factor(depth_treatment)), adjust = "tukey")
+  emm_temp.fu.se <- emmeans(model.growth.fu.se.species, list(pairwise ~ factor(depth_treatment)), adjust = "tukey")
+  
+  # create table with the emmean and ci for each species in each depth zone
+  emm_temp <- rbind(
+    data.frame(emm_temp.fu.sp$`emmeans of depth_treatment`,Species="Fucus spiralis"),
+    data.frame(emm_temp.fu.ve$`emmeans of depth_treatment`,Species="Fucus vesiculosus"),
+    data.frame(emm_temp.as.no$`emmeans of depth_treatment`,Species="Ascophyllum nodosum"),
+    data.frame(emm_temp.fu.se$`emmeans of depth_treatment`,Species="Fucus serratus")
+  )
+  
+  # save to list
+  sensitivity_runs[[i]] = cbind(emm_temp, runnr = i)
 
-# a growth comparison is calculated for each species with emmean and CI
-model.growth.fu.sp.species <- lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code),
-                                  data = filter(temp_data, binomial_code == "fu_sp"))
-model.growth.fu.ve.species <- lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code),
-                                   data = filter(temp_data, binomial_code == "fu_ve"))
-model.growth.as.no.species <- lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code),
-                                   data = filter(temp_data, binomial_code == "as_no"))
-model.growth.fu.se.species <- lmer(dry_weight_g_daily_relative_increase ~ factor(depth_treatment) + (1|origin_site_code)+(1|site_code),
-                                   data = filter(temp_data, binomial_code == "fu_se"))
-
-# calculate emmeans for all models
-emm_temp.fu.sp <- emmeans(model.growth.fu.sp.species, list(pairwise ~ factor(depth_treatment)), adjust = "tukey")
-emm_temp.fu.ve <- emmeans(model.growth.fu.ve.species, list(pairwise ~ factor(depth_treatment)), adjust = "tukey")
-emm_temp.as.no <- emmeans(model.growth.as.no.species, list(pairwise ~ factor(depth_treatment)), adjust = "tukey")
-emm_temp.fu.se <- emmeans(model.growth.fu.se.species, list(pairwise ~ factor(depth_treatment)), adjust = "tukey")
-
-# create table with the emmean and ci for each species in each depth zone
-emm_temp <- rbind(
-  data.frame(emm_temp.fu.sp$`emmeans of depth_treatment`,Species="Fucus spiralis"),
-  data.frame(emm_temp.fu.ve$`emmeans of depth_treatment`,Species="Fucus vesiculosus"),
-  data.frame(emm_temp.as.no$`emmeans of depth_treatment`,Species="Ascophyllum nodosum"),
-  data.frame(emm_temp.fu.se$`emmeans of depth_treatment`,Species="Fucus serratus")
-)
-#save to list
-sensitivity_runs[[i]] = cbind(emm_temp, runnr = i)
 }
 
 # bind all sensitivity runs to one large table
 df_sensitivity <- do.call("rbind",sensitivity_runs)
 
 # order factors for plotting
-df_sensitivity$Species <- factor(df_sensitivity$Species,ordered = TRUE,
+
+# species
+df_sensitivity$Species <- factor(df_sensitivity$Species, ordered = TRUE,
                                 levels=c("Fucus spiralis","Fucus vesiculosus","Ascophyllum nodosum","Fucus serratus"))
-df_sensitivity$depth_treatment <- factor(df_sensitivity$depth_treatment,ordered = TRUE,
+
+# depth
+df_sensitivity$depth_treatment <- factor(df_sensitivity$depth_treatment, ordered = TRUE,
                                  levels=c("-5","-12","-28","-40"))
 
 
-#Analysis as in the manuscript with all usable individuals
-main.analysis = 
+# analysis as in the manuscript with all usable individuals
+main.analysis <-
   
-  #add column with runnr
-  cbind(runnr=0,
-        #combine all columns from the emm
-  rbind(
-  data.frame(emm[[1]]$`emmeans of depth_treatment`,Species="Fucus spiralis"),
-  data.frame(emm[[2]]$`emmeans of depth_treatment`,Species="Fucus vesiculosus"),
-  data.frame(emm[[3]]$`emmeans of depth_treatment`,Species="Ascophyllum nodosum"),
-  data.frame(emm[[4]]$`emmeans of depth_treatment`,Species="Fucus serratus")))
+  # add column with runnr
+  cbind(runnr = 0,
+      
+        # combine all columns from the emm
+  rbind(data.frame(emm[[1]]$`emmeans of depth_treatment`,Species="Fucus spiralis"),
+        data.frame(emm[[2]]$`emmeans of depth_treatment`,Species="Fucus vesiculosus"),
+        data.frame(emm[[3]]$`emmeans of depth_treatment`,Species="Ascophyllum nodosum"),
+        data.frame(emm[[4]]$`emmeans of depth_treatment`,Species="Fucus serratus")) 
+  )
 
+# reorder the factors for plotting
+
+# species
 main.analysis$Species <- factor(main.analysis$Species,ordered = TRUE,
                                  levels=c("Fucus spiralis","Fucus vesiculosus","Ascophyllum nodosum","Fucus serratus"))
+
+# depth
 main.analysis$depth_treatment <- factor(main.analysis$depth_treatment,ordered = TRUE,
                                          levels=c("-5","-12","-28","-40"))
 
-
+# plot the sensitivity analysis
 plot_sensitivity <-
   
   df_sensitivity %>% 
@@ -772,6 +801,7 @@ plot_sensitivity <-
   ylab(expression("Dry weight change"~(g~g^{-1}~"%"~day^{-1}) ))+
   xlab("Depth treatment (cm)")
 
+# export the sensitivity analysis plot
 ggsave(filename = here("figures/fig_S4.pdf"), plot = plot_sensitivity, 
        units = "cm", width = 18, height = 17, dpi = 450)
 
