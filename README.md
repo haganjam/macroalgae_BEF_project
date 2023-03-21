@@ -35,7 +35,8 @@ If you don't have git installed, you can download the repository as zip file and
 --> Clone or download (green button top right)
 --> Download Zip
 
-then save and extract the zip where you want the directory to be saved on your computer. 
+then save and extract the zip where you want the directory to be saved on your computer. To run the code correctly, it is important to create a R-Project.
+In R-Studio go to File > New Project... > Existing Directory > Choose the extracted directory.
 
 ### Download the raw data
 
