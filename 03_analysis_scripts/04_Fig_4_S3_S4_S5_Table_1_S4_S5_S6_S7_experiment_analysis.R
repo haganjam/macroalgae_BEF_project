@@ -535,6 +535,36 @@ for(i in 1:length(sp_names)) {
 # check one plot
 plot_list[[1]]
 
+# export a figure for the thesis
+thesis <- TRUE
+if(thesis) {
+  
+  plot_list <- lapply(plot_list, function(x) {
+    
+    y <- 
+      x +
+      ylab(expression("Dry weight change "~" "~("%"~day^{-1}) ))
+    
+    return(y)
+    
+  })
+  
+  plot_list[[3]] <- plot_list[[3]] + xlab("Depth treatment (cm)")
+  
+  # arrange these plots into a single figure
+  pg <- ggarrange(plot_list[[1]], plot_list[[2]], plot_list[[3]], plot_list[[4]],
+                  ncol = 2, nrow = 2,
+                  labels = c("a", "b", "c", "d"),
+                  font.label = list(size = 10, color = "black", face = "plain"),
+                  hjust = -4.5)
+  plot(pg)
+  
+  # export Fig. 4
+  ggsave(filename = here("figures/fig_X.svg"), plot = pg, 
+         units = "cm", width = 12, height = 12, dpi = 450)
+  
+}
+
 # arrange these plots into a single figure
 pg <- ggarrange(plot_list[[1]], plot_list[[2]], plot_list[[3]], plot_list[[4]],
                 ncol = 1, nrow = 4,
@@ -546,6 +576,8 @@ plot(pg)
 # export Fig. 4
 ggsave(filename = here("figures/fig_4.pdf"), plot = pg, 
        units = "cm", width = 6, height = 24, dpi = 450)
+
+
 
 
 # figure S5: Epiphyte analysis
